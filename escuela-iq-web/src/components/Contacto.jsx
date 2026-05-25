@@ -1,0 +1,133 @@
+'use client';
+import { motion } from 'framer-motion';
+import { Mail, Phone, MapPin, Send, MessageSquare, User, Building, Sparkles } from 'lucide-react';
+
+const Contacto = () => {
+  return (
+    <section id="contacto" className="py-32 bg-brand-gray relative overflow-hidden">
+      {/* Decorative background elements */}
+      <div className="absolute top-0 right-0 w-1/3 h-full bg-white/50 -skew-x-12 translate-x-1/2 z-0" />
+      <div className="absolute bottom-0 left-0 w-64 h-64 bg-brand-teal/5 rounded-full blur-3xl -ml-32 -mb-32 z-0" />
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="grid lg:grid-cols-12 gap-16 items-start">
+          
+          {/* Info Side */}
+          <div className="lg:col-span-5">
+            <motion.div
+              initial={{ opacity: 0, x: -30 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true }}
+            >
+              <div className="w-16 h-1.5 bg-brand-navy mb-8" />
+              <h2 className="text-5xl md:text-7xl font-display font-black text-brand-navy uppercase leading-[0.9] tracking-tighter mb-10">
+                CONECTA <br />
+                <span className="text-brand-teal italic">CON NOSOTROS</span>
+              </h2>
+              <p className="text-xl text-gray-500 mb-16 leading-relaxed border-l-4 border-brand-teal pl-8">
+                Estamos listos para colaborar en tu próximo proyecto de ingeniería 
+                o responder tus dudas académicas con el más alto rigor científico.
+              </p>
+
+              <div className="space-y-10">
+                <ContactItem 
+                  icon={<Mail size={22} />} 
+                  title="CANAL DIGITAL" 
+                  content="contacto@escuelaiq.edu" 
+                  link="mailto:contacto@escuelaiq.edu"
+                />
+                <ContactItem 
+                  icon={<Phone size={22} />} 
+                  title="LÍNEA DIRECTA" 
+                  content="+51 (1) 456 7890" 
+                  link="tel:+5114567890"
+                />
+                <ContactItem 
+                  icon={<MapPin size={22} />} 
+                  title="CAMPUS CENTRAL" 
+                  content="Av. Universitaria 1234, Lima" 
+                  link="#"
+                />
+              </div>
+            </motion.div>
+          </div>
+
+          {/* Form Side */}
+          <div className="lg:col-span-7">
+            <motion.div
+              initial={{ opacity: 0, y: 30 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="bg-brand-navy p-10 lg:p-16 shadow-premium relative overflow-hidden"
+            >
+              {/* Internal decorative elements */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-teal/10 rounded-full -mr-16 -mt-16 blur-2xl" />
+              <div className="absolute bottom-0 left-0 w-48 h-48 bg-white/5 rounded-full -ml-24 -mb-24 blur-3xl" />
+              
+              <div className="relative z-10">
+                <div className="flex items-center gap-3 text-brand-teal text-[10px] font-black tracking-[0.4em] uppercase mb-10">
+                  <Sparkles size={14} /> CONSULTA INSTITUCIONAL
+                </div>
+                
+                <form className="space-y-8">
+                  <div className="grid md:grid-cols-2 gap-8">
+                    <InputGroup icon={<User size={18} />} label="NOMBRE COMPLETO" placeholder="Ej. Juan Pérez" />
+                    <InputGroup icon={<Building size={18} />} label="ORGANIZACIÓN" placeholder="Empresa o Universidad" />
+                  </div>
+                  
+                  <InputGroup icon={<Mail size={18} />} label="CORREO ELECTRÓNICO" placeholder="usuario@dominio.com" type="email" />
+                  
+                  <div className="space-y-4">
+                    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+                      <MessageSquare size={14} className="text-brand-teal" /> MENSAJE O REQUERIMIENTO
+                    </label>
+                    <textarea 
+                      className="w-full bg-white/5 border-b-2 border-white/10 p-4 text-white font-sans focus:border-brand-teal focus:outline-none transition-all duration-500 min-h-[140px] resize-none hover:bg-white/10"
+                      placeholder="Describe brevemente tu consulta..."
+                    ></textarea>
+                  </div>
+
+                  <motion.button 
+                    whileHover={{ scale: 1.02, y: -2, backgroundColor: '#ffffff', color: '#003f5d' }}
+                    whileTap={{ scale: 0.98 }}
+                    className="w-full bg-brand-teal text-white font-display font-black text-[12px] tracking-[0.3em] py-6 transition-all duration-500 flex items-center justify-center gap-4 uppercase shadow-2xl border-2 border-transparent hover:border-brand-navy"
+                  >
+                    ENVIAR REQUERIMIENTO <Send size={18} />
+                  </motion.button>
+                </form>
+              </div>
+            </motion.div>
+          </div>
+
+        </div>
+      </div>
+    </section>
+  );
+};
+
+const ContactItem = ({ icon, title, content, link }) => (
+  <a href={link} className="flex gap-6 items-center group">
+    <div className="w-16 h-16 bg-white shadow-soft flex items-center justify-center text-brand-navy group-hover:bg-brand-navy group-hover:text-white transition-all duration-500 group-hover:-translate-y-1">
+      {icon}
+    </div>
+    <div>
+      <h4 className="text-[10px] font-black tracking-[0.3em] text-slate-400 uppercase mb-1">{title}</h4>
+      <p className="text-lg font-display font-black text-brand-navy group-hover:text-brand-teal transition-colors tracking-tight">{content}</p>
+    </div>
+  </a>
+);
+
+const InputGroup = ({ label, placeholder, icon, type = "text" }) => (
+  <div className="space-y-4">
+    <label className="flex items-center gap-2 text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">
+      <span className="text-brand-teal">{icon}</span> {label}
+    </label>
+    <input 
+      type={type}
+      className="w-full bg-white/5 border-b-2 border-white/10 p-4 text-white font-sans focus:border-brand-teal focus:outline-none transition-all duration-500 hover:bg-white/10"
+      placeholder={placeholder}
+    />
+  </div>
+);
+
+export default Contacto;

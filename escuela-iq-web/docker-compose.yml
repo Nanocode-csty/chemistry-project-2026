@@ -1,0 +1,12 @@
+services: 
+  frontend: 
+    build: . 
+    container_name: escuela-iq-frontend 
+    ports: 
+      - "3000:3000" 
+    restart: unless-stopped 
+    environment: 
+      - NODE_ENV=production 
+    volumes: 
+      # Si deseas montar archivos de medios sin reconstruir la imagen 
+      - ./public:/app/public 
