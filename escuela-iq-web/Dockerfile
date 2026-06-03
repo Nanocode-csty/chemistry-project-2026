@@ -8,6 +8,10 @@ RUN npm install && npm cache clean --force
 
 COPY . . 
 
+# Argumentos de construcción para variables públicas
+ARG NEXT_PUBLIC_BACKEND_URL
+ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+
 RUN npm run build 
 
 # Etapa 2: Imagen final ligera 

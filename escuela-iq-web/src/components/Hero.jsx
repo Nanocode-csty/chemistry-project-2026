@@ -1,9 +1,38 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
-import { ArrowRight, Beaker, ChevronRight, Sparkles, Zap, ShieldCheck } from 'lucide-react';
+import { ArrowRight, Beaker, ChevronRight, Sparkles, Zap, ShieldCheck, Loader2 } from 'lucide-react';
+import { dbOperations } from '@/lib/supabase';
 
 const Hero = () => {
+  const [hero, setHero] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchHero = async () => {
+      try {
+        const { data, error } = await dbOperations.getHero();
+        if (data) setHero(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchHero();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="w-10 h-10 text-brand-navy animate-spin" />
+      </div>
+    );
+  }
+
+  if (!hero) return null;
+
   const containerVariants = {
     hidden: { opacity: 0 },
     visible: {
@@ -55,9 +84,9 @@ const Hero = () => {
                 variants={itemVariants}
                 className="flex items-center gap-4 mb-6"
               >
-                <div className="w-12 h-1 bg-brand-teal" />
+                <div className="w-12 h-1 bg-brand-navy" />
                 <span className="text-brand-navy font-display font-black text-[11px] tracking-[0.4em] uppercase flex items-center gap-2">
-                  <Sparkles size={14} className="text-brand-teal" /> INNOVACIÓN QUÍMICA 2026
+                  <Sparkles size={14} className="text-brand-navy" /> INNOVACIÓN QUÍMICA 2026
                 </span>
               </motion.div>
               
@@ -65,28 +94,27 @@ const Hero = () => {
                 variants={itemVariants}
                 className="text-5xl md:text-8xl font-display font-black text-brand-navy leading-[0.9] mb-8 tracking-tighter uppercase"
               >
-                CIENCIA <br />
-                QUE <span className="text-brand-teal italic">TRANSFORMA</span> <br />
-                EL FUTURO.
+                {hero.titulo_linea1} <br />
+                {(hero.titulo_linea2 || '').split(' ')[0]} <span className="text-brand-teal italic">{(hero.titulo_linea2 || '').split(' ').slice(1).join(' ')}</span> <br />
+                {hero.titulo_linea3}
               </motion.h1>
               
               <motion.p 
                 variants={itemVariants}
-                className="text-lg md:text-xl text-gray-500 mb-10 max-w-xl font-sans leading-relaxed border-l-4 border-brand-teal pl-8"
+                className="text-lg md:text-xl text-brand-muted mb-10 max-w-xl font-sans leading-relaxed border-l-4 border-brand-navy pl-8"
               >
-                Impulsamos la vanguardia científica con soluciones de ingeniería química 
-                que redefinen la sostenibilidad industrial a nivel global.
+                {hero.descripcion}
               </motion.p>
 
               <motion.div 
                 variants={itemVariants}
                 className="flex flex-col sm:flex-row gap-5"
               >
-                <CTAButton href="/investigaciones" primary>
-                  PROGRAMA CIENTÍFICO
+                <CTAButton href={hero.cta_primario_link} primary>
+                  {hero.cta_primario_texto}
                 </CTAButton>
-                <CTAButton href="/proyectos">
-                  CASOS DE ÉXITO
+                <CTAButton href={hero.cta_secundario_link}>
+                  {hero.cta_secundario_texto}
                 </CTAButton>
               </motion.div>
 
@@ -110,13 +138,13 @@ const Hero = () => {
               transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
               className="relative z-10 h-full"
             >
-              <div className="relative overflow-hidden shadow-premium aspect-[4/5] lg:aspect-[3/4] lg:h-[650px] group border-b-8 border-brand-teal bg-brand-gray">
+              <div className="relative overflow-hidden shadow-premium aspect-[4/5] lg:aspect-[3/4] lg:h-[650px] group border-b-8 border-brand-navy bg-brand-light">
                 <img 
-                  src="https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&q=80&w=1200" 
+                  src={hero.imagen_url || "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&q=80&w=1200"} 
                   alt="Ingeniería Química Avanzada" 
-                  className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[3000ms] ease-out relative z-10"
+                  className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-[3000ms] ease-out relative z-10"
                 />
-                <div className="absolute inset-0 bg-brand-navy/20 z-20 pointer-events-none" />
+                <div className="absolute inset-0 bg-brand-navy/10 z-20 pointer-events-none" />
                 
                 {/* Floating News Card */}
                 <motion.div 
@@ -124,14 +152,14 @@ const Hero = () => {
                   animate="animate"
                   className="absolute bottom-6 left-0 right-0 px-6 z-30"
                 >
-                  <div className="bg-brand-navy p-8 text-white shadow-2xl relative overflow-hidden group/card border-t-4 border-brand-teal">
-                    <div className="absolute top-0 right-0 w-32 h-32 bg-brand-teal/20 rounded-full -mr-16 -mt-16 blur-2xl" />
-                    <div className="flex items-center gap-2 text-brand-teal text-[10px] font-black tracking-[0.3em] uppercase mb-4">
+                  <div className="bg-brand-navy p-8 text-white shadow-premium relative overflow-hidden group/card border-t-4 border-brand-accent">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
+                    <div className="flex items-center gap-2 text-brand-accent text-[10px] font-black tracking-[0.3em] uppercase mb-4">
                       <Zap size={14} /> NOVEDAD TECNOLÓGICA
                     </div>
                     <h3 className="text-xl font-display font-black uppercase mb-3 relative z-10 leading-tight">Síntesis de <br />Hidrógeno Verde</h3>
-                    <p className="text-xs text-white/60 mb-6 relative z-10 font-sans">Nuevo proceso catalítico optimizado para la industria energética.</p>
-                    <Link href="/investigaciones" className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase relative z-10 text-brand-teal hover:text-white transition-colors">
+                    <p className="text-xs text-white/70 mb-6 relative z-10 font-sans">Nuevo proceso catalítico optimizado para la industria energética.</p>
+                    <Link href="/investigaciones" className="flex items-center gap-2 text-[10px] font-black tracking-widest uppercase relative z-10 text-brand-accent hover:text-white transition-colors">
                       VER DETALLES <ChevronRight size={14} />
                     </Link>
                   </div>
@@ -143,22 +171,14 @@ const Hero = () => {
             <motion.div 
               animate={{ 
                 rotate: 360,
-                scale: [1, 1.1, 1]
+                scale: [1, 1.05, 1]
               }}
               transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-              className="absolute -top-6 -right-6 w-32 h-32 border-2 border-brand-teal/20 rounded-full z-0 hidden lg:block" 
+              className="absolute -top-6 -right-6 w-32 h-32 border-2 border-white/10 rounded-full z-0 hidden lg:block" 
             />
-            <div className="absolute top-1/2 -left-20 w-64 h-64 bg-brand-teal/10 rounded-full blur-[120px] z-0" />
+            <div className="absolute top-1/2 -left-20 w-64 h-64 bg-brand-navy/5 rounded-full blur-[120px] z-0" />
           </div>
-
         </div>
-      </div>
-
-      {/* Vertical Label */}
-      <div className="absolute left-10 bottom-24 hidden xl:block origin-left -rotate-90">
-        <span className="text-[10px] font-black tracking-[0.6em] text-gray-300 uppercase">
-          SCIENTIFIC EXCELLENCE • INDUSTRIAL INNOVATION • 2026
-        </span>
       </div>
     </section>
   );

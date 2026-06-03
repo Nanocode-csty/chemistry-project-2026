@@ -13,6 +13,24 @@
 
 @layer components { 
   .text-gradient { 
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-emerald-600 to-teal-500; 
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-navy to-brand-teal; 
   } 
 } 
+
+/* Estilos para intensificar la experiencia visual profesional */
+::selection {
+  @apply bg-brand-navy/10 text-brand-navy;
+}
+
+body {
+  @apply text-brand-dark bg-white antialiased;
+}
+
+/* Mejora de legibilidad corporativa */
+p {
+  @apply text-brand-muted leading-relaxed;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply text-brand-navy font-display;
+}

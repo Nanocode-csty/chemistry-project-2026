@@ -8,140 +8,115 @@ import {
   Building2,
   TrendingUp,
   AlertCircle,
+  Clock,
+  ChevronRight,
+  Zap,
+  Plus,
 } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { DashboardSkeleton } from '@/components/intranet/Skeleton';
+import { Badge, Button } from '@/components/intranet/Forms';
+import Link from 'next/link';
 
-function StatCard({ icon: Icon, label, value, subtext, color = 'blue' }) {
-  const colorClasses = {
-    blue: 'bg-blue-50 text-blue-600 border-blue-200',
-    green: 'bg-green-50 text-green-600 border-green-200',
-    red: 'bg-red-50 text-red-600 border-red-200',
-    yellow: 'bg-yellow-50 text-yellow-600 border-yellow-200',
+function StatCard({ icon: Icon, label, value, subtext, color = 'blue', delay = 0 }) {
+  const colorMap = {
+    blue: 'border-blue-100 bg-blue-50/30 text-blue-600',
+    green: 'border-green-100 bg-green-50/30 text-green-600',
+    red: 'border-red-100 bg-red-50/30 text-red-600',
+    yellow: 'border-yellow-100 bg-yellow-50/30 text-yellow-600',
+    navy: 'border-brand-navy/10 bg-brand-navy/5 text-brand-navy',
   };
 
   return (
-    <div className={`${colorClasses[color]} border rounded-lg p-6 shadow-sm`}>
-      <div className="flex items-start justify-between">
-        <div>
-          <p className="text-sm text-gray-600 font-medium">{label}</p>
-          <p className="text-3xl font-bold mt-2">{value}</p>
-          {subtext && <p className="text-xs text-gray-500 mt-1">{subtext}</p>}
-        </div>
-        <div className={`p-3 rounded-lg ${colorClasses[color]}`}>
-          <Icon className="w-6 h-6" />
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ delay }}
+      className={`bg-white p-6 rounded-lg border shadow-sm flex items-center justify-between group hover:shadow-premium transition-all duration-300 ${colorMap[color]}`}
+    >
+      <div>
+        <p className="text-[10px] font-black uppercase tracking-widest opacity-70 mb-1">{label}</p>
+        <div className="flex items-baseline gap-2">
+          <h3 className="text-3xl font-black tracking-tight">{value}</h3>
+          {subtext && <span className="text-xs font-bold opacity-60">{subtext}</span>}
         </div>
       </div>
-    </div>
+      <div className={`p-4 rounded-sm transition-transform group-hover:scale-110 ${colorMap[color].replace('border-', 'bg-').replace('/30', '/10')}`}>
+        <Icon className="w-6 h-6" />
+      </div>
+    </motion.div>
   );
 }
 
-function EnvironmentCard({ ambiente, equipos }) {
-  const disponibles = equipos.filter((e) => e.estado === 'disponible').length;
-  const ocupados = equipos.filter((e) => e.estado === 'ocupado').length;
-  const mantenimiento = equipos.filter(
-    (e) => e.estado === 'en_mantenimiento'
-  ).length;
-
-  const total = equipos.length;
-
+function RecentActivity({ prestamos }) {
   return (
-    <div className="bg-white rounded-lg shadow-md p-6 hover:shadow-lg transition-shadow">
-      <h3 className="text-lg font-semibold text-gray-800 mb-4">
-        {ambiente.nombre}
-      </h3>
-
-      {ambiente.descripcion && (
-        <p className="text-sm text-gray-600 mb-4">{ambiente.descripcion}</p>
-      )}
-
-      {/* Estadísticas de equipos */}
-      <div className="space-y-3">
-        <div className="flex items-center justify-between pb-3 border-b border-gray-100">
-          <span className="text-sm text-gray-600">Total de equipos:</span>
-          <span className="font-semibold text-gray-800">{total}</span>
-        </div>
-
-        <div className="grid grid-cols-3 gap-2">
-          <div className="bg-green-50 rounded p-3 text-center">
-            <p className="text-2xl font-bold text-green-600">{disponibles}</p>
-            <p className="text-xs text-gray-600">Disponibles</p>
-          </div>
-          <div className="bg-blue-50 rounded p-3 text-center">
-            <p className="text-2xl font-bold text-blue-600">{ocupados}</p>
-            <p className="text-xs text-gray-600">Ocupados</p>
-          </div>
-          <div className="bg-red-50 rounded p-3 text-center">
-            <p className="text-2xl font-bold text-red-600">{mantenimiento}</p>
-            <p className="text-xs text-gray-600">Mantenimiento</p>
-          </div>
-        </div>
+    <div className="bg-white rounded-lg shadow-premium border border-brand-border overflow-hidden">
+      <div className="p-6 border-b border-brand-border flex items-center justify-between">
+        <h3 className="font-display font-black text-brand-navy tracking-tight uppercase">Préstamos Recientes</h3>
+        <Link href="/intranet/prestamos" className="text-[10px] font-black text-brand-teal hover:text-brand-navy transition-colors tracking-widest uppercase flex items-center gap-1">
+          Ver todos <ChevronRight className="w-3 h-3" />
+        </Link>
       </div>
-
-      {/* Equipos en el ambiente */}
-      {equipos.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-100">
-          <p className="text-xs font-semibold text-gray-600 mb-3">
-            EQUIPOS EN ESTE AMBIENTE
-          </p>
-          <div className="space-y-2 max-h-48 overflow-y-auto">
-            {equipos.map((equipo) => (
-              <div
-                key={equipo.id}
-                className="flex items-center justify-between bg-gray-50 p-2 rounded text-xs"
-              >
-                <div className="flex-1">
-                  <p className="font-medium text-gray-700">{equipo.nombre}</p>
-                  <p className="text-gray-500">{equipo.codigo}</p>
-                </div>
-                <span
-                  className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                    equipo.estado === 'disponible'
-                      ? 'bg-green-100 text-green-700'
-                      : equipo.estado === 'ocupado'
-                        ? 'bg-blue-100 text-blue-700'
-                        : 'bg-red-100 text-red-700'
-                  }`}
-                >
-                  {equipo.estado === 'disponible'
-                    ? 'Disponible'
-                    : equipo.estado === 'ocupado'
-                      ? 'Ocupado'
-                      : 'Mantenimiento'}
-                </span>
+      <div className="divide-y divide-brand-border">
+        {prestamos.slice(0, 5).map((p, i) => (
+          <motion.div 
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: i * 0.1 }}
+            key={p.id} 
+            className="p-4 flex items-center justify-between hover:bg-brand-gray/30 transition-colors"
+          >
+            <div className="flex items-center gap-4">
+              <div className={`p-2 rounded-sm ${p.fecha_devolucion ? 'bg-gray-100 text-gray-400' : 'bg-brand-navy text-white'}`}>
+                <Package className="w-4 h-4" />
               </div>
-            ))}
+              <div>
+                <p className="font-bold text-sm text-brand-navy">{p.equipo?.nombre}</p>
+                <p className="text-xs text-gray-500">{p.estudiante?.nombre}</p>
+              </div>
+            </div>
+            <div className="text-right">
+              <Badge color={p.fecha_devolucion ? 'gray' : 'blue'}>
+                {p.fecha_devolucion ? 'DEVUELTO' : 'ACTIVO'}
+              </Badge>
+              <p className="text-[10px] text-gray-400 font-bold mt-1 uppercase">
+                {new Date(p.fecha_prestamo).toLocaleDateString()}
+              </p>
+            </div>
+          </motion.div>
+        ))}
+        {prestamos.length === 0 && (
+          <div className="p-10 text-center text-gray-400 italic text-sm">
+            No hay actividad reciente.
           </div>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
 
 export default function Dashboard() {
   const [stats, setStats] = useState(null);
-  const [ambientes, setAmbientes] = useState([]);
-  const [equipos, setEquipos] = useState([]);
+  const [prestamos, setPrestamos] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
+    setIsMounted(true);
     const fetchData = async () => {
       try {
         setLoading(true);
-
-        // Obtener estadísticas, ambientes y equipos (todos en paralelo)
-        const [statsData, ambientesRes, equiposRes] = await Promise.all([
+        const [statsRes, prestamosRes] = await Promise.all([
           dbOperations.getDashboardStats(),
-          dbOperations.getAmbientes(),
-          dbOperations.getEquipos()
+          dbOperations.getPrestamos(),
         ]);
         
-        setStats(statsData);
-        
-        if (ambientesRes.error) throw ambientesRes.error;
-        setAmbientes(ambientesRes.data || []);
-        
-        if (equiposRes.error) throw equiposRes.error;
-        setEquipos(equiposRes.data || []);
+        if (statsRes.error) throw new Error(typeof statsRes.error === 'string' ? statsRes.error : (statsRes.error.message || 'Error al obtener estadísticas'));
+        if (prestamosRes.error) throw new Error(typeof prestamosRes.error === 'string' ? prestamosRes.error : (prestamosRes.error.message || 'Error al obtener préstamos'));
+
+        setStats(statsRes.data);
+        setPrestamos(prestamosRes.data || []);
       } catch (err) {
         console.error('Error fetching dashboard data:', err);
         setError(err.message);
@@ -153,123 +128,111 @@ export default function Dashboard() {
     fetchData();
   }, []);
 
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center h-96">
-        <div className="text-center">
-          <div className="inline-block animate-spin mb-4">
-            <div className="w-12 h-12 border-4 border-blue-200 border-t-blue-600 rounded-full"></div>
-          </div>
-          <p className="text-gray-600">Cargando dashboard...</p>
-        </div>
-      </div>
-    );
-  }
+  if (!isMounted || loading) return <DashboardSkeleton />;
 
   return (
-    <div className="space-y-8">
-      {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold text-gray-800">Dashboard</h1>
-        <p className="text-gray-600 mt-2">
-          Resumen de la gestión de inventarios
-        </p>
+    <div className="space-y-10">
+      {/* Welcome Header */}
+      <div className="bg-brand-navy text-white p-10 rounded-lg shadow-2xl relative overflow-hidden group">
+        <div className="absolute top-0 right-0 p-12 opacity-10 group-hover:scale-110 transition-transform duration-700">
+          <Building2 className="w-64 h-64" />
+        </div>
+        <div className="relative z-10">
+          <h1 className="text-4xl font-black tracking-tight mb-2 uppercase">Panel de Control</h1>
+          <p className="text-brand-teal font-bold tracking-widest text-sm uppercase opacity-80">
+            Escuela de Ingeniería Química • Gestión de Inventarios
+          </p>
+          <div className="mt-8 flex gap-4">
+            <Link href="/intranet/prestamos">
+              <Button variant="primary" className="bg-white !text-brand-navy hover:bg-brand-teal hover:!text-white">
+                <Plus className="w-4 h-4 mr-2" /> NUEVO PRÉSTAMO
+              </Button>
+            </Link>
+            <Link href="/intranet/equipos">
+              <Button variant="secondary" className="border-white/30 text-white hover:bg-white/10">
+                VER INVENTARIO
+              </Button>
+            </Link>
+          </div>
+        </div>
       </div>
 
-      {/* Error message */}
-      {error && (
-        <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded">
-          <div className="flex items-center">
-            <AlertCircle className="w-5 h-5 text-red-600 mr-3" />
-            <p className="text-red-700">{error}</p>
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <StatCard
+          icon={Building2}
+          label="Laboratorios"
+          value={stats?.totalAmbientes || 0}
+          color="navy"
+          delay={0.1}
+        />
+        <StatCard
+          icon={Package}
+          label="Total Equipos"
+          value={stats?.totalEquipos || 0}
+          color="navy"
+          delay={0.2}
+        />
+        <StatCard
+          icon={Users}
+          label="Estudiantes"
+          value={stats?.totalEstudiantes || 0}
+          color="navy"
+          delay={0.3}
+        />
+        <StatCard
+          icon={TrendingUp}
+          label="Préstamos Activos"
+          value={stats?.prestamosPendientes || 0}
+          color="yellow"
+          delay={0.4}
+        />
+      </div>
+
+      {/* Secondary Stats & Activity */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        {/* Status Breakdown */}
+        <div className="lg:col-span-1 space-y-6">
+          <h3 className="font-display font-black text-brand-navy tracking-tight uppercase text-lg">Estado del Inventario</h3>
+          <div className="space-y-4">
+            <div className="bg-white p-6 rounded-lg border border-brand-border shadow-sm flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-3 h-3 rounded-full bg-green-500" />
+                <span className="font-bold text-sm text-gray-600 uppercase tracking-wider">Disponibles</span>
+              </div>
+              <span className="text-2xl font-black text-brand-navy">{stats?.equiposDisponibles || 0}</span>
+            </div>
+            <div className="bg-white p-6 rounded-lg border border-brand-border shadow-sm flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-3 h-3 rounded-full bg-brand-accent" />
+                <span className="font-bold text-sm text-gray-600 uppercase tracking-wider">En Uso</span>
+              </div>
+              <span className="text-2xl font-black text-brand-navy">{stats?.equiposOcupados || 0}</span>
+            </div>
+            <div className="bg-white p-6 rounded-lg border border-brand-border shadow-sm flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="w-3 h-3 rounded-full bg-brand-red" />
+                <span className="font-bold text-sm text-gray-600 uppercase tracking-wider">Mantenimiento</span>
+              </div>
+              <span className="text-2xl font-black text-brand-navy">{stats?.equiposMantenimiento || 0}</span>
+            </div>
           </div>
-        </div>
-      )}
 
-      {/* Tarjetas de estadísticas */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-          <StatCard
-            icon={Building2}
-            label="Total de Ambientes"
-            value={stats.totalAmbientes}
-            color="blue"
-          />
-          <StatCard
-            icon={Users}
-            label="Total de Estudiantes"
-            value={stats.totalEstudiantes}
-            color="green"
-          />
-          <StatCard
-            icon={Package}
-            label="Total de Equipos"
-            value={stats.totalEquipos}
-            color="blue"
-          />
-          <StatCard
-            icon={TrendingUp}
-            label="Préstamos Pendientes"
-            value={stats.prestamosPendientes}
-            color="yellow"
-          />
-        </div>
-      )}
-
-      {/* Resumen de estados */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <StatCard
-            icon={Package}
-            label="Equipos Disponibles"
-            value={stats.equiposDisponibles}
-            subtext={`de ${stats.totalEquipos} equipos`}
-            color="green"
-          />
-          <StatCard
-            icon={Package}
-            label="Equipos Ocupados"
-            value={stats.equiposOcupados}
-            subtext={`Préstamos activos`}
-            color="blue"
-          />
-          <StatCard
-            icon={AlertCircle}
-            label="En Mantenimiento"
-            value={stats.equiposMantenimiento}
-            subtext={`Fuera de servicio`}
-            color="red"
-          />
-        </div>
-      )}
-
-      {/* Mapa/Vista de Ambientes */}
-      <div>
-        <h2 className="text-2xl font-bold text-gray-800 mb-4">
-          Ambientes y Equipos
-        </h2>
-        <p className="text-gray-600 mb-6">
-          Vista de cada ambiente con la distribución de equipos
-        </p>
-
-        {ambientes.length === 0 ? (
-          <div className="bg-gray-50 border-2 border-dashed border-gray-300 rounded-lg p-12 text-center">
-            <Building2 className="w-12 h-12 text-gray-400 mx-auto mb-4" />
-            <p className="text-gray-600">
-              No hay ambientes registrados. Comienza creando uno.
+          <div className="bg-brand-gray/50 p-6 rounded-lg border-2 border-dashed border-brand-border">
+            <div className="flex items-center gap-3 mb-4">
+              <AlertCircle className="w-5 h-5 text-brand-teal" />
+              <h4 className="font-bold text-brand-navy text-sm uppercase">Atención Requerida</h4>
+            </div>
+            <p className="text-xs text-gray-500 leading-relaxed">
+              Hay <span className="font-bold text-brand-navy">{stats?.equiposMantenimiento || 0} equipos</span> que requieren revisión técnica inmediata para volver a estar operativos.
             </p>
           </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {ambientes.map((ambiente) => (
-              <EnvironmentCard
-                key={ambiente.id}
-                ambiente={ambiente}
-                equipos={equipos.filter(e => e.ambiente_id === ambiente.id)}
-              />
-            ))}
-          </div>
-        )}
+        </div>
+
+        {/* Recent Activity */}
+        <div className="lg:col-span-2">
+          <RecentActivity prestamos={prestamos} />
+        </div>
       </div>
     </div>
   );

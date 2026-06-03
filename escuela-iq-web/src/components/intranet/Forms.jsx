@@ -102,6 +102,7 @@ export function Button({
   disabled = false,
   variant = 'primary',
   fullWidth = false,
+  className = '',
 }) {
   const variants = {
     primary: 'bg-brand-navy hover:bg-brand-teal text-white shadow-lg hover:shadow-premium',
@@ -118,7 +119,7 @@ export function Button({
       disabled={disabled}
       className={`${variants[variant]} disabled:opacity-50 disabled:cursor-not-allowed font-display font-bold text-sm tracking-widest py-4 px-8 rounded-sm transition-all duration-300 ${
         fullWidth ? 'w-full' : ''
-      }`}
+      } ${className}`}
     >
       {children}
     </motion.button>

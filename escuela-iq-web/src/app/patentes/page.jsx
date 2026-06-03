@@ -1,9 +1,35 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { mockPatentes } from '@/data/mockData';
-import { Lightbulb, ShieldCheck, Award, FileCheck, Search } from 'lucide-react';
+import { dbOperations } from '@/lib/supabase';
+import { Lightbulb, ShieldCheck, Award, FileCheck, Search, Loader2 } from 'lucide-react';
 
 export default function PatentesPage() {
+  const [patentes, setPatentes] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPatentes = async () => {
+      try {
+        const { data, error } = await dbOperations.getPatentes();
+        if (data) setPatentes(data);
+      } catch (err) {
+        console.error('Error fetching patentes:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPatentes();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-gray">
+        <Loader2 className="animate-spin text-brand-navy" size={48} />
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-brand-gray pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -33,8 +59,8 @@ export default function PatentesPage() {
               </p>
               <div className="flex gap-8">
                 <div className="text-center">
-                  <div className="text-5xl font-display font-black text-brand-navy italic">45+</div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Registros Globales</div>
+                  <div className="text-5xl font-display font-black text-brand-navy italic">{patentes.length}+</div>
+                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-2">Registros Totales</div>
                 </div>
                 <div className="w-[1px] h-16 bg-slate-100" />
                 <div className="text-center">
@@ -48,7 +74,7 @@ export default function PatentesPage() {
 
         {/* Patentes Grid */}
         <div className="grid md:grid-cols-2 gap-8">
-          {mockPatentes.map((patente, idx) => (
+          {patentes.length > 0 ? patentes.map((patente, idx) => (
             <motion.div
               key={patente.id}
               initial={{ opacity: 0, scale: 0.95 }}
@@ -87,10 +113,15 @@ export default function PatentesPage() {
                 </button>
               </div>
             </motion.div>
-          ))}
+          )) : (
+            <div className="md:col-span-2 text-center py-20 bg-white border-2 border-dashed border-brand-border">
+              <p className="text-brand-muted uppercase font-black tracking-widest">No hay patentes registradas en este momento.</p>
+            </div>
+          )}
         </div>
 
       </div>
     </main>
   );
 }
+

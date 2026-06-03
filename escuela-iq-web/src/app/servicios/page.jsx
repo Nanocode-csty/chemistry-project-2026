@@ -1,102 +1,127 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { mockServicios } from '@/data/mockData';
-import { Settings, FlaskConical, Users, Rocket, CheckCircle2, MessageSquare } from 'lucide-react';
+import { dbOperations } from '@/lib/supabase';
+import { Settings, FlaskConical, Users, Rocket, CheckCircle2, MessageSquare, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function ServiciosPage() {
+  const [servicios, setServicios] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchServicios = async () => {
+      try {
+        const { data, error } = await dbOperations.getServicios();
+        if (data) setServicios(data);
+      } catch (err) {
+        console.error('Error fetching servicios:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchServicios();
+  }, []);
+
+  const getIcon = (index) => {
+    const icons = [<Settings key="0" size={32} />, <FlaskConical key="1" size={32} />, <Users key="2" size={32} />, <Rocket key="3" size={32} />];
+    return icons[index % icons.length];
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-gray">
+        <Loader2 className="animate-spin text-brand-navy" size={48} />
+      </div>
+    );
+  }
+
   return (
-    <main className="min-h-screen bg-brand-navy pt-32 pb-24 text-white">
+    <main className="min-h-screen bg-brand-gray pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header */}
-        <div className="grid lg:grid-cols-2 gap-20 items-center mb-32">
+        {/* Header Section - Estilo Profesional / Técnico */}
+        <div className="relative mb-24">
           <motion.div
-            initial={{ opacity: 0, x: -30 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8 }}
+            className="max-w-4xl"
           >
-            <div className="w-20 h-2 bg-brand-teal mb-8" />
-            <h1 className="text-6xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.9] mb-10">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-1 bg-brand-navy" />
+              <span className="text-brand-navy font-display font-black text-[11px] tracking-[0.4em] uppercase">
+                Soporte de Alto Nivel
+              </span>
+            </div>
+            <h1 className="text-6xl md:text-8xl font-display font-black text-brand-navy uppercase tracking-tighter leading-[0.85] mb-8">
               SERVICIOS <br />
-              <span className="text-brand-teal italic">TÉCNICOS</span>
+              <span className="text-brand-navy italic opacity-80">ESPECIALIZADOS</span>
             </h1>
-            <p className="text-xl text-slate-300 font-sans leading-relaxed border-l-4 border-brand-teal pl-8 mb-12">
+            
+            {/* Línea sutil con iconos relacionados - Mejorada */}
+            <div className="flex items-center gap-6 mb-10 text-brand-navy/20">
+              <div className="h-[1px] flex-grow bg-brand-border" />
+              <div className="flex gap-4">
+                <Settings size={20} />
+                <FlaskConical size={20} />
+                <CheckCircle2 size={20} />
+              </div>
+              <div className="h-[1px] flex-grow bg-brand-border" />
+            </div>
+
+            <p className="text-xl text-gray-600 max-w-2xl font-sans leading-relaxed border-l-4 border-brand-navy pl-8">
               Brindamos soporte especializado de alto nivel para la industria química, 
               garantizando resultados bajo estándares internacionales de calidad.
             </p>
-            <div className="flex flex-wrap gap-6">
-              <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-3">
-                <CheckCircle2 className="text-brand-teal" size={20} />
-                <span className="text-[10px] font-bold uppercase tracking-widest">ISO 9001:2015</span>
-              </div>
-              <div className="bg-white/5 px-6 py-4 border border-white/10 flex items-center gap-3">
-                <CheckCircle2 className="text-brand-teal" size={20} />
-                <span className="text-[10px] font-bold uppercase tracking-widest">ACREDITACIÓN INACAL</span>
-              </div>
-            </div>
           </motion.div>
-          
-          <div className="relative">
-            <div className="absolute inset-0 bg-brand-teal/20 blur-[120px] rounded-full" />
-            <div className="relative grid grid-cols-2 gap-4">
-              <div className="space-y-4">
-                <div className="h-64 bg-slate-800 rounded-sm overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800" alt="Service 1" className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
-                </div>
-                <div className="h-40 bg-brand-teal rounded-sm flex items-center justify-center p-8">
-                  <Rocket size={48} className="text-brand-navy" />
-                </div>
-              </div>
-              <div className="space-y-4 pt-12">
-                <div className="h-40 bg-white rounded-sm flex items-center justify-center p-8">
-                  <FlaskConical size={48} className="text-brand-navy" />
-                </div>
-                <div className="h-64 bg-slate-800 rounded-sm overflow-hidden">
-                  <img src="https://images.unsplash.com/photo-1581092160562-40aa08e78837?auto=format&fit=crop&q=80&w=800" alt="Service 2" className="w-full h-full object-cover opacity-60 hover:opacity-100 transition-opacity" />
-                </div>
-              </div>
-            </div>
-          </div>
         </div>
 
-        {/* Services List */}
-        <div className="grid md:grid-cols-2 gap-8">
-          {mockServicios.map((servicio, idx) => (
+        {/* Services List - Hover Mejorado y Consistente */}
+        <div className="grid md:grid-cols-2 gap-8 mb-24">
+          {servicios.length > 0 ? servicios.map((servicio, idx) => (
             <motion.div
               key={servicio.id}
-              initial={{ opacity: 0, y: 20 }}
+              initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="bg-white/5 p-12 lg:p-16 border border-white/10 hover:border-brand-teal transition-all duration-500 group"
+              className="group bg-white border border-brand-border hover:border-brand-navy/20 shadow-soft hover:shadow-premium transition-all duration-500 flex flex-col h-full relative overflow-hidden"
             >
-              <div className="flex items-start justify-between mb-12">
-                <div className="p-5 bg-brand-teal text-brand-navy rotate-3 group-hover:rotate-0 transition-transform">
-                  {idx === 0 && <Settings size={32} />}
-                  {idx === 1 && <FlaskConical size={32} />}
-                  {idx === 2 && <Users size={32} />}
-                  {idx === 3 && <Rocket size={32} />}
+              {/* Decorative background element on hover */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-light -mr-16 -mt-16 rounded-full group-hover:bg-brand-accent/5 group-hover:scale-150 transition-all duration-700" />
+              
+              <div className="p-10 flex-grow relative z-10">
+                <div className="flex items-start justify-between mb-12">
+                  <div className="w-16 h-16 bg-white border-2 border-brand-navy flex items-center justify-center text-brand-navy group-hover:bg-brand-navy group-hover:text-white transition-all duration-500 shadow-sm group-hover:-translate-y-2">
+                    {getIcon(idx)}
+                  </div>
+                  <span className="text-[10px] font-black text-slate-200 group-hover:text-brand-accent uppercase tracking-[0.5em] transition-colors">SERVICE 0{idx + 1}</span>
                 </div>
-                <span className="text-[10px] font-black text-white/20 uppercase tracking-[0.5em]">SERVICE 0{servicio.id}</span>
+                
+                <h2 className="text-3xl font-display font-black text-brand-navy uppercase mb-6 tracking-tight group-hover:text-brand-navy transition-colors">
+                  {servicio.titulo}
+                </h2>
+                <p className="text-slate-600 font-sans leading-relaxed mb-10 text-lg">
+                  {servicio.descripcion}
+                </p>
+                
+                <Link 
+                  href="/#contacto"
+                  className="inline-flex items-center gap-4 text-[11px] font-black tracking-widest uppercase text-brand-accent hover:text-brand-navy transition-colors border-b-2 border-transparent hover:border-brand-accent pb-1"
+                >
+                  SOLICITAR COTIZACIÓN <MessageSquare size={16} />
+                </Link>
               </div>
-              
-              <h2 className="text-3xl font-display font-black uppercase mb-6 tracking-tight group-hover:text-brand-teal transition-colors">
-                {servicio.titulo}
-              </h2>
-              <p className="text-slate-400 font-sans leading-relaxed mb-10 text-lg">
-                {servicio.descripcion}
-              </p>
-              
-              <Link 
-                href="/#contacto"
-                className="inline-flex items-center gap-4 text-[11px] font-black tracking-widest uppercase text-brand-teal hover:text-white transition-colors"
-              >
-                SOLICITAR COTIZACIÓN <MessageSquare size={16} />
-              </Link>
             </motion.div>
-          ))}
+          )) : (
+            <div className="md:col-span-2 text-center py-20 bg-white border-2 border-dashed border-brand-border">
+              <p className="text-brand-muted uppercase font-black tracking-widest">No hay servicios registrados en este momento.</p>
+            </div>
+          )}
         </div>
 
       </div>
     </main>
   );
 }
+

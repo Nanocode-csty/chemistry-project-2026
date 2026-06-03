@@ -1,46 +1,82 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { mockProyectosIndustriales, mockConcursos, mockServicios } from '@/data/mockData';
-import { Trophy, ArrowUpRight, Zap } from 'lucide-react';
+import { mockProyectosIndustriales, mockConcursos } from '@/data/mockData';
+import { dbOperations } from '@/lib/supabase';
+import { Trophy, ArrowUpRight, Zap, Loader2 } from 'lucide-react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 const Profesionales = () => {
+  const router = useRouter();
+  const [loading, setLoading] = useState(true);
+  const [data, setData] = useState({
+    header: null,
+    servicios: [],
+    stats: []
+  });
+
+  useEffect(() => {
+    const fetchProfesionalesData = async () => {
+      try {
+        const [headerRes, servRes, statsRes] = await Promise.all([
+          dbOperations.getProfesionalesHeader(),
+          dbOperations.getServicios(),
+          dbOperations.getStats()
+        ]);
+        
+        setData({
+          header: headerRes.data,
+          servicios: servRes.data || [],
+          stats: statsRes.data || []
+        });
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchProfesionalesData();
+  }, []);
+
+  if (loading) return <div className="py-20 flex justify-center bg-brand-navy"><Loader2 className="animate-spin text-white" /></div>;
+  
+  const { header, servicios, stats } = data;
+  if (!header) return null;
+
   return (
     <section id="profesionales" className="bg-white text-brand-navy overflow-hidden">
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-24">
-        {/* Intro Grid - Swapped to top */}
+        {/* Intro Grid */}
         <div className="grid lg:grid-cols-2 gap-20 mb-20 items-center">
           <div>
             <div className="w-16 h-1.5 bg-brand-navy mb-8" />
             <h2 className="text-4xl md:text-6xl font-display font-black leading-tight uppercase tracking-tighter mb-8 text-brand-navy">
-              LIDERAZGO <br />
-              <span className="text-brand-teal italic">INDUSTRIAL</span>
+              {(header.titulo || '').split(' ')[0]} <br />
+              <span className="text-brand-teal italic">{(header.titulo || '').split(' ').slice(1).join(' ')}</span>
             </h2>
-            <p className="text-xl text-gray-500 font-sans leading-relaxed mb-12 border-l-4 border-brand-teal pl-8">
-              Desarrollamos soluciones de ingeniería que optimizan la producción y reducen el impacto ambiental, 
-              respaldadas por certificaciones internacionales y un equipo multidisciplinario.
+            <p className="text-xl text-brand-muted font-sans leading-relaxed mb-12 border-l-4 border-brand-navy pl-8">
+              {header.descripcion}
             </p>
             <div className="grid grid-cols-2 gap-12">
-              <div className="border-l-4 border-brand-navy/10 pl-6 py-2">
-                <span className="block text-5xl font-display font-black text-brand-navy italic tracking-tighter">85+</span>
-                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">Proyectos Ejecutados</span>
-              </div>
-              <div className="border-l-4 border-brand-navy/10 pl-6 py-2">
-                <span className="block text-5xl font-display font-black text-brand-navy italic tracking-tighter">12</span>
-                <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-slate-400">Países Alcanzados</span>
-              </div>
+              {stats.map((stat, idx) => (
+                <div key={idx} className="border-l-4 border-brand-border pl-6 py-2">
+                  <span className="block text-5xl font-display font-black text-brand-navy italic tracking-tighter">{stat.valor}</span>
+                  <span className="text-[10px] uppercase tracking-[0.2em] font-bold text-brand-muted">{stat.etiqueta}</span>
+                </div>
+              ))}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            {mockServicios.slice(0, 4).map((servicio, idx) => (
+            {servicios.slice(0, 4).map((servicio, idx) => (
               <motion.div
                 key={idx}
-                whileHover={{ y: -5, scale: 1.05 }}
+                whileHover={{ y: -5 }}
                 transition={{ type: "spring", stiffness: 400 }}
               >
-                <Link href="/servicios" className="block bg-brand-gray p-10 border border-transparent hover:border-brand-teal hover:bg-white shadow-soft hover:shadow-premium transition-all duration-500 group h-full">
-                  <Zap className="text-brand-teal group-hover:scale-110 transition-transform mb-6" size={28} />
+                <Link href={servicio.link || "/servicios"} className="block bg-white p-10 border border-brand-border hover:border-brand-navy hover:shadow-card-hover transition-all duration-300 group h-full rounded-sm">
+                  <Zap className="text-brand-navy group-hover:scale-110 transition-transform mb-6" size={28} />
                   <h4 className="font-display font-black text-sm uppercase tracking-wider leading-tight text-brand-navy">{servicio.titulo}</h4>
                 </Link>
               </motion.div>
@@ -66,10 +102,10 @@ const Profesionales = () => {
               viewport={{ once: true }}
               className="max-w-3xl"
             >
-              <div className="w-20 h-2 bg-brand-teal mb-8" />
+              <div className="w-20 h-2 bg-brand-accent mb-8" />
               <h2 className="text-5xl md:text-8xl font-display font-black leading-tight uppercase tracking-tighter text-white">
-                ALIANZA <br />
-                <span className="text-brand-teal italic">ESTRATÉGICA</span>
+                {(header.alianza_titulo || '').split(' ')[0]} <br />
+                <span className="text-brand-accent italic">{(header.alianza_titulo || '').split(' ').slice(1).join(' ')}</span>
               </h2>
             </motion.div>
           </div>
@@ -83,7 +119,7 @@ const Profesionales = () => {
           <div className="flex items-center justify-between mb-16">
             <h3 className="text-3xl font-display font-black uppercase tracking-tight text-brand-navy">PROYECTOS DE IMPACTO</h3>
             <div className="flex gap-4">
-              <Link href="/proyectos" className="text-[10px] font-black tracking-widest text-brand-teal hover:text-brand-navy transition-colors uppercase border-b border-brand-teal">
+              <Link href="/proyectos" className="text-[10px] font-black tracking-widest text-brand-accent hover:text-brand-navy transition-colors uppercase border-b border-brand-accent">
                 Ver Catálogo Completo
               </Link>
             </div>
@@ -100,7 +136,7 @@ const Profesionales = () => {
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1, duration: 0.6, ease: "easeOut" }}
                   className="bg-brand-gray text-brand-navy p-10 border-r border-b border-slate-100 last:border-r-0 hover:bg-brand-navy hover:text-white transition-all duration-500 group cursor-pointer relative"
-                  onClick={() => window.location.href = `/proyectos/${proy.id}`}
+                  onClick={() => router.push(`/proyectos/${proy.id}`)}
                 >
                   <div className="flex justify-between items-start mb-10">
                     <span className="text-[10px] font-black tracking-[0.3em] uppercase text-slate-400 group-hover:text-brand-teal">Estudio de Caso</span>

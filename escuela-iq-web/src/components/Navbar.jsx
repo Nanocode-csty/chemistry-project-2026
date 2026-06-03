@@ -42,14 +42,14 @@ const Navbar = () => {
   ];
 
   return (
-    <header className="fixed top-0 w-full z-[100]">
+    <header className="fixed top-0 w-full z-[100] pointer-events-none">
       {/* Top Bar - Ultra Professional */}
       <div className={`bg-brand-navy text-white transition-all duration-700 ${scrolled ? 'h-0 opacity-0 overflow-hidden' : 'h-auto py-2 opacity-100'}`}>
-        <div className="max-w-7xl mx-auto px-4 flex justify-end items-center space-x-8 text-[10px] font-black tracking-[0.2em]">
+        <div className="max-w-7xl mx-auto px-4 flex justify-end items-center space-x-8 text-[10px] font-black tracking-[0.2em] pointer-events-auto">
           <Link href="#" className="hover:text-brand-accent transition-colors flex items-center gap-2 group">
             <Globe size={12} className="group-hover:rotate-12 transition-transform" /> RED GLOBAL
           </Link>
-          <Link href="/intranet" className="hover:text-brand-accent transition-colors flex items-center gap-2 group">
+          <Link href="/intranet/login" className="hover:text-brand-accent transition-colors flex items-center gap-2 group">
             <LogIn size={12} className="group-hover:translate-x-1 transition-transform" /> PORTAL INTRANET
           </Link>
           <button className="hover:text-brand-accent transition-colors">
@@ -60,8 +60,8 @@ const Navbar = () => {
 
       {/* Main Nav */}
       <nav
-        className={`w-full transition-all duration-700 border-b ${
-          scrolled ? 'bg-white/90 backdrop-blur-md shadow-premium py-2 border-transparent' : 'bg-white/95 backdrop-blur-md py-4 border-brand-navy/5'
+        className={`w-full transition-all duration-700 border-b pointer-events-auto ${
+          scrolled ? 'bg-white/95 backdrop-blur-md shadow-premium py-2 border-transparent' : 'bg-white py-4 border-brand-border'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4">
@@ -70,17 +70,17 @@ const Navbar = () => {
             {/* Logo */}
             <Link href="/" className="flex items-center space-x-4 group">
               <motion.div 
-                whileHover={{ scale: 1.05, rotate: -2 }}
-                className="bg-brand-navy p-2.5 rounded-sm shadow-2xl relative overflow-hidden"
+                whileHover={{ scale: 1.05 }}
+                className="bg-brand-navy p-2.5 rounded-sm shadow-premium relative overflow-hidden"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                <div className="absolute inset-0 bg-white/10 opacity-0 group-hover:opacity-100 transition-opacity" />
                 <span className="text-white font-display font-black text-2xl italic tracking-tighter block relative z-10">EIQ</span>
               </motion.div>
-              <div className="flex flex-col border-l-2 border-brand-navy/10 pl-4">
+              <div className="flex flex-col border-l-2 border-brand-border pl-4">
                 <span className="text-brand-navy font-display font-black text-xl leading-none tracking-tighter uppercase group-hover:text-brand-teal transition-colors">
                   INGENIERÍA QUÍMICA
                 </span>
-                <span className="text-brand-teal font-display font-extrabold text-[10px] tracking-[0.3em] uppercase mt-1">
+                <span className="text-brand-muted font-display font-extrabold text-[10px] tracking-[0.3em] uppercase mt-1">
                   Innovación & Excelencia
                 </span>
               </div>

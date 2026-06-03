@@ -1,12 +1,64 @@
-services: 
-  frontend: 
-    build: . 
-    container_name: escuela-iq-frontend 
-    ports: 
-      - "3000:3000" 
-    restart: unless-stopped 
-    environment: 
-      - NODE_ENV=production 
-    volumes: 
-      # Si deseas montar archivos de medios sin reconstruir la imagen 
-      - ./public:/app/public 
+services:
+  db:
+    image: postgres:15-alpine
+    container_name: escuela-iq-db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: escuelaiq
+    ports:
+      - "5432:5432"
+    volumes:
+      - ./sql/schema.sql:/docker-entrypoint-initdb.d/01-schema.sql
+      - ./sql/datos_prueba.sql:/docker-entrypoint-initdb.d/02-data.sql
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    restart: unless-stopped
+
+  backend:
+    build: ./backend
+    container_name: escuela-iq-backend
+    ports:
+      - "4000:4000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/escuelaiq
+      - PORT=4000
+      - ADMIN_EMAIL=admin@escuela-iq.edu
+      - ADMIN_PASSWORD=admin123
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  frontend:
+    build:
+      context: .
+      args:
+        - NEXT_PUBLIC_BACKEND_URL=http://localhost:4000/api
+    container_name: escuela-iq-frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - NEXT_PUBLIC_BACKEND_URL=http://localhost:4000/api
+      - NODE_ENV=production
+    depends_on:
+      backend:
+        condition: service_started
+    restart: unless-stopped
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+volumes:
+  postgres_data:

@@ -45,7 +45,10 @@ export default function ReportesPage() {
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
 
+  const [isMounted, setIsMounted] = useState(false);
+
   useEffect(() => {
+    setIsMounted(true);
     const fetchData = async () => {
       try {
         setLoading(true);
@@ -100,7 +103,7 @@ export default function ReportesPage() {
     if (filtroEstado === 'activos') matches = matches && !p.fecha_devolucion;
     if (filtroEstado === 'devueltos') matches = matches && p.fecha_devolucion;
     
-    if (filtroAmbiente !== 'todos' && p.equipo?.ambiente?.id) {
+    if (filtroAmbiente !== 'todos' && p.equipo?.ambiente_id) {
       matches = matches && p.equipo.ambiente_id === parseInt(filtroAmbiente);
     }
     
@@ -244,7 +247,7 @@ export default function ReportesPage() {
     return Math.floor((ahora - f) / (1000 * 60 * 60 * 24));
   };
 
-  if (loading) {
+  if (!isMounted || loading) {
     return (
       <div className="flex items-center justify-center h-64">
         <div className="inline-block animate-spin">

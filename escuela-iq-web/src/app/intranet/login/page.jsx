@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -12,22 +12,49 @@ export default function LoginPage() {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, user, loading } = useAuth();
   const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      console.log('Login Page: User already logged in, redirecting to dashboard');
+      router.replace('/intranet/dashboard');
+    }
+  }, [user, loading, router]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
     setError('');
 
-    const result = await login(email, password);
-    if (result.success) {
-      router.push('/intranet/dashboard');
-    } else {
-      setError(result.error || 'Error al iniciar sesión');
+    try {
+      const result = await login(email, password);
+      if (result.success) {
+        // La redirección se manejará en el useEffect para mayor seguridad
+      } else {
+        setError(result.error || 'Error al iniciar sesión');
+        setIsLoading(false);
+      }
+    } catch (err) {
+      setError('Ocurrió un fallo de conexión. Inténtalo de nuevo.');
+      setIsLoading(false);
     }
-    setIsLoading(false);
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-gray/30">
+        <div className="text-center">
+          <div className="inline-block animate-spin">
+            <div className="w-12 h-12 border-4 border-brand-border border-t-brand-navy rounded-full"></div>
+          </div>
+          <p className="mt-4 text-brand-navy font-bold animate-pulse tracking-widest uppercase text-xs">Cargando acceso...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (user) return null;
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-navy via-brand-teal to-brand-accent px-4 py-12">
@@ -125,7 +152,7 @@ export default function LoginPage() {
           {/* Footer info */}
           <div className="mt-10 pt-8 border-t-2 border-brand-border">
             <p className="text-center font-display font-bold text-xs text-gray-500 tracking-widest uppercase">
-              Credenciales de prueba: admin@escuela-iq.edu / Admin@123!
+              Credenciales de prueba: admin@escuela-iq.edu / admin123
             </p>
           </div>
         </motion.div>

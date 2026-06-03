@@ -13,21 +13,25 @@ module.exports = {
       },
       colors: {
         brand: {
-          navy: '#003f5d',      // Azul acero personalizado (Principal)
-          teal: '#005f73',      // Variación más profunda y elegante del navy
-          accent: '#0a9396',    // Acento cian-petróleo profesional
-          gray: '#f8fafc',      // Gris pizarra muy claro (Slate 50)
-          dark: '#002a3f',      // Variante más oscura para contrastes
-          border: '#15365c37',  // Borde suave azulado
-          red: '#CF003D',       // Rojo de impacto
-          yellow: '#FFB81C',    // Amarillo de resalte
+          navy: '#005180',      // Azul Corporativo (Principal) - Más profesional
+          teal: '#003d61',      // Azul profundo para contrastes serios
+          accent: '#98C560',    // Verde Natural - Solo para acentos mínimos
+          gray: '#FFFFFF',      // Blanco puro
+          dark: '#1e293b',      // Slate 800 para texto principal
+          muted: '#64748b',     // Slate 500 para textos secundarios
+          light: '#f1f5f9',     // Slate 100 para fondos sutiles
+          border: '#e2e8f0',    // Slate 200 para bordes limpios
+          red: '#be123c',       // Rojo profesional
+          yellow: '#eab308',    // Amarillo profesional
         }
       },
       backgroundImage: {
-        'gradient-brand': 'linear-gradient(135deg, #003f5d 0%, #0d9488 100%)',
+        'gradient-brand': 'linear-gradient(135deg, #005180 0%, #003d61 100%)',
+        'gradient-subtle': 'linear-gradient(to bottom, #f8fafc, #f1f5f9)',
       },
       boxShadow: {
-        'premium': '0 25px 50px -12px rgba(0, 63, 93, 0.25)',
+        'premium': '0 4px 20px -2px rgba(0, 81, 128, 0.1), 0 2px 10px -2px rgba(0, 0, 0, 0.05)',
+        'card-hover': '0 20px 25px -5px rgba(0, 81, 128, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
       }
     },
   },

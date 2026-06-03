@@ -1,8 +1,30 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Mail, Phone, MapPin, Send, MessageSquare, User, Building, Sparkles } from 'lucide-react';
+import { dbOperations } from '@/lib/supabase';
+import { Mail, Phone, MapPin, Send, MessageSquare, User, Building, Sparkles, Loader2 } from 'lucide-react';
 
 const Contacto = () => {
+  const [contacto, setContacto] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchContacto = async () => {
+      try {
+        const { data, error } = await dbOperations.getContacto();
+        if (data) setContacto(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchContacto();
+  }, []);
+
+  if (loading) return <div className="py-20 flex justify-center bg-brand-gray"><Loader2 className="animate-spin text-brand-navy" /></div>;
+  if (!contacto) return null;
+
   return (
     <section id="contacto" className="py-32 bg-brand-gray relative overflow-hidden">
       {/* Decorative background elements */}
@@ -21,31 +43,30 @@ const Contacto = () => {
             >
               <div className="w-16 h-1.5 bg-brand-navy mb-8" />
               <h2 className="text-5xl md:text-7xl font-display font-black text-brand-navy uppercase leading-[0.9] tracking-tighter mb-10">
-                CONECTA <br />
-                <span className="text-brand-teal italic">CON NOSOTROS</span>
+                {(contacto.titulo || '').split(' ')[0]} <br />
+                <span className="text-brand-teal italic">{(contacto.titulo || '').split(' ').slice(1).join(' ')}</span>
               </h2>
-              <p className="text-xl text-gray-500 mb-16 leading-relaxed border-l-4 border-brand-teal pl-8">
-                Estamos listos para colaborar en tu próximo proyecto de ingeniería 
-                o responder tus dudas académicas con el más alto rigor científico.
+              <p className="text-xl text-brand-muted mb-16 leading-relaxed border-l-4 border-brand-teal pl-8">
+                {contacto.descripcion}
               </p>
 
               <div className="space-y-10">
                 <ContactItem 
                   icon={<Mail size={22} />} 
                   title="CANAL DIGITAL" 
-                  content="contacto@escuelaiq.edu" 
-                  link="mailto:contacto@escuelaiq.edu"
+                  content={contacto.email} 
+                  link={`mailto:${contacto.email}`}
                 />
                 <ContactItem 
                   icon={<Phone size={22} />} 
                   title="LÍNEA DIRECTA" 
-                  content="+51 (1) 456 7890" 
-                  link="tel:+5114567890"
+                  content={contacto.telefono} 
+                  link={`tel:${contacto.telefono.replace(/\s/g, '')}`}
                 />
                 <ContactItem 
                   icon={<MapPin size={22} />} 
                   title="CAMPUS CENTRAL" 
-                  content="Av. Universitaria 1234, Lima" 
+                  content={contacto.direccion} 
                   link="#"
                 />
               </div>

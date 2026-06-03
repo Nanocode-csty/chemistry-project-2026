@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
@@ -15,6 +15,7 @@ import {
   FileText,
   LogOut,
   Home,
+  Globe,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -26,17 +27,31 @@ const menuItems = [
   { href: '/intranet/estudiantes', label: 'Estudiantes', icon: Users },
   { href: '/intranet/prestamos', label: 'Préstamos', icon: FileText },
   { href: '/intranet/reportes', label: 'Reportes', icon: BarChart3 },
+  { href: '/intranet/cms', label: 'Sitio Web', icon: Globe },
 ];
 
 export function IntranetSidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
 
   const handleLogout = async () => {
-    await logout();
-    router.push('/intranet/login');
+    try {
+      await logout();
+      router.replace('/intranet/login');
+    } catch (err) {
+      console.error('Logout failed:', err);
+      // Forzar redirección si falla
+      window.location.href = '/intranet/login';
+    }
   };
+
+  const sidebarX = isOpen ? 0 : (isMounted && typeof window !== 'undefined' && window.innerWidth >= 1024) ? 0 : -300;
 
   return (
     <>
@@ -54,29 +69,28 @@ export function IntranetSidebar({ isOpen, onClose }) {
       {/* Sidebar */}
       <motion.aside
         initial={{ x: -300 }}
-        animate={{ x: isOpen ? 0 : (typeof window !== 'undefined' && window.innerWidth >= 1024) ? 0 : -300 }}
+        animate={{ x: sidebarX }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed left-0 top-0 h-screen w-72 bg-gradient-to-b from-brand-navy to-brand-dark text-white shadow-premium z-50 lg:relative"
+        className="fixed left-0 top-0 h-screen w-72 bg-white text-gray-800 shadow-premium z-50 lg:relative border-r border-brand-border"
       >
         {/* Header del Sidebar */}
-        <div className="p-8 border-b border-brand-teal/30">
+        <div className="p-8 border-b border-brand-border">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
+            <Link href="/intranet/dashboard" className="flex items-center gap-4">
               <motion.div 
-                whileHover={{ scale: 1.05, rotate: -2 }}
-                className="bg-white p-3 rounded-sm shadow-2xl relative overflow-hidden"
+                whileHover={{ scale: 1.05 }}
+                className="bg-brand-navy p-2.5 rounded-sm shadow-lg"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Package className="w-6 h-6 text-brand-navy relative z-10" />
+                <Package className="w-6 h-6 text-white" />
               </motion.div>
               <div className="flex flex-col">
-                <h1 className="font-display font-black text-xl tracking-tight">INTRANET IQ</h1>
-                <p className="text-xs text-brand-accent font-bold tracking-widest mt-1">Gestión de Inventarios</p>
+                <h1 className="font-display font-black text-xl tracking-tight text-brand-navy">INTRANET IQ</h1>
+                <p className="text-[10px] text-brand-accent font-black tracking-widest uppercase">Sistema de Gestión</p>
               </div>
-            </div>
+            </Link>
             <button
               onClick={onClose}
-              className="lg:hidden text-brand-teal hover:text-white transition-colors"
+              className="lg:hidden text-gray-400 hover:text-brand-navy transition-colors"
             >
               <X className="w-6 h-6" />
             </button>
@@ -84,16 +98,23 @@ export function IntranetSidebar({ isOpen, onClose }) {
         </div>
 
         {/* Usuario actual */}
-        {user && (
-          <div className="p-6 border-b border-brand-teal/30 bg-brand-dark/50">
-            <p className="text-xs text-brand-accent font-bold tracking-widest mb-1">CONECTADO COMO</p>
-            <p className="font-semibold truncate text-white/90">{user.email}</p>
+        {isMounted && user && (
+          <div className="p-6 border-b border-brand-border bg-brand-light">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-brand-navy flex items-center justify-center text-white font-black shadow-sm">
+                {user.email ? user.email[0].toUpperCase() : 'A'}
+              </div>
+              <div className="flex flex-col overflow-hidden">
+                <p className="text-[10px] text-brand-muted font-bold tracking-widest uppercase">Sesión Activa</p>
+                <p className="font-bold truncate text-brand-navy text-sm">{user.email || 'Administrador'}</p>
+              </div>
+            </div>
           </div>
         )}
 
         {/* Menu items */}
-        <nav className="flex-1 py-8 px-6">
-          <ul className="space-y-2">
+        <nav className="flex-1 py-6 px-4 overflow-y-auto">
+          <ul className="space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
               const isActive = pathname === item.href;
@@ -103,17 +124,15 @@ export function IntranetSidebar({ isOpen, onClose }) {
                   <Link
                     href={item.href}
                     onClick={onClose}
-                    className={`flex items-center gap-4 px-5 py-4 rounded-lg transition-all duration-300 group ${
+                    className={`flex items-center gap-4 px-4 py-3 rounded-sm transition-all duration-200 group ${
                       isActive 
-                        ? 'bg-gradient-to-r from-brand-accent to-brand-teal shadow-lg' 
-                        : 'hover:bg-brand-teal/30'
+                        ? 'bg-brand-navy text-white shadow-premium' 
+                        : 'text-brand-muted hover:bg-brand-light hover:text-brand-navy'
                     }`}
                   >
-                    <div className={`p-2 rounded transition-colors ${isActive ? 'bg-white/20' : 'bg-brand-navy group-hover:bg-brand-teal/50'}`}>
-                      <Icon className="w-5 h-5" />
-                    </div>
-                    <span className={`font-display font-bold text-sm tracking-wider ${isActive ? 'text-white' : 'text-white/80'}`}>
-                      {item.label.toUpperCase()}
+                    <Icon className={`w-5 h-5 ${isActive ? 'text-brand-accent' : 'text-brand-muted group-hover:text-brand-navy'}`} />
+                    <span className="font-display font-bold text-xs tracking-widest uppercase">
+                      {item.label}
                     </span>
                   </Link>
                 </li>
@@ -123,27 +142,22 @@ export function IntranetSidebar({ isOpen, onClose }) {
         </nav>
 
         {/* Footer del Sidebar */}
-        <div className="p-6 border-t border-brand-teal/30 space-y-3">
+        <div className="p-4 border-t border-brand-border space-y-1">
           <Link
             href="/"
-            onClick={onClose}
-            className="flex items-center gap-4 px-5 py-4 rounded-lg transition-all duration-300 hover:bg-brand-teal/30 group"
+            className="flex items-center gap-4 px-4 py-3 rounded-sm transition-all duration-200 text-brand-muted hover:bg-brand-light hover:text-brand-navy group"
           >
-            <div className="p-2 rounded bg-brand-navy group-hover:bg-brand-teal/50 transition-colors">
-              <Home className="w-5 h-5" />
-            </div>
-            <span className="font-display font-bold text-sm tracking-wider text-white/80 group-hover:text-white transition-colors">
-              IR AL SITIO
+            <Home className="w-5 h-5 text-brand-muted group-hover:text-brand-navy" />
+            <span className="font-display font-bold text-xs tracking-widest uppercase">
+              SITIO PÚBLICO
             </span>
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-5 py-4 rounded-lg transition-all duration-300 hover:bg-red-600/30 text-left group"
+            className="w-full flex items-center gap-4 px-4 py-3 rounded-sm transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-brand-red group"
           >
-            <div className="p-2 rounded bg-brand-navy group-hover:bg-red-600/50 transition-colors">
-              <LogOut className="w-5 h-5" />
-            </div>
-            <span className="font-display font-bold text-sm tracking-wider text-white/80 group-hover:text-white transition-colors">
+            <LogOut className="w-5 h-5 text-gray-400 group-hover:text-brand-red" />
+            <span className="font-display font-bold text-xs tracking-widest uppercase">
               CERRAR SESIÓN
             </span>
           </button>
@@ -154,16 +168,44 @@ export function IntranetSidebar({ isOpen, onClose }) {
 }
 
 export function IntranetHeader({ onMenuOpen }) {
+  const pathname = usePathname();
+  const [isMounted, setIsMounted] = useState(false);
+
+  useEffect(() => {
+    setIsMounted(true);
+  }, []);
+
+  const pageTitle = menuItems.find(item => item.href === pathname)?.label || 'Panel';
+
+  if (!isMounted) return <header className="bg-white border-b border-brand-border h-20" />;
+
   return (
-    <header className="bg-white/95 backdrop-blur-md shadow-sm border-b border-brand-border sticky top-0 z-30">
-      <div className="px-8 py-6 flex items-center justify-between lg:hidden">
-        <h2 className="font-display font-black text-xl text-brand-navy">INTRANET IQ</h2>
-        <button
-          onClick={onMenuOpen}
-          className="bg-brand-navy text-white p-3 rounded-sm shadow-lg active:scale-95 transition-transform"
-        >
-          <Menu className="w-6 h-6" />
-        </button>
+    <header className="bg-white border-b border-brand-border h-20 flex items-center px-8 sticky top-0 z-30">
+      <div className="flex items-center justify-between w-full">
+        <div className="flex items-center gap-4">
+          <button
+            onClick={onMenuOpen}
+            className="lg:hidden text-gray-500 hover:text-brand-navy p-2 hover:bg-brand-gray rounded-sm transition-colors"
+          >
+            <Menu className="w-6 h-6" />
+          </button>
+          <h2 className="font-display font-black text-xl text-brand-navy tracking-tight uppercase">
+            {pageTitle}
+          </h2>
+        </div>
+        
+        <div className="flex items-center gap-6">
+          <div className="hidden md:flex flex-col items-end">
+            <span className="text-[10px] text-brand-navy font-black tracking-widest uppercase">Escuela de Ingeniería Química</span>
+            <span className="text-xs text-brand-muted font-bold uppercase">Gestión de Laboratorios</span>
+          </div>
+          <div className="w-px h-8 bg-brand-border hidden md:block" />
+          <div className="flex items-center gap-3">
+            <div className="w-8 h-8 rounded-full bg-brand-navy flex items-center justify-center text-white text-[10px] font-black">
+              IQ
+            </div>
+          </div>
+        </div>
       </div>
     </header>
   );

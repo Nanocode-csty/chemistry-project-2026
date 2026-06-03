@@ -1,50 +1,93 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { mockInvestigaciones } from '@/data/mockData';
-import { Microscope, ArrowRight, Beaker, FileText, ChevronRight } from 'lucide-react';
+import { dbOperations } from '@/lib/supabase';
+import { Microscope, ArrowRight, Beaker, FileText, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
 export default function InvestigacionesPage() {
+  const [investigaciones, setInvestigaciones] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchInvestigaciones = async () => {
+      try {
+        const { data, error } = await dbOperations.getInvestigaciones();
+        if (data) setInvestigaciones(data);
+      } catch (err) {
+        console.error('Error fetching investigaciones:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchInvestigaciones();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-brand-gray">
+        <Loader2 className="animate-spin text-brand-navy" size={48} />
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-brand-gray pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         
-        {/* Header Section */}
-        <div className="relative mb-20 overflow-hidden bg-brand-navy p-12 lg:p-20 text-white shadow-premium">
-          <div className="absolute top-0 right-0 w-1/3 h-full bg-brand-teal/10 -skew-x-12 translate-x-1/2" />
+        {/* Header Section - Rediseñado sin la figura lateral */}
+        <div className="relative mb-24">
           <motion.div
-            initial={{ opacity: 0, x: -20 }}
-            animate={{ opacity: 1, x: 0 }}
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
-            className="relative z-10"
+            className="max-w-4xl"
           >
-            <div className="w-20 h-2 bg-brand-teal mb-8" />
-            <h1 className="text-5xl md:text-7xl font-display font-black uppercase tracking-tighter leading-none mb-6">
+            <div className="flex items-center gap-4 mb-6">
+              <div className="w-16 h-1 bg-brand-accent" />
+              <span className="text-brand-navy font-display font-black text-[11px] tracking-[0.4em] uppercase">
+                Excelencia Científica
+              </span>
+            </div>
+            <h1 className="text-6xl md:text-8xl font-display font-black text-brand-navy uppercase tracking-tighter leading-[0.85] mb-8">
               PROGRAMA DE <br />
-              <span className="text-brand-teal">INVESTIGACIÓN</span>
+              <span className="text-brand-navy italic opacity-80">INVESTIGACIÓN</span>
             </h1>
-            <p className="text-xl text-slate-300 max-w-2xl font-sans leading-relaxed italic border-l-4 border-brand-accent pl-8">
+            
+            {/* Línea sutil con iconos relacionados */}
+            <div className="flex items-center gap-6 mb-10 text-brand-muted">
+              <div className="h-[1px] flex-grow bg-brand-border" />
+              <Microscope size={20} className="opacity-40" />
+              <Beaker size={20} className="opacity-40" />
+              <FileText size={20} className="opacity-40" />
+              <div className="h-[1px] flex-grow bg-brand-border" />
+            </div>
+
+            <p className="text-xl text-gray-600 max-w-2xl font-sans leading-relaxed border-l-4 border-brand-accent pl-8">
               Lideramos la frontera del conocimiento químico para resolver los desafíos 
-              más críticos de la industria y el medio ambiente.
+              más críticos de la industria y el medio ambiente a nivel global.
             </p>
           </motion.div>
         </div>
 
-        {/* Content Grid */}
-        <div className="grid lg:grid-cols-3 gap-8">
-          {mockInvestigaciones.map((inv, idx) => (
+        {/* Content Grid - Hover corregido */}
+        <div className="grid lg:grid-cols-3 gap-8 mb-24">
+          {investigaciones.length > 0 ? investigaciones.map((inv, idx) => (
             <motion.div
               key={inv.id}
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="group bg-white border-b-8 border-brand-teal shadow-soft hover:shadow-premium transition-all duration-500 flex flex-col h-full"
+              className="group bg-white border border-brand-border hover:border-brand-navy/20 shadow-soft hover:shadow-premium transition-all duration-500 flex flex-col h-full relative overflow-hidden"
             >
-              <div className="p-10 flex-grow">
-                <div className="w-16 h-16 bg-brand-navy flex items-center justify-center text-white mb-8 group-hover:bg-brand-teal group-hover:text-brand-navy transition-all duration-500 rotate-3 group-hover:rotate-0">
+              {/* Decorative background element on hover - Sutil */}
+              <div className="absolute top-0 right-0 w-32 h-32 bg-brand-light -mr-16 -mt-16 rounded-full group-hover:bg-brand-accent/5 group-hover:scale-150 transition-all duration-700" />
+              
+              <div className="p-10 flex-grow relative z-10">
+                <div className="w-16 h-16 bg-white border-2 border-brand-navy flex items-center justify-center text-brand-navy mb-8 group-hover:bg-brand-navy group-hover:text-white transition-all duration-500 shadow-sm group-hover:-translate-y-2">
                   <Microscope size={32} />
                 </div>
-                <h2 className="text-2xl font-display font-black text-brand-navy mb-6 uppercase tracking-tight leading-tight group-hover:text-brand-teal transition-colors">
+                <h2 className="text-2xl font-display font-black text-brand-navy mb-6 uppercase tracking-tight leading-tight group-hover:text-brand-navy transition-colors">
                   {inv.titulo}
                 </h2>
                 <p className="text-gray-600 font-sans leading-relaxed mb-8">
@@ -52,45 +95,24 @@ export default function InvestigacionesPage() {
                 </p>
               </div>
               
-              <div className="p-10 pt-0">
+              <div className="p-10 pt-0 relative z-10">
                 <Link 
-                  href={`/investigaciones/${inv.id}`}
-                  className="inline-flex items-center gap-3 text-[12px] font-display font-black tracking-[0.2em] text-brand-navy uppercase group-hover:gap-5 transition-all"
+                  href={inv.link || `/investigaciones/${inv.id}`}
+                  className="inline-flex items-center gap-3 text-[11px] font-display font-black tracking-[0.2em] text-brand-navy uppercase group-hover:gap-5 transition-all border-b-2 border-transparent hover:border-brand-accent pb-1"
                 >
-                  EXPEDIENTE COMPLETO <ArrowRight size={16} className="text-brand-teal" />
+                  EXPEDIENTE COMPLETO <ArrowRight size={16} className="text-brand-accent" />
                 </Link>
               </div>
             </motion.div>
-          ))}
-        </div>
-
-        {/* Call to Action */}
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.95 }}
-          whileInView={{ opacity: 1, scale: 1 }}
-          viewport={{ once: true }}
-          className="mt-24 bg-brand-teal p-12 lg:p-20 text-brand-navy shadow-2xl relative overflow-hidden"
-        >
-          <div className="absolute bottom-0 right-0 w-64 h-64 bg-white/10 rounded-full -mb-32 -mr-32 blur-3xl" />
-          <div className="relative z-10 flex flex-col lg:flex-row items-center justify-between gap-12">
-            <div className="lg:w-2/3">
-              <h3 className="text-3xl md:text-5xl font-display font-black uppercase tracking-tighter leading-none mb-6">
-                ¿TIENES UN PROYECTO <br />DE INVESTIGACIÓN?
-              </h3>
-              <p className="text-lg font-bold opacity-80 uppercase tracking-widest">
-                Buscamos talentos y alianzas estratégicas para el 2026.
-              </p>
+          )) : (
+            <div className="lg:col-span-3 text-center py-20 bg-white border-2 border-dashed border-brand-border">
+              <p className="text-brand-muted uppercase font-black tracking-widest">No hay investigaciones disponibles en este momento.</p>
             </div>
-            <Link 
-              href="/#contacto"
-              className="bg-brand-navy text-white px-12 py-6 font-display font-black text-[12px] tracking-[0.3em] hover:bg-white hover:text-brand-navy transition-all shadow-2xl uppercase"
-            >
-              POSTULAR PROYECTO
-            </Link>
-          </div>
-        </motion.div>
+          )}
+        </div>
 
       </div>
     </main>
   );
 }
+

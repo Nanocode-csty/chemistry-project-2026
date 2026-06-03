@@ -1,9 +1,35 @@
 'use client';
+import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { mockPapers } from '@/data/mockData';
-import { ScrollText, ExternalLink, Download, BookOpen, Quote } from 'lucide-react';
+import { dbOperations } from '@/lib/supabase';
+import { ScrollText, ExternalLink, Download, BookOpen, Quote, Loader2 } from 'lucide-react';
 
 export default function PapersPage() {
+  const [papers, setPapers] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchPapers = async () => {
+      try {
+        const { data, error } = await dbOperations.getPapers();
+        if (data) setPapers(data);
+      } catch (err) {
+        console.error('Error fetching papers:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchPapers();
+  }, []);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <Loader2 className="animate-spin text-brand-navy" size={48} />
+      </div>
+    );
+  }
+
   return (
     <main className="min-h-screen bg-white pt-32 pb-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -34,54 +60,75 @@ export default function PapersPage() {
 
         {/* Papers List */}
         <div className="space-y-12">
-          {mockPapers.map((paper, idx) => (
+          {papers.length > 0 ? papers.map((paper, idx) => (
             <motion.div
               key={paper.id}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="group relative bg-brand-gray p-12 lg:p-16 hover:bg-brand-navy transition-all duration-700 overflow-hidden shadow-soft hover:shadow-premium"
+              className="group relative bg-white p-12 lg:p-16 border-l-8 border-brand-gray hover:border-brand-teal transition-all duration-500 overflow-hidden shadow-soft hover:shadow-premium"
             >
-              <div className="absolute top-0 right-0 p-12 text-slate-200 group-hover:text-white/10 transition-colors">
+              <div className="absolute top-0 right-0 p-12 text-slate-100 group-hover:text-brand-teal/20 group-hover:scale-150 transition-all duration-700">
                 <Quote size={80} />
               </div>
 
               <div className="relative z-10 flex flex-col lg:flex-row gap-12 items-start">
                 <div className="lg:w-1/4">
                   <div className="text-brand-teal font-display font-black text-5xl italic mb-4">{paper.anio}</div>
-                  <div className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-navy group-hover:text-brand-accent mb-8">
+                  <div className="text-[10px] font-black uppercase tracking-[0.4em] text-brand-navy mb-8">
                     {paper.revista}
                   </div>
-                  <button className="flex items-center gap-3 text-[11px] font-black tracking-widest uppercase text-brand-navy group-hover:text-white transition-colors border-b-2 border-brand-teal pb-2">
-                    <Download size={14} /> DOWNLOAD PDF
-                  </button>
+                  {paper.pdf_url && (
+                    <a 
+                      href={paper.pdf_url} 
+                      target="_blank" 
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-3 text-[11px] font-black tracking-widest uppercase text-brand-navy hover:text-brand-teal transition-colors border-b-2 border-brand-teal pb-2"
+                    >
+                      <Download size={14} /> DOWNLOAD PDF
+                    </a>
+                  )}
                 </div>
 
                 <div className="lg:w-3/4">
-                  <h2 className="text-2xl md:text-4xl font-display font-black text-brand-navy group-hover:text-white mb-8 uppercase leading-tight tracking-tight">
+                  <h2 className="text-2xl md:text-4xl font-display font-black text-brand-navy mb-8 uppercase leading-tight tracking-tight">
                     {paper.titulo}
                   </h2>
-                  <p className="text-gray-600 group-hover:text-slate-300 font-sans leading-relaxed mb-10 text-lg italic">
+                  <p className="text-gray-600 font-sans leading-relaxed mb-10 text-lg italic">
                     "{paper.resumen}"
                   </p>
                   <div className="flex flex-wrap items-center gap-6">
-                    <div className="flex items-center gap-3 text-brand-navy group-hover:text-brand-teal">
-                      <BookOpen size={18} />
+                    <div className="flex items-center gap-3 text-brand-navy">
+                      <BookOpen size={18} className="text-brand-teal" />
                       <span className="text-xs font-bold uppercase tracking-widest">{paper.autores}</span>
                     </div>
-                    <div className="w-1.5 h-1.5 bg-brand-teal rounded-full hidden sm:block" />
-                    <div className="flex items-center gap-3 text-brand-navy group-hover:text-brand-teal">
-                      <ExternalLink size={18} />
-                      <span className="text-xs font-bold uppercase tracking-widest">DOI: 10.1016/j.cej.2024.12345</span>
-                    </div>
+                    {paper.doi && (
+                      <>
+                        <div className="w-1.5 h-1.5 bg-brand-teal rounded-full hidden sm:block" />
+                        <a 
+                          href={`https://doi.org/${paper.doi}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="flex items-center gap-3 text-brand-navy hover:text-brand-teal transition-colors"
+                        >
+                          <ExternalLink size={18} />
+                          <span className="text-xs font-bold uppercase tracking-widest underline decoration-brand-teal/30 underline-offset-4">DOI: {paper.doi}</span>
+                        </a>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
             </motion.div>
-          ))}
+          )) : (
+            <div className="text-center py-20 bg-brand-gray border-2 border-dashed border-brand-border">
+              <p className="text-brand-muted uppercase font-black tracking-widest">No hay publicaciones disponibles en este momento.</p>
+            </div>
+          )}
         </div>
 
       </div>
     </main>
   );
 }
+

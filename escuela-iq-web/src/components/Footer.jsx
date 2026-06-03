@@ -3,8 +3,9 @@ import { Facebook, Twitter, Linkedin, Instagram, Youtube, ArrowRight, Mail, Phon
 
 const Footer = () => {
   return (
-    <footer className="bg-brand-navy text-white pt-24 pb-12 overflow-hidden relative">
-      <div className="absolute top-0 right-0 w-1/3 h-full bg-white/5 -skew-x-12 translate-x-1/2" />
+    <footer className="bg-brand-navy text-white pt-24 pb-12 overflow-hidden relative border-t-8 border-brand-teal">
+      <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(0,163,163,0.1),transparent)] pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-1/3 h-full bg-white/5 skew-x-12 -translate-x-1/2 pointer-events-none" />
       
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         
@@ -14,15 +15,15 @@ const Footer = () => {
           {/* Brand Column */}
           <div className="lg:col-span-4">
             <Link href="/" className="flex items-center space-x-4 mb-10 group">
-              <div className="bg-white p-2.5 rounded-sm">
+              <div className="bg-white p-2.5 rounded-sm shadow-premium group-hover:rotate-3 transition-transform duration-500">
                 <span className="text-brand-navy font-display font-black text-2xl italic tracking-tighter">EIQ</span>
               </div>
-              <div className="flex flex-col border-l border-white/20 pl-4">
+              <div className="flex flex-col border-l-2 border-brand-teal/30 pl-4">
                 <span className="text-white font-display font-black text-xl leading-none tracking-tighter uppercase">INGENIERÍA QUÍMICA</span>
-                <span className="text-brand-teal font-display font-extrabold text-[10px] tracking-[0.3em] uppercase mt-1">Innovación & Excelencia</span>
+                <span className="text-brand-accent font-display font-extrabold text-[10px] tracking-[0.3em] uppercase mt-1">Innovación & Excelencia</span>
               </div>
             </Link>
-            <p className="text-slate-400 text-sm leading-relaxed mb-10 max-w-sm font-sans">
+            <p className="text-slate-300 text-sm leading-relaxed mb-10 max-w-sm font-sans">
               Liderando la innovación científica y tecnológica desde el corazón de la academia 
               para el progreso del sector industrial global. Transformamos investigación en soluciones.
             </p>
@@ -36,7 +37,7 @@ const Footer = () => {
 
           {/* Links Column 1 */}
           <div className="lg:col-span-2 lg:ml-auto">
-            <h4 className="text-brand-teal font-display font-black text-[11px] tracking-[0.3em] uppercase mb-10">ACADEMIA</h4>
+            <h4 className="text-brand-teal font-display font-black text-[11px] tracking-[0.3em] uppercase mb-10 border-b border-white/10 pb-4 inline-block">ACADEMIA</h4>
             <ul className="space-y-5">
               <FooterLink href="/investigaciones">Investigación</FooterLink>
               <FooterLink href="/papers">Publicaciones</FooterLink>
@@ -47,19 +48,19 @@ const Footer = () => {
 
           {/* Links Column 2 */}
           <div className="lg:col-span-2">
-            <h4 className="text-brand-teal font-display font-black text-[11px] tracking-[0.3em] uppercase mb-10">INDUSTRIA</h4>
+            <h4 className="text-brand-teal font-display font-black text-[11px] tracking-[0.3em] uppercase mb-10 border-b border-white/10 pb-4 inline-block">INDUSTRIA</h4>
             <ul className="space-y-5">
               <FooterLink href="/proyectos">Proyectos</FooterLink>
               <FooterLink href="/servicios">Servicios Técnicos</FooterLink>
               <FooterLink href="/transferencia">Transferencia</FooterLink>
               <FooterLink href="/noticias">Noticias</FooterLink>
-              <FooterLink href="/intranet">Portal Intranet</FooterLink>
+              <FooterLink href="/intranet/login">Portal Intranet</FooterLink>
             </ul>
           </div>
 
           {/* Contact Column */}
           <div className="lg:col-span-4">
-            <h4 className="text-brand-teal font-display font-black text-[11px] tracking-[0.3em] uppercase mb-10">CONTACTO DIRECTO</h4>
+            <h4 className="text-brand-accent font-display font-black text-[11px] tracking-[0.3em] uppercase mb-10 border-b border-white/10 pb-4 inline-block">CONTACTO DIRECTO</h4>
             <div className="space-y-6">
               <ContactItem icon={<Mail size={18} />} text="contacto@escuelaiq.edu" />
               <ContactItem icon={<Phone size={18} />} text="+51 (1) 456-7890" />
@@ -67,9 +68,9 @@ const Footer = () => {
               <div className="pt-6">
                 <Link 
                   href="#contacto" 
-                  className="inline-flex items-center gap-4 bg-brand-teal text-brand-navy px-8 py-4 font-display font-black text-[11px] tracking-widest hover:bg-white transition-all uppercase shadow-2xl"
+                  className="inline-flex items-center gap-4 bg-brand-teal text-brand-navy px-10 py-5 font-display font-black text-[11px] tracking-[0.3em] hover:bg-white transition-all uppercase shadow-premium rounded-sm group"
                 >
-                  SOLICITAR INFORMACIÓN <ArrowRight size={16} />
+                  SOLICITAR INFORMACIÓN <ArrowRight size={16} className="group-hover:translate-x-2 transition-transform" />
                 </Link>
               </div>
             </div>
@@ -79,12 +80,12 @@ const Footer = () => {
 
         {/* Bottom Bar */}
         <div className="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-8">
-          <div className="text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em] flex items-center gap-4">
+          <div className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em] flex items-center gap-4">
             <span>&copy; {new Date().getFullYear()} ESCUELA IQ. TODOS LOS DERECHOS RESERVADOS.</span>
-            <span className="hidden md:block w-1 h-1 bg-slate-700 rounded-full" />
+            <span className="hidden md:block w-1 h-1 bg-brand-teal rounded-full" />
             <span className="hidden md:block">CERTIFICACIÓN ISO 9001:2015</span>
           </div>
-          <div className="flex gap-10 text-[10px] font-bold text-slate-500 uppercase tracking-[0.2em]">
+          <div className="flex gap-10 text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
             <Link href="#" className="hover:text-brand-teal transition-colors">Privacidad</Link>
             <Link href="#" className="hover:text-brand-teal transition-colors">Términos Legales</Link>
             <Link href="#" className="hover:text-brand-teal transition-colors">Mapa del Sitio</Link>
@@ -97,7 +98,7 @@ const Footer = () => {
 };
 
 const SocialLink = ({ icon }) => (
-  <a href="#" className="w-11 h-11 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-brand-teal hover:text-brand-navy hover:border-brand-teal transition-all duration-500">
+  <a href="#" className="w-11 h-11 bg-white/5 border border-white/10 flex items-center justify-center text-slate-400 hover:bg-brand-teal hover:text-brand-navy hover:border-brand-teal transition-all duration-500 rounded-sm">
     {icon}
   </a>
 );
@@ -105,7 +106,7 @@ const SocialLink = ({ icon }) => (
 const FooterLink = ({ href, children }) => (
   <li>
     <Link href={href} className="text-[13px] font-bold text-slate-400 hover:text-white transition-all flex items-center gap-3 group">
-      <span className="w-1 h-1 bg-brand-teal opacity-0 group-hover:opacity-100 transition-opacity" />
+      <span className="w-2 h-[2px] bg-brand-teal scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
       {children}
     </Link>
   </li>
@@ -113,10 +114,10 @@ const FooterLink = ({ href, children }) => (
 
 const ContactItem = ({ icon, text }) => (
   <div className="flex items-center gap-4 group cursor-default">
-    <div className="w-10 h-10 bg-white/5 flex items-center justify-center text-brand-teal group-hover:bg-brand-teal group-hover:text-brand-navy transition-all duration-500">
+    <div className="w-12 h-12 bg-white/5 flex items-center justify-center text-brand-teal group-hover:bg-brand-teal group-hover:text-brand-navy transition-all duration-500 rounded-sm shadow-inner">
       {icon}
     </div>
-    <span className="text-sm font-bold text-slate-400 group-hover:text-white transition-colors">{text}</span>
+    <span className="text-sm font-bold text-slate-300 group-hover:text-white transition-colors">{text}</span>
   </div>
 );
 
