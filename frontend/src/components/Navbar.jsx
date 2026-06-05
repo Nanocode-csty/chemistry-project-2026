@@ -88,7 +88,7 @@ const Navbar = () => {
                 />
                 {/* Logo Móvil Blanco */}
                 <img 
-                  src="/img-logo-labcam-completo-movil.png" 
+                  src="/img-logo-labcam-completo-movil-nuevo.png" 
                   alt="LABCAM Logo" 
                   className="block md:hidden h-12 w-auto object-contain brightness-0 invert"
                 />
@@ -191,7 +191,7 @@ const Navbar = () => {
             >
               <div className="flex justify-between items-center px-8 py-8 border-b border-white/5">
                 <img 
-                  src="/img-logo-labcam-completo-blanco.png" 
+                  src="/img-logo-labcam-completo-movil-nuevo.png" 
                   alt="LABCAM" 
                   className="h-12 w-auto object-contain"
                 />
