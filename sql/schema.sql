@@ -29,6 +29,7 @@ CREATE TABLE IF NOT EXISTS equipos (
   categoria_id BIGINT NOT NULL REFERENCES categorias_equipos(id) ON DELETE CASCADE,
   descripcion TEXT,
   estado VARCHAR(50) DEFAULT 'disponible', -- disponible, ocupado, en_mantenimiento
+  imagen_url TEXT,
   fecha_adquisicion DATE,
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -149,6 +150,7 @@ SELECT
   a.nombre as ambiente,
   c.nombre as categoria,
   e.descripcion,
+  e.imagen_url,
   e.fecha_adquisicion
 FROM equipos e
 LEFT JOIN ambientes a ON e.ambiente_id = a.id

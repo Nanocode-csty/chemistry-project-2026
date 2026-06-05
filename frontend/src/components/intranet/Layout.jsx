@@ -45,7 +45,7 @@ export default function IntranetLayout({ children }) {
   }
 
   return (
-    <div className="flex h-screen bg-brand-gray/30 overflow-hidden">
+    <div className="flex h-screen bg-slate-50 overflow-hidden font-sans">
       {/* Sidebar */}
       <IntranetSidebar
         isOpen={sidebarOpen}
@@ -57,8 +57,8 @@ export default function IntranetLayout({ children }) {
         <IntranetHeader onMenuOpen={() => setSidebarOpen(true)} />
 
         {/* Contenido principal */}
-        <main className="flex-1 overflow-y-auto overflow-x-hidden">
-          <div className="max-w-[1600px] mx-auto p-6 md:p-8 lg:p-10">
+        <main className="flex-1 overflow-y-auto overflow-x-hidden custom-scrollbar">
+          <div className="max-w-[1600px] mx-auto p-6 md:p-10">
             {children}
           </div>
         </main>

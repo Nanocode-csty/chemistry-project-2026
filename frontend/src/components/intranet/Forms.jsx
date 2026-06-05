@@ -1,32 +1,69 @@
 'use client';
 
 import { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { X, Search, ChevronDown } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { motion, AnimatePresence } from 'framer-motion';
 
-export function Modal({ isOpen, onClose, title, children }) {
-  if (!isOpen) return null;
+export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl' }) {
+  const [mounted, setMounted] = useState(false);
 
-  return (
-    <div className="fixed inset-0 bg-black/60 z-50 flex items-center justify-center p-4">
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="bg-white rounded-lg shadow-premium max-w-2xl w-full"
-      >
-        <div className="flex items-center justify-between p-8 border-b border-brand-border">
-          <h2 className="font-display font-black text-2xl text-brand-navy tracking-tight">{title}</h2>
-          <button
+  useEffect(() => {
+    setMounted(true);
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = 'unset';
+    }
+    return () => {
+      document.body.style.overflow = 'unset';
+    };
+  }, [isOpen]);
+
+  if (!mounted) return null;
+
+  const modalContent = (
+    <AnimatePresence>
+      {isOpen && (
+        <div className="fixed inset-0 w-full h-full z-[99999] flex items-start justify-center overflow-y-auto custom-scrollbar">
+          {/* Overlay Oscuro Total */}
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 w-full h-full bg-[#001a2a]/95 backdrop-blur-md"
             onClick={onClose}
-            className="text-brand-teal hover:text-brand-navy transition-colors p-2 rounded-sm hover:bg-brand-gray"
+          ></motion.div>
+          
+          <motion.div
+            initial={{ opacity: 0, scale: 0.95, y: -20 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95, y: -20 }}
+            transition={{ type: 'spring', damping: 25, stiffness: 400 }}
+            className={`bg-white rounded-sm shadow-[0_30px_100px_-10px_rgba(0,0,0,0.8)] ${maxWidth} w-full mt-12 mb-20 mx-4 overflow-hidden border border-white/5 relative z-[100000]`}
           >
-            <X className="w-6 h-6" />
-          </button>
+            <div className="flex items-center justify-between p-6 md:p-8 border-b border-slate-100 bg-slate-50/90 backdrop-blur-sm sticky top-0 z-10">
+              <div className="flex flex-col">
+                <h2 className="font-display font-black text-xl md:text-2xl text-[#002b45] tracking-tight uppercase italic leading-none">{title}</h2>
+                <div className="h-1 w-12 bg-[#98C560] mt-2 rounded-full"></div>
+              </div>
+              <button
+                onClick={onClose}
+                className="text-slate-400 hover:text-red-500 transition-all p-2.5 rounded-full hover:bg-red-50 group"
+              >
+                <X className="w-6 h-6 group-hover:rotate-90 transition-transform duration-300" />
+              </button>
+            </div>
+            <div className="p-6 md:p-8">
+              {children}
+            </div>
+          </motion.div>
         </div>
-        <div className="p-8">{children}</div>
-      </motion.div>
-    </div>
+      )}
+    </AnimatePresence>
   );
+
+  return createPortal(modalContent, document.body);
 }
 
 export function FormInput({

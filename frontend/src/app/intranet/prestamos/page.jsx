@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { dbOperations } from '@/lib/supabase';
-import { Plus, Trash2, CheckCircle, AlertCircle, Calendar, Search, Filter, History, Clock } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, AlertCircle, Calendar, Search, Filter, History, Clock, Package, User, MapPin, Tag, Info } from 'lucide-react';
 import {
   Modal,
   FormSelect,
@@ -129,18 +129,24 @@ export default function PrestamosPage() {
   const prestamosFiltrados = (tab === 'activos'
     ? prestamos.filter((p) => !p.fecha_devolucion)
     : prestamos
-  ).filter(p => 
-    p.equipo?.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.equipo?.codigo.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.estudiante?.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    p.estudiante?.matricula.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ).filter(p => {
+    const search = searchTerm.toLowerCase();
+    return !searchTerm || 
+      p.equipo?.nombre?.toLowerCase().includes(search) ||
+      p.equipo?.codigo?.toLowerCase().includes(search) ||
+      p.estudiante?.nombre?.toLowerCase().includes(search) ||
+      p.estudiante?.matricula?.toLowerCase().includes(search);
+  });
 
   const equiposDisponiblesPorAmbiente = equipos.filter((e) => {
     const disponible = e.estado === 'disponible';
-    const matchesAmbiente = formData.ambiente_id ? e.ambiente_id === parseInt(formData.ambiente_id) : true;
+    const matchesAmbiente = !formData.ambiente_id || String(e.ambiente_id) === String(formData.ambiente_id);
     return disponible && matchesAmbiente;
   });
+
+  const ambientesConEquipos = ambientes.filter(a => 
+    equipos.some(e => e.ambiente_id === a.id && e.estado === 'disponible')
+  );
 
   const columns = [
     {
@@ -334,57 +340,131 @@ export default function PrestamosPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="REGISTRAR NUEVO PRÉSTAMO"
+        maxWidth="max-w-4xl"
       >
-        <div className="space-y-6">
-          <FormSelect
-            label="1. FILTRAR POR LABORATORIO (OPCIONAL)"
-            name="ambiente_id"
-            value={formData.ambiente_id}
-            onChange={handleInputChange}
-            options={ambientes}
-            placeholder="Todos los ambientes"
-          />
-          
-          <FormSelect
-            label="2. SELECCIONAR EQUIPO DISPONIBLE"
-            name="equipo_id"
-            value={formData.equipo_id}
-            onChange={handleInputChange}
-            options={equiposDisponiblesPorAmbiente.map(e => ({ id: e.id, nombre: `${e.nombre} [${e.codigo}]` }))}
-            placeholder={equiposDisponiblesPorAmbiente.length === 0 ? "No hay equipos disponibles" : "Selecciona un equipo..."}
-            required
-          />
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Columna Izquierda: Visualización del Equipo Seleccionado */}
+          <div className="lg:w-1/3 space-y-6">
+            <div className="relative aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-sm overflow-hidden flex flex-col items-center justify-center p-4">
+              {formData.equipo_id ? (
+                <>
+                  {equipos.find(e => String(e.id) === String(formData.equipo_id))?.imagen_url ? (
+                    <img 
+                      src={equipos.find(e => String(e.id) === String(formData.equipo_id))?.imagen_url} 
+                      alt="Equipo" 
+                      className="w-full h-full object-cover rounded-sm"
+                    />
+                  ) : (
+                    <div className="text-center space-y-3">
+                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
+                        <Package className="w-8 h-8 text-[#98C560]" />
+                      </div>
+                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin imagen</p>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <div className="text-center space-y-3">
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
+                    <Package className="w-8 h-8 text-slate-200" />
+                  </div>
+                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Selecciona un equipo</p>
+                </div>
+              )}
+            </div>
 
-          <FormSelect
-            label="3. SELECCIONAR ESTUDIANTE"
-            name="estudiante_id"
-            value={formData.estudiante_id}
-            onChange={handleInputChange}
-            options={estudiantes}
-            placeholder="Busca al estudiante..."
-            required
-          />
-
-          <div className="bg-brand-gray/30 p-4 rounded-sm border-l-4 border-brand-accent">
-            <p className="text-[10px] font-black text-brand-navy uppercase tracking-widest mb-1">Nota importante</p>
-            <p className="text-xs text-gray-600">Al registrar el préstamo, el estado del equipo cambiará automáticamente a <span className="font-bold text-brand-navy">OCUPADO</span>.</p>
+            {formData.equipo_id && (
+              <div className="bg-[#002b45] p-5 rounded-sm shadow-lg border-l-4 border-[#98C560]">
+                <p className="text-[9px] font-black text-[#98C560] uppercase tracking-[0.2em] mb-1">Estado de Salida</p>
+                <p className="text-xs text-white font-bold">El equipo pasará a estado <span className="text-[#98C560] underline">OCUPADO</span> inmediatamente después de confirmar.</p>
+              </div>
+            )}
           </div>
 
-          <div className="flex gap-4 pt-4">
-            <Button
-              onClick={() => setIsModalOpen(false)}
-              variant="secondary"
-              fullWidth
-            >
-              CANCELAR
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isSaving || !formData.equipo_id || !formData.estudiante_id}
-              fullWidth
-            >
-              {isSaving ? 'REGISTRANDO...' : 'CONFIRMAR PRÉSTAMO'}
-            </Button>
+          {/* Columna Derecha: Formulario de Préstamo */}
+          <div className="lg:w-2/3 space-y-6">
+            <div className="bg-white p-6 rounded-sm border border-slate-100 shadow-sm space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                <Info className="w-5 h-5 text-[#98C560]" />
+                <h3 className="font-display font-black text-[#002b45] text-sm uppercase tracking-tight">Detalles del Préstamo</h3>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
+                    <MapPin className="w-3 h-3 text-[#98C560]" /> 1. Laboratorio
+                  </label>
+                  <select
+                    name="ambiente_id"
+                    value={formData.ambiente_id}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                  >
+                    <option value="">Todos los ambientes</option>
+                    {ambientes.map(a => (
+                      <option key={a.id} value={a.id}>
+                        {a.nombre} ({equipos.filter(e => e.ambiente_id === a.id && e.estado === 'disponible').length} disponibles)
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
+                    <Package className="w-3 h-3 text-[#98C560]" /> 2. Equipo Disponible
+                  </label>
+                  <select
+                    name="equipo_id"
+                    value={formData.equipo_id}
+                    onChange={handleInputChange}
+                    required
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                  >
+                    <option value="">Selecciona un equipo...</option>
+                    {equiposDisponiblesPorAmbiente.map(e => (
+                      <option key={e.id} value={e.id}>{e.nombre} [{e.codigo}]</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
+                  <User className="w-3 h-3 text-[#98C560]" /> 3. Estudiante / Beneficiario
+                </label>
+                <select
+                  name="estudiante_id"
+                  value={formData.estudiante_id}
+                  onChange={handleInputChange}
+                  required
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                >
+                  <option value="">Selecciona al estudiante...</option>
+                  {estudiantes.map(est => (
+                    <option key={est.id} value={est.id}>{est.nombre} ({est.matricula})</option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-4">
+              <Button
+                onClick={() => setIsModalOpen(false)}
+                variant="secondary"
+                fullWidth
+                className="!py-3"
+              >
+                CANCELAR
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isSaving || !formData.equipo_id || !formData.estudiante_id}
+                fullWidth
+                className="!py-3 !bg-[#002b45] hover:!bg-[#98C560] hover:!text-[#002b45]"
+              >
+                {isSaving ? 'PROCESANDO...' : 'CONFIRMAR PRÉSTAMO'}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>

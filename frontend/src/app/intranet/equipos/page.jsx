@@ -1,8 +1,8 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { dbOperations } from '@/lib/supabase';
-import { Plus, Trash2, Edit2, AlertCircle, Zap, Package, Search, Filter } from 'lucide-react';
+import { Plus, Trash2, Edit2, AlertCircle, Zap, Package, Search, Filter, Image as ImageIcon, Info, MapPin, Tag, Upload, X as CloseIcon } from 'lucide-react';
 import {
   Modal,
   FormInput,
@@ -32,12 +32,16 @@ export default function EquiposPage() {
     categoria_id: '',
     descripcion: '',
     estado: 'disponible',
+    imagen_url: '',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterAmbiente, setFilterAmbiente] = useState('');
   const [filterCategoria, setFilterCategoria] = useState('');
   const [isMounted, setIsMounted] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
+  const [previewUrl, setPreviewUrl] = useState('');
+  const fileInputRef = useRef(null);
 
   const fetchData = async () => {
     try {
@@ -73,6 +77,20 @@ export default function EquiposPage() {
     if (error) setError(null);
   };
 
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 2 * 1024 * 1024) { // 2MB limit
+        setError('La imagen es demasiado grande. Máximo 2MB.');
+        return;
+      }
+      setSelectedFile(file);
+      const url = URL.createObjectURL(file);
+      setPreviewUrl(url);
+      setFormData(prev => ({ ...prev, imagen_url: '' })); // Priorizar archivo sobre URL manual
+    }
+  };
+
   const handleNew = () => {
     setEditingId(null);
     setFormData({
@@ -82,7 +100,10 @@ export default function EquiposPage() {
       categoria_id: '',
       descripcion: '',
       estado: 'disponible',
+      imagen_url: '',
     });
+    setSelectedFile(null);
+    setPreviewUrl('');
     setError(null);
     setIsModalOpen(true);
   };
@@ -96,7 +117,10 @@ export default function EquiposPage() {
       categoria_id: equipo.categoria_id,
       descripcion: equipo.descripcion || '',
       estado: equipo.estado,
+      imagen_url: equipo.imagen_url || '',
     });
+    setSelectedFile(null);
+    setPreviewUrl(equipo.imagen_url || '');
     setError(null);
     setIsModalOpen(true);
   };
@@ -122,6 +146,15 @@ export default function EquiposPage() {
     setError(null);
 
     try {
+      let finalImagenUrl = formData.imagen_url;
+
+      // Si hay un archivo seleccionado, subirlo primero
+      if (selectedFile) {
+        const uploadRes = await dbOperations.uploadImagen(selectedFile);
+        if (uploadRes.error) throw new Error(`Error al subir imagen: ${uploadRes.error}`);
+        finalImagenUrl = uploadRes.data;
+      }
+
       let result;
       if (editingId) {
         result = await dbOperations.actualizarEquipo(
@@ -131,7 +164,8 @@ export default function EquiposPage() {
           parseInt(formData.ambiente_id),
           parseInt(formData.categoria_id),
           formData.descripcion.trim(),
-          formData.estado
+          formData.estado,
+          finalImagenUrl
         );
       } else {
         result = await dbOperations.crearEquipo(
@@ -139,7 +173,8 @@ export default function EquiposPage() {
           formData.codigo.trim(),
           parseInt(formData.ambiente_id),
           parseInt(formData.categoria_id),
-          formData.descripcion.trim()
+          formData.descripcion.trim(),
+          finalImagenUrl
         );
       }
 
@@ -198,10 +233,14 @@ export default function EquiposPage() {
   };
 
   const filteredEquipos = equipos.filter(e => {
-    const matchesSearch = e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                         e.codigo.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesAmbiente = !filterAmbiente || e.ambiente_id === parseInt(filterAmbiente);
-    const matchesCategoria = !filterCategoria || e.categoria_id === parseInt(filterCategoria);
+    const matchesSearch = !searchTerm || 
+                         e.nombre?.toLowerCase().includes(searchTerm.toLowerCase()) || 
+                         e.codigo?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Comparación segura convirtiendo ambos a string para evitar problemas de tipos (int vs string)
+    const matchesAmbiente = !filterAmbiente || String(e.ambiente_id) === String(filterAmbiente);
+    const matchesCategoria = !filterCategoria || String(e.categoria_id) === String(filterCategoria);
+    
     return matchesSearch && matchesAmbiente && matchesCategoria;
   });
 
@@ -210,13 +249,17 @@ export default function EquiposPage() {
       key: 'nombre', 
       label: 'Equipo',
       render: (row) => (
-        <div className="flex items-center gap-3">
-          <div className="p-2 bg-brand-gray rounded-sm">
-            <Package className="w-4 h-4 text-brand-navy" />
+        <div className="flex items-center gap-4">
+          <div className="w-12 h-12 bg-slate-50 rounded-sm border border-slate-100 overflow-hidden flex items-center justify-center flex-shrink-0">
+            {row.imagen_url ? (
+              <img src={row.imagen_url} alt={row.nombre} className="w-full h-full object-cover" />
+            ) : (
+              <Package className="w-6 h-6 text-slate-300" />
+            )}
           </div>
           <div className="flex flex-col">
-            <span className="font-bold text-brand-navy">{row.nombre}</span>
-            <span className="text-[10px] font-black text-brand-teal uppercase tracking-widest">{row.codigo}</span>
+            <span className="font-bold text-[#002b45] text-sm uppercase tracking-tight">{row.nombre}</span>
+            <span className="text-[10px] font-black text-[#98C560] uppercase tracking-widest">{row.codigo}</span>
           </div>
         </div>
       )
@@ -405,86 +448,200 @@ export default function EquiposPage() {
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title={editingId ? 'EDITAR EQUIPO' : 'NUEVO EQUIPO'}
+        maxWidth="max-w-4xl"
       >
-        <div className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormInput
-              label="NOMBRE DEL EQUIPO"
-              name="nombre"
-              value={formData.nombre}
-              onChange={handleInputChange}
-              placeholder="Ej: Microscopio Óptico"
-              required
-            />
-            <FormInput
-              label="CÓDIGO ÚNICO"
-              name="codigo"
-              value={formData.codigo}
-              onChange={handleInputChange}
-              placeholder="Ej: MICRO-001"
-              required
-            />
+        <div className="flex flex-col lg:flex-row gap-8">
+          {/* Columna Izquierda: Imagen y Estado */}
+          <div className="lg:w-1/3 space-y-6">
+            <div className="relative aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-sm overflow-hidden group flex flex-col items-center justify-center p-4">
+              {previewUrl ? (
+                <>
+                  <img 
+                    src={previewUrl} 
+                    alt="Vista previa" 
+                    className="w-full h-full object-cover rounded-sm transition-transform group-hover:scale-105"
+                  />
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2">
+                    <Button 
+                      variant="secondary" 
+                      className="!py-2 !px-3 !text-[9px] !bg-white"
+                      onClick={() => fileInputRef.current?.click()}
+                    >
+                      CAMBIAR
+                    </Button>
+                    <button 
+                      className="p-2 bg-red-500 text-white rounded-full hover:bg-red-600 transition-colors"
+                      onClick={() => {
+                        setSelectedFile(null);
+                        setPreviewUrl('');
+                        setFormData(prev => ({ ...prev, imagen_url: '' }));
+                      }}
+                    >
+                      <CloseIcon className="w-4 h-4" />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <div 
+                  className="text-center space-y-3 cursor-pointer hover:bg-slate-100/50 w-full h-full flex flex-col items-center justify-center transition-colors"
+                  onClick={() => fileInputRef.current?.click()}
+                >
+                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
+                    <Upload className="w-8 h-8 text-[#98C560]" />
+                  </div>
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black text-[#002b45] uppercase tracking-widest">Cargar Imagen</p>
+                    <p className="text-[9px] text-slate-400">Click para seleccionar archivo</p>
+                  </div>
+                </div>
+              )}
+              <input 
+                type="file" 
+                ref={fileInputRef} 
+                className="hidden" 
+                accept="image/*" 
+                onChange={handleFileChange} 
+              />
+            </div>
+
+            <div className="space-y-4">
+              <div className="flex items-center gap-2">
+                <div className="h-px flex-1 bg-slate-200"></div>
+                <span className="text-[9px] font-black text-slate-300 uppercase tracking-widest">o usa una URL</span>
+                <div className="h-px flex-1 bg-slate-200"></div>
+              </div>
+
+              <FormInput
+                label="URL EXTERNA"
+                name="imagen_url"
+                value={formData.imagen_url}
+                onChange={(e) => {
+                  handleInputChange(e);
+                  if (e.target.value) {
+                    setPreviewUrl(e.target.value);
+                    setSelectedFile(null);
+                  }
+                }}
+                placeholder="https://ejemplo.com/foto.jpg"
+              />
+            </div>
+
+            {editingId && (
+              <div className="p-5 bg-slate-50 rounded-sm border border-slate-100">
+                <label className="block text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em] mb-4">
+                  Estado del Equipo
+                </label>
+                <div className="grid grid-cols-2 gap-2">
+                  {['disponible', 'en_mantenimiento'].map((est) => (
+                    <button
+                      key={est}
+                      onClick={() => setFormData(prev => ({ ...prev, estado: est }))}
+                      className={`py-2 px-3 rounded-sm text-[9px] font-black uppercase tracking-wider transition-all border ${
+                        formData.estado === est 
+                          ? est === 'disponible' 
+                            ? 'bg-[#98C560] border-[#98C560] text-white shadow-md' 
+                            : 'bg-red-500 border-red-500 text-white shadow-md'
+                          : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
+                      }`}
+                    >
+                      {est.replace('_', ' ')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
           </div>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <FormSelect
-              label="UBICACIÓN (AMBIENTE)"
-              name="ambiente_id"
-              value={formData.ambiente_id}
-              onChange={handleInputChange}
-              options={ambientes}
-              placeholder="Selecciona un laboratorio..."
-              required
-            />
-            <FormSelect
-              label="CATEGORÍA"
-              name="categoria_id"
-              value={formData.categoria_id}
-              onChange={handleInputChange}
-              options={categorias}
-              placeholder="Selecciona una categoría..."
-              required
-            />
-          </div>
 
-          {editingId && (
-            <FormSelect
-              label="ESTADO ACTUAL"
-              name="estado"
-              value={formData.estado}
-              onChange={handleInputChange}
-              options={[
-                { id: 'disponible', nombre: 'Disponible' },
-                { id: 'en_mantenimiento', nombre: 'En Mantenimiento' },
-              ]}
-              required
-            />
-          )}
+          {/* Columna Derecha: Información Principal */}
+          <div className="lg:w-2/3 space-y-6">
+            <div className="bg-white p-6 rounded-sm border border-slate-100 shadow-sm space-y-6">
+              <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
+                <Info className="w-5 h-5 text-[#98C560]" />
+                <h3 className="font-display font-black text-[#002b45] text-sm uppercase tracking-tight">Información General</h3>
+              </div>
 
-          <FormInput
-            label="ESPECIFICACIONES / NOTAS"
-            name="descripcion"
-            value={formData.descripcion}
-            onChange={handleInputChange}
-            placeholder="Detalles técnicos, marca, modelo, etc..."
-            textarea
-          />
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <FormInput
+                  label="NOMBRE DEL EQUIPO"
+                  name="nombre"
+                  value={formData.nombre}
+                  onChange={handleInputChange}
+                  placeholder="Ej: Microscopio Óptico"
+                  required
+                />
+                <FormInput
+                  label="CÓDIGO ÚNICO"
+                  name="codigo"
+                  value={formData.codigo}
+                  onChange={handleInputChange}
+                  placeholder="Ej: MICRO-001"
+                  required
+                />
+              </div>
 
-          <div className="flex gap-4 pt-4">
-            <Button
-              onClick={() => setIsModalOpen(false)}
-              variant="secondary"
-              fullWidth
-            >
-              CANCELAR
-            </Button>
-            <Button
-              onClick={handleSave}
-              disabled={isSaving}
-              fullWidth
-            >
-              {isSaving ? 'GUARDANDO...' : 'GUARDAR CAMBIOS'}
-            </Button>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
+                    <MapPin className="w-3 h-3 text-[#98C560]" /> UBICACIÓN
+                  </label>
+                  <select
+                    name="ambiente_id"
+                    value={formData.ambiente_id}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                  >
+                    <option value="">Selecciona Laboratorio</option>
+                    {ambientes.map(a => (
+                      <option key={a.id} value={a.id}>{a.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
+                    <Tag className="w-3 h-3 text-[#98C560]" /> CATEGORÍA
+                  </label>
+                  <select
+                    name="categoria_id"
+                    value={formData.categoria_id}
+                    onChange={handleInputChange}
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                  >
+                    <option value="">Selecciona Categoría</option>
+                    {categorias.map(c => (
+                      <option key={c.id} value={c.id}>{c.nombre}</option>
+                    ))}
+                  </select>
+                </div>
+              </div>
+
+              <FormInput
+                label="ESPECIFICACIONES / NOTAS"
+                name="descripcion"
+                value={formData.descripcion}
+                onChange={handleInputChange}
+                placeholder="Detalles técnicos, marca, modelo, etc..."
+                textarea
+              />
+            </div>
+
+            <div className="flex gap-4">
+              <Button
+                onClick={() => setIsModalOpen(false)}
+                variant="secondary"
+                fullWidth
+                className="!py-3"
+              >
+                CANCELAR
+              </Button>
+              <Button
+                onClick={handleSave}
+                disabled={isSaving}
+                fullWidth
+                className="!py-3 !bg-[#002b45] hover:!bg-[#98C560] hover:!text-[#002b45]"
+              >
+                {isSaving ? 'PROCESANDO...' : editingId ? 'ACTUALIZAR EQUIPO' : 'REGISTRAR EQUIPO'}
+              </Button>
+            </div>
           </div>
         </div>
       </Modal>

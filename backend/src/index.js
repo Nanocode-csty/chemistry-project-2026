@@ -2,15 +2,49 @@ const express = require('express');
 const cors = require('cors');
 const { Pool } = require('pg');
 const morgan = require('morgan');
+const path = require('path');
+const multer = require('multer');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
 const port = process.env.PORT || 4000;
 
+// Configuración de Multer para subida de archivos
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    const uploadDir = path.join(__dirname, '../uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+    cb(null, uploadDir);
+  },
+  filename: (req, file, cb) => {
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, uniqueSuffix + path.extname(file.originalname));
+  }
+});
+
+const upload = multer({ 
+  storage: storage,
+  limits: { fileSize: 10 * 1024 * 1024 }, // Aumentado a 10MB
+  fileFilter: (req, file, cb) => {
+    // Aceptar cualquier tipo de imagen común
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos de imagen (jpg, png, webp, etc)'), false);
+    }
+  }
+});
+
 // Middleware
 app.use(cors());
 app.use(express.json());
 app.use(morgan('dev'));
+
+// Servir archivos estáticos de la carpeta uploads
+app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 // Database connection with retry logic
 const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@db:5432/escuelaiq';
@@ -227,11 +261,11 @@ app.get('/api/equipos', async (req, res) => {
 });
 
 app.post('/api/equipos', async (req, res) => {
-  const { nombre, codigo, ambiente_id, categoria_id, descripcion } = req.body;
+  const { nombre, codigo, ambiente_id, categoria_id, descripcion, imagen_url } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO equipos (nombre, codigo, ambiente_id, categoria_id, descripcion, estado) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
-      [nombre, codigo, ambiente_id, categoria_id, descripcion, 'disponible']
+      'INSERT INTO equipos (nombre, codigo, ambiente_id, categoria_id, descripcion, estado, imagen_url) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
+      [nombre, codigo, ambiente_id, categoria_id, descripcion, 'disponible', imagen_url]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -244,11 +278,11 @@ app.post('/api/equipos', async (req, res) => {
 
 app.put('/api/equipos/:id', async (req, res) => {
   const { id } = req.params;
-  const { nombre, codigo, ambiente_id, categoria_id, descripcion, estado } = req.body;
+  const { nombre, codigo, ambiente_id, categoria_id, descripcion, estado, imagen_url } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE equipos SET nombre = $1, codigo = $2, ambiente_id = $3, categoria_id = $4, descripcion = $5, estado = $6 WHERE id = $7 RETURNING *',
-      [nombre, codigo, ambiente_id, categoria_id, descripcion, estado, id]
+      'UPDATE equipos SET nombre = $1, codigo = $2, ambiente_id = $3, categoria_id = $4, descripcion = $5, estado = $6, imagen_url = $7 WHERE id = $8 RETURNING *',
+      [nombre, codigo, ambiente_id, categoria_id, descripcion, estado, imagen_url, id]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -456,6 +490,33 @@ app.get('/api/reports/ambientes-mas-prestamos', async (req, res) => {
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// 9. Upload de archivos
+app.post('/api/upload', (req, res) => {
+  upload.single('file')(req, res, (err) => {
+    if (err instanceof multer.MulterError) {
+      // Error de Multer (ej: archivo muy grande)
+      return res.status(400).json({ error: `Error de subida: ${err.message}` });
+    } else if (err) {
+      // Error personalizado (ej: tipo de archivo no permitido)
+      return res.status(400).json({ error: err.message });
+    }
+
+    try {
+      if (!req.file) {
+        return res.status(400).json({ error: 'No se subió ningún archivo' });
+      }
+      
+      const protocol = req.protocol;
+      const host = req.get('host');
+      const fileUrl = `${protocol}://${host}/uploads/${req.file.filename}`;
+      
+      res.json(fileUrl);
+    } catch (err) {
+      res.status(500).json({ error: err.message });
+    }
+  });
 });
 
 // --- CMS ENDPOINTS ---

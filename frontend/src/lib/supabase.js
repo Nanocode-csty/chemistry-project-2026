@@ -25,10 +25,12 @@ const fetchLocal = async (path, options = {}) => {
       token = localStorage.getItem('iq_token');
     }
     
+    const isFormData = options.body instanceof FormData;
+    
     const response = await fetch(url, {
       ...options,
       headers: {
-        'Content-Type': 'application/json',
+        ...(isFormData ? {} : { 'Content-Type': 'application/json' }),
         ...(token ? { 'Authorization': `Bearer ${token}` } : {}),
         ...options.headers,
       },
@@ -267,11 +269,19 @@ export const dbOperations = {
     return { data, error };
   },
 
-  async crearEquipo(nombre, codigo, ambienteId, categoriaId, descripcion) {
+  async crearEquipo(nombre, codigo, ambienteId, categoriaId, descripcion, imagenUrl = '') {
     if (backendUrl) {
       return await fetchLocal('/equipos', {
         method: 'POST',
-        body: JSON.stringify({ nombre, codigo, ambiente_id: ambienteId, categoria_id: categoriaId, descripcion }),
+        body: JSON.stringify({ 
+          nombre, 
+          codigo, 
+          ambiente_id: ambienteId, 
+          categoria_id: categoriaId, 
+          descripcion,
+          imagen_url: imagenUrl,
+          estado: 'disponible' 
+        }),
       });
     }
     const { data, error } = await supabase
@@ -282,17 +292,26 @@ export const dbOperations = {
         ambiente_id: ambienteId,
         categoria_id: categoriaId,
         descripcion,
+        imagen_url: imagenUrl,
         estado: 'disponible'
       }])
       .select();
     return { data, error };
   },
 
-  async actualizarEquipo(id, nombre, codigo, ambienteId, categoriaId, descripcion, estado) {
+  async actualizarEquipo(id, nombre, codigo, ambienteId, categoriaId, descripcion, estado, imagenUrl = '') {
     if (backendUrl) {
       return await fetchLocal(`/equipos/${id}`, {
         method: 'PUT',
-        body: JSON.stringify({ nombre, codigo, ambiente_id: ambienteId, categoria_id: categoriaId, descripcion, estado }),
+        body: JSON.stringify({ 
+          nombre, 
+          codigo, 
+          ambiente_id: ambienteId, 
+          categoria_id: categoriaId, 
+          descripcion, 
+          estado,
+          imagen_url: imagenUrl
+        }),
       });
     }
     const { data, error } = await supabase
@@ -303,7 +322,8 @@ export const dbOperations = {
         ambiente_id: ambienteId,
         categoria_id: categoriaId,
         descripcion,
-        estado
+        estado,
+        imagen_url: imagenUrl
       })
       .eq('id', id)
       .select();
@@ -835,6 +855,47 @@ export const dbOperations = {
     if (backendUrl) return await fetchLocal('/cms/contacto', { method: 'PUT', body: JSON.stringify(content) });
     const { data, error } = await supabase.from('cms_contacto').update(content).eq('id', content.id).select();
     return { data, error };
+  },
+
+  // Storage
+  async uploadImagen(file, bucket = 'equipos') {
+    try {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Math.random().toString(36).substring(2)}-${Date.now()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      if (backendUrl) {
+        // Si hay backend propio, enviamos como FormData
+        const formData = new FormData();
+        formData.append('file', file);
+        return await fetchLocal('/upload', {
+          method: 'POST',
+          body: formData,
+          headers: {
+            // No establecemos Content-Type para que el navegador ponga el boundary de multipart/form-data
+          }
+        });
+      }
+
+      // Supabase Storage
+      const { data, error } = await supabase.storage
+        .from(bucket)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (error) throw error;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from(bucket)
+        .getPublicUrl(filePath);
+
+      return { data: publicUrl, error: null };
+    } catch (err) {
+      console.error('Upload error:', err);
+      return { data: null, error: err.message };
+    }
   },
 };
 

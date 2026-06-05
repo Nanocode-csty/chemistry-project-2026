@@ -77,7 +77,7 @@ const Navbar = () => {
             {/* Logo */}
             <Link href="/" className="flex items-center group py-2">
               <motion.div 
-                whileHover={{ scale: 1.02 }}
+                whileHover={{ scale: 1.015 }}
                 className="relative h-14 w-auto flex items-center"
               >
                 {/* Logo Escritorio */}

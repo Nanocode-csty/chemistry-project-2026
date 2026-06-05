@@ -6,7 +6,6 @@ import { useAuth } from '@/context/AuthContext';
 import { useRouter, usePathname } from 'next/navigation';
 import {
   Menu,
-  X,
   BarChart3,
   Building2,
   Package,
@@ -53,6 +52,8 @@ export function IntranetSidebar({ isOpen, onClose }) {
 
   const sidebarX = isOpen ? 0 : (isMounted && typeof window !== 'undefined' && window.innerWidth >= 1024) ? 0 : -300;
 
+  const normalizedPathname = pathname?.replace(/\/$/, '') || '';
+
   return (
     <>
       {/* Overlay en móviles */}
@@ -71,69 +72,65 @@ export function IntranetSidebar({ isOpen, onClose }) {
         initial={{ x: -300 }}
         animate={{ x: sidebarX }}
         transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-        className="fixed left-0 top-0 h-screen w-72 bg-white text-gray-800 shadow-premium z-50 lg:relative border-r border-brand-border"
+        className="fixed left-0 top-0 h-screen w-72 bg-white text-gray-800 shadow-2xl z-50 lg:relative border-r border-gray-100 flex flex-col"
       >
-        {/* Header del Sidebar */}
-        <div className="p-8 border-b border-brand-border">
-          <div className="flex items-center justify-between">
-            <Link href="/intranet/dashboard" className="flex items-center gap-4">
-              <motion.div 
-                whileHover={{ scale: 1.05 }}
-                className="bg-brand-navy p-2.5 rounded-sm shadow-lg"
-              >
-                <Package className="w-6 h-6 text-white" />
-              </motion.div>
-              <div className="flex flex-col">
-                <h1 className="font-display font-black text-xl tracking-tight text-brand-navy">INTRANET IQ</h1>
-                <p className="text-[10px] text-brand-accent font-black tracking-widest uppercase">Sistema de Gestión</p>
-              </div>
-            </Link>
-            <button
-              onClick={onClose}
-              className="lg:hidden text-gray-400 hover:text-brand-navy transition-colors"
-            >
-              <X className="w-6 h-6" />
-            </button>
-          </div>
+        {/* Header del Sidebar - Estático */}
+        <div className="p-6 border-b border-gray-100 bg-white">
+          <Link href="/intranet/dashboard" className="flex items-center gap-3">
+            <div className="bg-[#002b45] p-1.5 rounded-sm">
+              <img 
+                src="/img-logo-labcam-completo-movil.png" 
+                alt="LABCAM" 
+                className="w-6 h-6 object-contain brightness-0 invert"
+              />
+            </div>
+            <div className="flex flex-col">
+              <h1 className="font-display font-black text-lg tracking-tight leading-none text-[#002b45]">INTRANET</h1>
+              <p className="text-[9px] text-[#98C560] font-black tracking-widest uppercase mt-0.5">Gestión de Laboratorios</p>
+            </div>
+          </Link>
         </div>
 
-        {/* Usuario actual */}
+        {/* Usuario actual - Estático */}
         {isMounted && user && (
-          <div className="p-6 border-b border-brand-border bg-brand-light">
+          <div className="px-6 py-4 border-b border-gray-100 bg-slate-50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-brand-navy flex items-center justify-center text-white font-black shadow-sm">
+              <div className="w-8 h-8 rounded-sm bg-[#002b45] flex items-center justify-center text-[#98C560] font-black text-xs shadow-sm">
                 {user.email ? user.email[0].toUpperCase() : 'A'}
               </div>
               <div className="flex flex-col overflow-hidden">
-                <p className="text-[10px] text-brand-muted font-bold tracking-widest uppercase">Sesión Activa</p>
-                <p className="font-bold truncate text-brand-navy text-sm">{user.email || 'Administrador'}</p>
+                <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase">Admin Activo</p>
+                <p className="font-bold truncate text-[#002b45] text-xs tracking-tight">{user.email?.split('@')[0]}</p>
               </div>
             </div>
           </div>
         )}
 
-        {/* Menu items */}
-        <nav className="flex-1 py-6 px-4 overflow-y-auto">
+        {/* Menu items - SCROLLABLE AREA */}
+        <nav className="flex-1 overflow-y-auto custom-scrollbar py-4 px-3">
           <ul className="space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = pathname === item.href;
+              const isActive = normalizedPathname === item.href;
               
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     onClick={onClose}
-                    className={`flex items-center gap-4 px-4 py-3 rounded-sm transition-all duration-200 group ${
+                    className={`flex items-center gap-3 px-4 py-3 rounded-sm transition-all duration-200 group ${
                       isActive 
-                        ? 'bg-brand-navy text-white shadow-premium' 
-                        : 'text-brand-muted hover:bg-brand-light hover:text-brand-navy'
+                        ? 'bg-[#002b45] text-white font-black shadow-lg' 
+                        : 'text-slate-500 hover:bg-slate-50 hover:text-[#002b45]'
                     }`}
                   >
-                    <Icon className={`w-5 h-5 ${isActive ? 'text-brand-accent' : 'text-brand-muted group-hover:text-brand-navy'}`} />
-                    <span className="font-display font-bold text-xs tracking-widest uppercase">
+                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#98C560]' : 'text-slate-300 group-hover:text-[#002b45]'}`} />
+                    <span className="font-sans font-bold text-[11px] tracking-wider uppercase">
                       {item.label}
                     </span>
+                    {isActive && (
+                      <div className="ml-auto w-1 h-3 bg-[#98C560] rounded-full" />
+                    )}
                   </Link>
                 </li>
               );
@@ -141,23 +138,23 @@ export function IntranetSidebar({ isOpen, onClose }) {
           </ul>
         </nav>
 
-        {/* Footer del Sidebar */}
-        <div className="p-4 border-t border-brand-border space-y-1">
+        {/* Footer del Sidebar - Estático */}
+        <div className="p-3 border-t border-gray-100 bg-slate-50 space-y-1">
           <Link
             href="/"
-            className="flex items-center gap-4 px-4 py-3 rounded-sm transition-all duration-200 text-brand-muted hover:bg-brand-light hover:text-brand-navy group"
+            className="flex items-center gap-3 px-4 py-2.5 rounded-sm transition-all duration-200 text-slate-400 hover:bg-white hover:text-[#002b45] group"
           >
-            <Home className="w-5 h-5 text-brand-muted group-hover:text-brand-navy" />
-            <span className="font-display font-bold text-xs tracking-widest uppercase">
+            <Home className="w-4 h-4 text-slate-300 group-hover:text-[#98C560]" />
+            <span className="font-sans font-bold text-[10px] tracking-widest uppercase">
               SITIO PÚBLICO
             </span>
           </Link>
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-4 px-4 py-3 rounded-sm transition-all duration-200 text-gray-600 hover:bg-red-50 hover:text-brand-red group"
+            className="w-full flex items-center gap-3 px-4 py-2.5 rounded-sm transition-all duration-200 text-slate-400 hover:bg-red-50 hover:text-red-600 group"
           >
-            <LogOut className="w-5 h-5 text-gray-400 group-hover:text-brand-red" />
-            <span className="font-display font-bold text-xs tracking-widest uppercase">
+            <LogOut className="w-4 h-4 text-slate-300 group-hover:text-red-600" />
+            <span className="font-sans font-bold text-[10px] tracking-widest uppercase">
               CERRAR SESIÓN
             </span>
           </button>
@@ -175,35 +172,33 @@ export function IntranetHeader({ onMenuOpen }) {
     setIsMounted(true);
   }, []);
 
-  const pageTitle = menuItems.find(item => item.href === pathname)?.label || 'Panel';
+  const normalizedPathname = pathname?.replace(/\/$/, '') || '';
+  const pageTitle = menuItems.find(item => item.href === normalizedPathname)?.label || 'Panel';
 
-  if (!isMounted) return <header className="bg-white border-b border-brand-border h-20" />;
+  if (!isMounted) return <header className="bg-white border-b border-gray-100 h-16" />;
 
   return (
-    <header className="bg-white border-b border-brand-border h-20 flex items-center px-8 sticky top-0 z-30">
-      <div className="flex items-center justify-between w-full">
+    <header className="bg-[#002b45] h-16 flex items-center px-8 sticky top-0 z-30 shadow-lg border-b border-white/5">
+      <div className="flex items-center justify-between w-full text-white">
         <div className="flex items-center gap-4">
           <button
             onClick={onMenuOpen}
-            className="lg:hidden text-gray-500 hover:text-brand-navy p-2 hover:bg-brand-gray rounded-sm transition-colors"
+            className="lg:hidden text-white/60 hover:text-white p-2 hover:bg-white/5 rounded-sm transition-colors"
           >
-            <Menu className="w-6 h-6" />
+            <Menu className="w-5 h-5" />
           </button>
-          <h2 className="font-display font-black text-xl text-brand-navy tracking-tight uppercase">
+          <h2 className="font-sans font-black text-lg text-white tracking-tight uppercase">
             {pageTitle}
           </h2>
         </div>
         
         <div className="flex items-center gap-6">
-          <div className="hidden md:flex flex-col items-end">
-            <span className="text-[10px] text-brand-navy font-black tracking-widest uppercase">Escuela de Ingeniería Química</span>
-            <span className="text-xs text-brand-muted font-bold uppercase">Gestión de Laboratorios</span>
+          <div className="hidden md:flex flex-col items-end border-r border-white/10 pr-6">
+            <span className="text-[9px] text-[#98C560] font-black tracking-[0.2em] uppercase">LABCAM 2026</span>
+            <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Sistema Administrativo</span>
           </div>
-          <div className="w-px h-8 bg-brand-border hidden md:block" />
-          <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-brand-navy flex items-center justify-center text-white text-[10px] font-black">
-              IQ
-            </div>
+          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#98C560] font-black text-[10px] border border-white/10">
+            ADM
           </div>
         </div>
       </div>
