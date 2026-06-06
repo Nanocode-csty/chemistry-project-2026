@@ -54,7 +54,11 @@ const Navbar = () => {
   return (
     <header className="fixed top-0 w-full z-[100] pointer-events-none">
       {/* Top Bar - Matching Footer Style */}
-      <div className={`bg-white text-[#002b45] border-b border-slate-100 transition-all duration-700 ${scrolled ? 'h-0 opacity-0 overflow-hidden' : 'h-auto py-2.5 opacity-100'}`}>
+      <div className={`text-[#002b45] transition-all duration-500 ease-in-out ${
+        scrolled 
+          ? 'max-h-0 h-0 opacity-0 overflow-hidden pointer-events-none' 
+          : 'bg-white max-h-20 opacity-100 border-b border-slate-100 py-2.5'
+      }`}>
         <div className="max-w-7xl mx-auto px-4 flex justify-end items-center space-x-8 text-[10px] font-black tracking-[0.25em] pointer-events-auto">
           <Link href="#" className="hover:text-[#98C560] transition-colors flex items-center gap-2 group">
             <Globe size={12} className="group-hover:rotate-12 transition-transform text-[#98C560]" /> RED GLOBAL
@@ -67,7 +71,7 @@ const Navbar = () => {
 
       {/* Main Nav - Navy Background like Footer */}
       <nav
-        className={`w-full transition-all duration-700 border-b pointer-events-auto ${
+        className={`w-full transition-all duration-500 border-b pointer-events-auto ${
           scrolled ? 'bg-[#002b45]/95 backdrop-blur-md shadow-2xl py-2 border-white/5' : 'bg-[#002b45] py-5 border-white/5'
         }`}
       >
