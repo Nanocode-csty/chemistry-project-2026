@@ -117,7 +117,7 @@ export default function NoticiasPage() {
                     <img 
                       src={noticia.imagen_url || 'https://via.placeholder.com/800x600?text=Noticia'} 
                       alt={noticia.titulo} 
-                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2000ms] grayscale group-hover:grayscale-0"
+                      className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-[2000ms]"
                     />
                     <div className="absolute top-0 left-0 bg-[#002b45] text-white text-[10px] font-black px-6 py-3 uppercase tracking-widest shadow-xl border-b border-r border-white/10">
                       {noticia.categoria}

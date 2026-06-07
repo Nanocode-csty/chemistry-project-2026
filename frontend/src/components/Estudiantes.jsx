@@ -17,16 +17,19 @@ const Estudiantes = () => {
   useEffect(() => {
     const fetchEstudiantesData = async () => {
       try {
-        const [headerRes, invRes, papersRes, patRes] = await Promise.all([
+        const [headerRes, invRes, papersRes, patRes, configRes] = await Promise.all([
           dbOperations.getEstudiantesHeader(),
           dbOperations.getInvestigaciones(),
           dbOperations.getPapers(),
-          dbOperations.getPatentes()
+          dbOperations.getPatentes(),
+          dbOperations.getConfig()
         ]);
+        
+        const limit = configRes.data?.investigaciones_limite || 4;
         
         setData({
           header: headerRes.data,
-          investigaciones: invRes.data || [],
+          investigaciones: (invRes.data || []).slice(0, limit),
           papers: papersRes.data || [],
           patentes: patRes.data || []
         });

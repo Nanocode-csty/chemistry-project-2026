@@ -10,7 +10,8 @@ import {
   Image as ImageIcon,
   Compass,
   Users,
-  Mail
+  Mail,
+  Settings
 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -91,6 +92,13 @@ const cmsSections = [
     description: 'Gestión de imágenes para banners, noticias y publicaciones.',
     icon: ImageIcon,
     href: '/intranet/cms/multimedia'
+  },
+  { 
+    id: 'config', 
+    title: 'Ajustes de Pantalla', 
+    description: 'Configuración de límites de visualización en la página de inicio.',
+    icon: Settings,
+    href: '/intranet/cms/config'
   },
 ];
 

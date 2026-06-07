@@ -275,7 +275,18 @@ CREATE TABLE IF NOT EXISTS cms_noticias (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
+CREATE TABLE IF NOT EXISTS cms_config (
+  id BIGSERIAL PRIMARY KEY,
+  noticias_limite INT DEFAULT 3,
+  investigaciones_limite INT DEFAULT 4,
+  servicios_limite INT DEFAULT 4,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 -- Insertar datos iniciales CMS
+INSERT INTO cms_config (noticias_limite, investigaciones_limite, servicios_limite)
+VALUES (3, 4, 4) ON CONFLICT DO NOTHING;
+
 INSERT INTO cms_nosotros (subtitulo, descripcion, miembros_conteo, miembros_descripcion)
 VALUES (
   'Somos un laboratorio de investigación e innovación científica',

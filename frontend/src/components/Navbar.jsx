@@ -94,7 +94,7 @@ const Navbar = () => {
                 <img 
                   src="/img-logo-labcam-completo-movil-nuevo.png" 
                   alt="LABCAM Logo" 
-                  className="block md:hidden h-12 w-auto object-contain brightness-0 invert"
+                  className="block md:hidden h-12 w-auto object-contain"
                 />
               </motion.div>
             </Link>

@@ -857,6 +857,18 @@ export const dbOperations = {
     return { data, error };
   },
 
+  // Configuración Global CMS
+  async getConfig() {
+    if (backendUrl) return await fetchLocal('/cms/config');
+    const { data, error } = await supabase.from('cms_config').select('*').single();
+    return { data, error };
+  },
+  async actualizarConfig(content) {
+    if (backendUrl) return await fetchLocal('/cms/config', { method: 'PUT', body: JSON.stringify(content) });
+    const { data, error } = await supabase.from('cms_config').update(content).eq('id', content.id).select();
+    return { data, error };
+  },
+
   // Storage
   async uploadImagen(file, bucket = 'equipos') {
     try {

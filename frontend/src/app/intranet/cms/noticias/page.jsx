@@ -12,6 +12,7 @@ export default function CMSNoticias() {
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isGalleryOpen, setIsGalleryOpen] = useState(false);
+  const [galleryFilter, setGalleryFilter] = useState('all');
   const [editingNoticia, setEditingNoticia] = useState(null);
   const [formData, setFormData] = useState({
     titulo: '',
@@ -87,10 +88,30 @@ export default function CMSNoticias() {
 
   const handleSelectImage = (url) => {
     setFormData({ ...formData, imagen_url: url });
+    // NO cerrar la galería automáticamente para que el usuario vea la selección
+    // setIsGalleryOpen(false); 
+  };
+
+  const confirmImageSelection = () => {
     setIsGalleryOpen(false);
   };
 
   const columns = [
+    { 
+      key: 'imagen_url', 
+      label: 'IMAGEN', 
+      render: (row) => (
+        <div className="w-16 h-10 bg-brand-light rounded-sm overflow-hidden border border-brand-border">
+          {row.imagen_url ? (
+            <img src={row.imagen_url} alt="" className="w-full h-full object-cover" />
+          ) : (
+            <div className="w-full h-full flex items-center justify-center">
+              <ImageIcon size={14} className="text-brand-muted" />
+            </div>
+          )}
+        </div>
+      )
+    },
     { key: 'fecha', label: 'FECHA', render: (row) => new Date(row.fecha).toLocaleDateString() },
     { key: 'titulo', label: 'TÍTULO', render: (row) => <span className="font-bold">{row.titulo}</span> },
     { key: 'categoria', label: 'CATEGORÍA', render: (row) => <Badge color="blue">{row.categoria}</Badge> },
@@ -193,7 +214,7 @@ export default function CMSNoticias() {
             value={formData.contenido}
             onChange={(e) => setFormData({ ...formData, contenido: e.target.value })}
             textarea
-            placeholder="Puedes usar HTML o texto plano..."
+            placeholder="Escribe el cuerpo de la noticia aquí..."
           />
 
           <div className="grid md:grid-cols-2 gap-6">
@@ -208,10 +229,25 @@ export default function CMSNoticias() {
             <div className="mb-6">
               <label className="block font-display font-bold text-sm text-brand-navy tracking-widest mb-3 uppercase">IMAGEN DESTACADA</label>
               <div className="flex gap-4">
-                <div className="flex-1 border-2 border-brand-border p-3 rounded-sm bg-brand-light text-xs truncate">
-                  {formData.imagen_url || 'Ninguna imagen seleccionada'}
+                <div className="flex-1 border-2 border-brand-border p-3 rounded-sm bg-brand-light flex items-center gap-3 overflow-hidden">
+                  {formData.imagen_url ? (
+                    <>
+                      <img src={formData.imagen_url} alt="Preview" className="w-10 h-10 object-cover rounded-sm border border-brand-border" />
+                      <span className="text-[10px] font-black text-brand-navy truncate uppercase tracking-tighter flex-1">{formData.imagen_url}</span>
+                    </>
+                  ) : (
+                    <span className="text-[10px] font-black text-brand-muted uppercase tracking-widest italic">Ninguna seleccionada</span>
+                  )}
                 </div>
-                <Button variant="secondary" onClick={() => setIsGalleryOpen(true)} className="!py-2">
+                <Button 
+                  type="button"
+                  variant="secondary" 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    setIsGalleryOpen(true);
+                  }} 
+                  className="!py-2 !px-4"
+                >
                   <ImageIcon size={18} />
                 </Button>
               </div>
@@ -240,34 +276,74 @@ export default function CMSNoticias() {
         </form>
       </Modal>
 
-      {/* Galería de Selección de Imágenes */}
       <Modal
         isOpen={isGalleryOpen}
         onClose={() => setIsGalleryOpen(false)}
         title="SELECCIONAR IMAGEN DE GALERÍA"
+        maxWidth="max-w-4xl"
+        zIndex="z-[100001]"
       >
-        <div className="grid grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto p-2">
-          {multimedia.map((img) => (
-            <button
-              key={img.id}
-              onClick={() => handleSelectImage(img.url)}
-              className="group relative aspect-video bg-brand-light overflow-hidden border-2 border-transparent hover:border-brand-navy transition-all"
-            >
-              <img src={img.url} alt={img.titulo} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-              <div className="absolute inset-0 bg-brand-navy/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                <span className="text-white text-[10px] font-black uppercase tracking-widest">Seleccionar</span>
+        <div className="space-y-6">
+          <div className="flex flex-wrap gap-2 pb-4 border-b border-slate-100">
+            {['all', 'publicacion', 'banner', 'logo', 'perfil'].map((filter) => (
+              <button
+                key={filter}
+                type="button"
+                onClick={() => setGalleryFilter(filter)}
+                className={`px-4 py-2 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${
+                  galleryFilter === filter 
+                    ? 'bg-brand-navy text-white' 
+                    : 'bg-brand-gray text-brand-navy hover:bg-brand-border'
+                }`}
+              >
+                {filter === 'all' ? 'TODOS' : filter}
+              </button>
+            ))}
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 max-h-[60vh] overflow-y-auto p-2 custom-scrollbar">
+            {multimedia
+              .filter(img => galleryFilter === 'all' || img.tipo === galleryFilter)
+              .map((img) => (
+                <button
+                  key={img.id}
+                  type="button"
+                  onClick={() => handleSelectImage(img.url)}
+                  className={`group relative aspect-square bg-brand-light overflow-hidden border-4 transition-all rounded-sm ${
+                    formData.imagen_url === img.url ? 'border-brand-accent' : 'border-transparent hover:border-brand-navy'
+                  }`}
+                >
+                  <img src={img.url} alt={img.titulo} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+                  <div className="absolute inset-0 bg-brand-navy/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center transition-opacity p-2 text-center">
+                    <span className="text-white text-[9px] font-black uppercase tracking-widest mb-1 truncate w-full">{img.titulo}</span>
+                    <span className="text-brand-accent text-[8px] font-black uppercase tracking-tighter">Click para seleccionar</span>
+                  </div>
+                  {formData.imagen_url === img.url && (
+                    <div className="absolute top-2 right-2 bg-brand-accent text-brand-navy p-1 rounded-full shadow-lg">
+                      <Plus size={12} className="rotate-45" />
+                    </div>
+                  )}
+                </button>
+              ))}
+            {multimedia.length === 0 && (
+              <div className="col-span-full py-20 text-center border-2 border-dashed border-brand-border bg-brand-light">
+                <ImageIcon className="mx-auto text-brand-muted mb-4" size={48} />
+                <p className="text-brand-muted uppercase text-xs font-black tracking-widest">
+                  No hay recursos cargados aún.
+                </p>
+                <Link href="/intranet/cms/multimedia" className="text-brand-navy text-[10px] font-black underline mt-4 inline-block hover:text-brand-teal transition-colors">
+                  IR A CARGAR MULTIMEDIA
+                </Link>
               </div>
-            </button>
-          ))}
-          {multimedia.length === 0 && (
-            <div className="col-span-3 py-12 text-center text-brand-muted uppercase text-xs font-bold tracking-widest">
-              No hay imágenes en la galería. Cárgalas en la sección Multimedia.
-            </div>
-          )}
+            )}
+          </div>
         </div>
-        <div className="mt-8 flex justify-end">
-          <Button variant="secondary" onClick={() => setIsGalleryOpen(false)}>
-            CERRAR
+        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-4">
+          <Button type="button" variant="secondary" onClick={() => setIsGalleryOpen(false)}>
+            CANCELAR
+          </Button>
+          <Button type="button" onClick={confirmImageSelection} disabled={!formData.imagen_url}>
+            CONFIRMAR SELECCIÓN
           </Button>
         </div>
       </Modal>

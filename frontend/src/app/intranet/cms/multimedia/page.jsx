@@ -11,6 +11,8 @@ export default function CMSMultimedia() {
   const [multimedia, setMultimedia] = useState([]);
   const [loading, setLoading] = useState(true);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [selectedFile, setSelectedFile] = useState(null);
   const [formData, setFormData] = useState({
     url: '',
     titulo: '',
@@ -36,13 +38,33 @@ export default function CMSMultimedia() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setUploading(true);
     try {
-      await dbOperations.subirImagen(formData);
+      let finalUrl = formData.url;
+
+      // Si hay un archivo seleccionado, subirlo primero
+      if (selectedFile) {
+        const { data: publicUrl, error: uploadError } = await dbOperations.uploadImagen(selectedFile, 'multimedia');
+        if (uploadError) throw new Error(uploadError);
+        finalUrl = publicUrl;
+      }
+
+      if (!finalUrl) throw new Error('Se requiere una URL o un archivo');
+
+      await dbOperations.subirImagen({
+        ...formData,
+        url: finalUrl
+      });
+
       setIsModalOpen(false);
       setFormData({ url: '', titulo: '', tipo: 'publicacion' });
+      setSelectedFile(null);
       fetchMultimedia();
     } catch (err) {
       console.error(err);
+      alert('Error al subir el recurso: ' + err.message);
+    } finally {
+      setUploading(false);
     }
   };
 
@@ -143,46 +165,101 @@ export default function CMSMultimedia() {
 
       <Modal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => {
+          if (!uploading) {
+            setIsModalOpen(false);
+            setSelectedFile(null);
+          }
+        }}
         title="AÑADIR NUEVO RECURSO"
       >
-        <form onSubmit={handleSubmit}>
-          <FormInput
-            label="URL DEL RECURSO (IMAGEN O PDF)"
-            name="url"
-            value={formData.url}
-            onChange={(e) => setFormData({ ...formData, url: e.target.value })}
-            placeholder="https://ejemplo.com/recurso.jpg"
-            required
-          />
-          <FormInput
-            label="TÍTULO / ETIQUETA"
-            name="titulo"
-            value={formData.titulo}
-            onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
-            placeholder="Ej: Paper Degradación Fotocatalítica"
-            required
-          />
-          <div className="mb-6">
-            <label className="block font-display font-bold text-sm text-brand-navy tracking-widest mb-3 uppercase">TIPO DE RECURSO</label>
-            <select
-              value={formData.tipo}
-              onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
-              className="w-full px-4 py-3 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-gray/30 transition-all"
-            >
-              <option value="banner">Banner / Principal</option>
-              <option value="publicacion">Publicación / Noticia</option>
-              <option value="documento">Documento / PDF</option>
-              <option value="perfil">Perfil / Personal</option>
-              <option value="logo">Logo / Marca</option>
-            </select>
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-6">
+              <div className="p-6 border-2 border-dashed border-brand-border rounded-sm bg-brand-gray/10 hover:bg-brand-gray/20 transition-all text-center relative group">
+                <input
+                  type="file"
+                  onChange={(e) => setSelectedFile(e.target.files[0])}
+                  className="absolute inset-0 w-full h-full opacity-0 cursor-pointer z-10"
+                  accept="image/*,.pdf"
+                  disabled={uploading}
+                />
+                <div className="flex flex-col items-center gap-2">
+                  <div className="w-12 h-12 rounded-full bg-brand-navy/10 flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <Plus size={24} className="text-brand-navy" />
+                  </div>
+                  <p className="text-[10px] font-black text-brand-navy uppercase tracking-widest">
+                    {selectedFile ? selectedFile.name : 'SUBIR ARCHIVO (LOCAL)'}
+                  </p>
+                  <p className="text-[9px] text-brand-muted uppercase">JPG, PNG o PDF (Máx 10MB)</p>
+                </div>
+              </div>
+
+              <div className="relative py-4 flex items-center">
+                <div className="flex-grow border-t border-brand-border"></div>
+                <span className="flex-shrink mx-4 text-[10px] font-black text-brand-muted uppercase tracking-[0.2em]">O TAMBIÉN</span>
+                <div className="flex-grow border-t border-brand-border"></div>
+              </div>
+
+              <FormInput
+                label="URL EXTERNA"
+                name="url"
+                value={formData.url}
+                onChange={(e) => setFormData({ ...formData, url: e.target.value })}
+                placeholder="https://ejemplo.com/recurso.jpg"
+                disabled={uploading || !!selectedFile}
+              />
+            </div>
+
+            <div className="space-y-6">
+              <FormInput
+                label="TÍTULO / ETIQUETA"
+                name="titulo"
+                value={formData.titulo}
+                onChange={(e) => setFormData({ ...formData, titulo: e.target.value })}
+                placeholder="Ej: Paper Degradación Fotocatalítica"
+                required
+                disabled={uploading}
+              />
+              
+              <div>
+                <label className="block font-display font-bold text-sm text-brand-navy tracking-widest mb-3 uppercase">TIPO DE RECURSO</label>
+                <select
+                  value={formData.tipo}
+                  onChange={(e) => setFormData({ ...formData, tipo: e.target.value })}
+                  disabled={uploading}
+                  className="w-full px-4 py-3 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-gray/30 transition-all font-sans text-sm"
+                >
+                  <option value="banner">Banner / Principal</option>
+                  <option value="publicacion">Publicación / Noticia</option>
+                  <option value="documento">Documento / PDF</option>
+                  <option value="perfil">Perfil / Personal</option>
+                  <option value="logo">Logo / Marca</option>
+                </select>
+              </div>
+            </div>
           </div>
-          <div className="mt-8 flex justify-end gap-4">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+
+          <div className="mt-10 pt-6 border-t border-slate-100 flex justify-end gap-4">
+            <Button 
+              variant="secondary" 
+              onClick={() => {
+                setIsModalOpen(false);
+                setSelectedFile(null);
+              }}
+              disabled={uploading}
+            >
               CANCELAR
             </Button>
-            <Button type="submit">
-              AÑADIR A BIBLIOTECA
+            <Button type="submit" disabled={uploading || (!selectedFile && !formData.url)}>
+              {uploading ? (
+                <>
+                  <Loader2 size={20} className="animate-spin mr-2" />
+                  SUBIENDO...
+                </>
+              ) : (
+                'AÑADIR A BIBLIOTECA'
+              )}
             </Button>
           </div>
         </form>

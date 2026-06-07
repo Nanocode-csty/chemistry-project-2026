@@ -12,8 +12,16 @@ const Noticias = () => {
   useEffect(() => {
     const fetchNoticias = async () => {
       try {
-        const { data, error } = await dbOperations.getNoticiasCMS();
-        if (data) setNoticias(data.slice(0, 3));
+        const [noticiasRes, configRes] = await Promise.all([
+          dbOperations.getNoticiasCMS(),
+          dbOperations.getConfig()
+        ]);
+
+        const limit = configRes.data?.noticias_limite || 3;
+        
+        if (noticiasRes.data) {
+          setNoticias(noticiasRes.data.slice(0, limit));
+        }
       } catch (err) {
         console.error(err);
       } finally {

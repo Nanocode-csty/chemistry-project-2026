@@ -5,18 +5,29 @@ import { createPortal } from 'react-dom';
 import { X, Search, ChevronDown } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl' }) {
+export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl', zIndex = 'z-[99999]' }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
     setMounted(true);
+  }, []);
+
+  useEffect(() => {
     if (isOpen) {
+      // Incrementar contador de modales abiertos en el body
+      const openModals = parseInt(document.body.getAttribute('data-open-modals') || '0');
+      document.body.setAttribute('data-open-modals', (openModals + 1).toString());
       document.body.style.overflow = 'hidden';
     } else {
-      document.body.style.overflow = 'unset';
+      const openModals = parseInt(document.body.getAttribute('data-open-modals') || '0');
+      const newCount = Math.max(0, openModals - 1);
+      document.body.setAttribute('data-open-modals', newCount.toString());
+      if (newCount === 0) {
+        document.body.style.overflow = 'unset';
+      }
     }
     return () => {
-      document.body.style.overflow = 'unset';
+      // No resetear aquí directamente para evitar conflictos entre modales
     };
   }, [isOpen]);
 
@@ -25,7 +36,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl'
   const modalContent = (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 w-full h-full z-[99999] flex items-start justify-center overflow-y-auto custom-scrollbar">
+        <div className={`fixed inset-0 w-full h-full ${zIndex} flex items-start justify-center overflow-y-auto custom-scrollbar`}>
           {/* Overlay Oscuro Total */}
           <motion.div 
             initial={{ opacity: 0 }}
@@ -75,6 +86,7 @@ export function FormInput({
   placeholder,
   required = false,
   textarea = false,
+  disabled = false,
 }) {
   const Component = textarea ? 'textarea' : 'input';
 
@@ -92,7 +104,8 @@ export function FormInput({
         onChange={onChange}
         placeholder={placeholder}
         required={required}
-        className="w-full px-4 py-3 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent resize-none bg-brand-gray/30 transition-all"
+        disabled={disabled}
+        className="w-full px-4 py-3 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent resize-none bg-brand-gray/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         rows={textarea ? 4 : undefined}
       />
     </div>
@@ -107,6 +120,7 @@ export function FormSelect({
   options,
   required = false,
   placeholder = 'Selecciona una opción',
+  disabled = false,
 }) {
   return (
     <div className="mb-6">
@@ -120,7 +134,8 @@ export function FormSelect({
         value={value}
         onChange={onChange}
         required={required}
-        className="w-full px-4 py-3 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-gray/30 transition-all"
+        disabled={disabled}
+        className="w-full px-4 py-3 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-gray/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <option value="">{placeholder}</option>
         {options.map((option) => (
@@ -140,6 +155,7 @@ export function Button({
   variant = 'primary',
   fullWidth = false,
   className = '',
+  type = 'button',
 }) {
   const variants = {
     primary: 'bg-brand-navy hover:bg-brand-teal text-white shadow-lg hover:shadow-premium',
@@ -152,6 +168,7 @@ export function Button({
     <motion.button
       whileHover={{ y: -2 }}
       whileTap={{ scale: 0.95 }}
+      type={type}
       onClick={onClick}
       disabled={disabled}
       className={`${variants[variant]} disabled:opacity-50 disabled:cursor-not-allowed font-display font-bold text-sm tracking-widest py-4 px-8 rounded-sm transition-all duration-300 ${

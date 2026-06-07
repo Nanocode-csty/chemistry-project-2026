@@ -19,15 +19,18 @@ const Profesionales = () => {
   useEffect(() => {
     const fetchProfesionalesData = async () => {
       try {
-        const [headerRes, servRes, statsRes] = await Promise.all([
+        const [headerRes, servRes, statsRes, configRes] = await Promise.all([
           dbOperations.getProfesionalesHeader(),
           dbOperations.getServicios(),
-          dbOperations.getStats()
+          dbOperations.getStats(),
+          dbOperations.getConfig()
         ]);
+        
+        const limit = configRes.data?.servicios_limite || 4;
         
         setData({
           header: headerRes.data,
-          servicios: servRes.data || [],
+          servicios: (servRes.data || []).slice(0, limit),
           stats: statsRes.data || []
         });
       } catch (err) {
@@ -69,7 +72,7 @@ const Profesionales = () => {
             </div>
           </div>
           <div className="grid grid-cols-2 gap-6">
-            {servicios.slice(0, 4).map((servicio, idx) => (
+            {servicios.map((servicio, idx) => (
               <motion.div
                 key={idx}
                 whileHover={{ y: -5 }}
