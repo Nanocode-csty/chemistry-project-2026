@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import {
   Package,
   Users,
@@ -18,6 +18,7 @@ import { motion } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/intranet/Skeleton';
 import { Badge, Button } from '@/components/intranet/Forms';
 import Link from 'next/link';
+import { useAuth } from '@/context/AuthContext';
 
 function StatCard({ icon: Icon, label, value, subtext, color = 'blue', delay = 0 }) {
   const colorMap = {
@@ -99,6 +100,7 @@ function RecentActivity({ prestamos }) {
 }
 
 export default function Dashboard() {
+  const { user } = useAuth();
   const [stats, setStats] = useState(null);
   const [prestamos, setPrestamos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -152,6 +154,8 @@ export default function Dashboard() {
 
   if (!isMounted || loading) return <DashboardSkeleton />;
 
+  const isAdmin = user?.rol === 'admin';
+
   return (
     <div className="space-y-8">
       {/* Error alert if any */}
@@ -169,8 +173,12 @@ export default function Dashboard() {
       {/* Admin Header - More compact and professional */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 bg-white p-8 rounded-sm border border-gray-100 shadow-sm">
         <div>
-          <h1 className="text-3xl font-sans font-black text-[#002b45] tracking-tight uppercase">Panel de Control</h1>
-          <p className="text-slate-400 font-bold text-xs tracking-widest uppercase mt-1">Resumen general del sistema de laboratorios</p>
+          <h1 className="text-3xl font-sans font-black text-[#002b45] tracking-tight uppercase">
+            {isAdmin ? 'Panel de Control' : 'Acceso Laboratorio'}
+          </h1>
+          <p className="text-slate-400 font-bold text-xs tracking-widest uppercase mt-1">
+            {isAdmin ? 'Resumen general del sistema de laboratorios' : 'Gestión rápida de préstamos y equipos'}
+          </p>
         </div>
         <div className="flex gap-4">
           <Link href="/intranet/prestamos">
@@ -178,53 +186,88 @@ export default function Dashboard() {
               <Plus className="w-4 h-4 mr-2" /> NUEVO PRÉSTAMO
             </Button>
           </Link>
-          <Link href="/intranet/cms">
-            <Button variant="secondary" className="border-gray-200 text-slate-600 hover:bg-slate-50 font-bold tracking-wider text-[11px] px-6">
-              <Globe className="w-4 h-4 mr-2" /> EDITAR WEB
-            </Button>
-          </Link>
+          {isAdmin && (
+            <Link href="/intranet/cms">
+              <Button variant="secondary" className="border-gray-200 text-slate-600 hover:bg-slate-50 font-bold tracking-wider text-[11px] px-6">
+                <Globe className="w-4 h-4 mr-2" /> EDITAR WEB
+              </Button>
+            </Link>
+          )}
         </div>
       </div>
 
       {/* Main Stats Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <StatCard
-          icon={Building2}
-          label="Ambientes"
-          value={stats?.totalAmbientes || 0}
-          color="navy"
-          delay={0.1}
-        />
-        <StatCard
-          icon={Zap}
-          label="Inventario"
-          value={stats?.totalEquipos || 0}
-          color="navy"
-          delay={0.2}
-        />
-        <StatCard
-          icon={Users}
-          label="Usuarios"
-          value={stats?.totalEstudiantes || 0}
-          color="navy"
-          delay={0.3}
-        />
-        <StatCard
-          icon={Clock}
-          label="En Préstamo"
-          value={stats?.prestamosPendientes || 0}
-          color="yellow"
-          delay={0.4}
-        />
+        {isAdmin ? (
+          <>
+            <StatCard
+              icon={Building2}
+              label="Ambientes"
+              value={stats?.totalAmbientes || 0}
+              color="navy"
+              delay={0.1}
+            />
+            <StatCard
+              icon={Zap}
+              label="Inventario"
+              value={stats?.totalEquipos || 0}
+              color="navy"
+              delay={0.2}
+            />
+            <StatCard
+              icon={Users}
+              label="Usuarios"
+              value={stats?.totalEstudiantes || 0}
+              color="navy"
+              delay={0.3}
+            />
+            <StatCard
+              icon={Clock}
+              label="En Préstamo"
+              value={stats?.prestamosPendientes || 0}
+              color="yellow"
+              delay={0.4}
+            />
+          </>
+        ) : (
+          <>
+            <StatCard
+              icon={TrendingUp}
+              label="Préstamos Activos"
+              value={stats?.prestamosPendientes || 0}
+              color="yellow"
+              delay={0.1}
+            />
+            <StatCard
+              icon={Zap}
+              label="Equipos Disponibles"
+              value={stats?.equiposDisponibles || 0}
+              color="green"
+              delay={0.2}
+            />
+            <StatCard
+              icon={Clock}
+              label="Pendientes hoy"
+              value={prestamos.filter(p => !p.fecha_devolucion).length}
+              color="navy"
+              delay={0.3}
+            />
+            <StatCard
+              icon={AlertCircle}
+              label="Urgencias"
+              value={0}
+              color="red"
+              delay={0.4}
+            />
+          </>
+        )}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Activity Section */}
         <div className="lg:col-span-2">
           <RecentActivity prestamos={prestamos} />
         </div>
 
-        {/* Status Breakdown - Admin Style */}
         <div className="space-y-6">
           <div className="bg-white p-8 rounded-sm border border-gray-100 shadow-sm">
             <h3 className="font-sans font-black text-[#002b45] tracking-tight uppercase text-sm mb-8 border-b border-gray-50 pb-4">

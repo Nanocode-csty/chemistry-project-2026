@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Settings, FlaskConical, Users, Rocket, CheckCircle2, MessageSquare, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 

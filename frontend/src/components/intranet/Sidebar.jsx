@@ -18,8 +18,9 @@ import {
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
-const menuItems = [
+const adminMenuItems = [
   { href: '/intranet/dashboard', label: 'Dashboard', icon: BarChart3 },
+  { href: '/intranet/usuarios', label: 'Usuarios', icon: Users },
   { href: '/intranet/ambientes', label: 'Ambientes', icon: Building2 },
   { href: '/intranet/categorias', label: 'Categorías', icon: Layers },
   { href: '/intranet/equipos', label: 'Equipos', icon: Package },
@@ -29,11 +30,19 @@ const menuItems = [
   { href: '/intranet/cms', label: 'Sitio Web', icon: Globe },
 ];
 
+const userMenuItems = [
+  { href: '/intranet/dashboard', label: 'Inicio', icon: BarChart3 },
+  { href: '/intranet/prestamos', label: 'Gestión Préstamos', icon: FileText },
+];
+
 export function IntranetSidebar({ isOpen, onClose }) {
   const { user, logout } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
+
+  const isAdmin = user?.rol?.toLowerCase() === 'admin';
+  const menuItems = isAdmin ? adminMenuItems : userMenuItems;
 
   useEffect(() => {
     setIsMounted(true);
@@ -53,6 +62,8 @@ export function IntranetSidebar({ isOpen, onClose }) {
   const sidebarX = isOpen ? 0 : (isMounted && typeof window !== 'undefined' && window.innerWidth >= 1024) ? 0 : -300;
 
   const normalizedPathname = pathname?.replace(/\/$/, '') || '';
+
+  const pageTitle = [...adminMenuItems, ...userMenuItems].find(item => item.href === normalizedPathname)?.label || 'Panel';
 
   return (
     <>
@@ -95,12 +106,14 @@ export function IntranetSidebar({ isOpen, onClose }) {
         {isMounted && user && (
           <div className="px-6 py-4 border-b border-gray-100 bg-slate-50">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-sm bg-[#002b45] flex items-center justify-center text-[#98C560] font-black text-xs shadow-sm">
-                {user.email ? user.email[0].toUpperCase() : 'A'}
+              <div className="w-8 h-8 rounded-sm bg-[#002b45] flex items-center justify-center text-[#98C560] font-black text-xs shadow-sm uppercase">
+                {user.email ? user.email[0] : 'A'}
               </div>
               <div className="flex flex-col overflow-hidden">
-                <p className="text-[9px] text-slate-400 font-black tracking-widest uppercase">Admin Activo</p>
-                <p className="font-bold truncate text-[#002b45] text-xs tracking-tight">{user.email?.split('@')[0]}</p>
+                <p className="text-[9px] text-[#98C560] font-black tracking-widest uppercase">
+                  {user.rol === 'admin' ? 'Administrador' : 'Laboratorio'}
+                </p>
+                <p className="font-bold truncate text-[#002b45] text-xs tracking-tight uppercase">{user.email?.split('@')[0]}</p>
               </div>
             </div>
           </div>
@@ -111,7 +124,7 @@ export function IntranetSidebar({ isOpen, onClose }) {
           <ul className="space-y-1">
             {menuItems.map((item) => {
               const Icon = item.icon;
-              const isActive = normalizedPathname === item.href;
+              const isActive = normalizedPathname === item.href || (item.href !== '/intranet/dashboard' && normalizedPathname.startsWith(item.href));
               
               return (
                 <li key={item.href}>
@@ -124,7 +137,7 @@ export function IntranetSidebar({ isOpen, onClose }) {
                         : 'text-slate-500 hover:bg-slate-50 hover:text-[#002b45]'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#98C560]' : 'text-slate-300 group-hover:text-[#002b45]'}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#98C560]' : 'text-slate-400 group-hover:text-[#002b45]'}`} />
                     <span className="font-sans font-bold text-[11px] tracking-wider uppercase">
                       {item.label}
                     </span>
@@ -165,6 +178,7 @@ export function IntranetSidebar({ isOpen, onClose }) {
 }
 
 export function IntranetHeader({ onMenuOpen }) {
+  const { user } = useAuth();
   const pathname = usePathname();
   const [isMounted, setIsMounted] = useState(false);
 
@@ -173,7 +187,11 @@ export function IntranetHeader({ onMenuOpen }) {
   }, []);
 
   const normalizedPathname = pathname?.replace(/\/$/, '') || '';
-  const pageTitle = menuItems.find(item => item.href === normalizedPathname)?.label || 'Panel';
+  const isAdmin = user?.rol?.toLowerCase() === 'admin';
+  const currentMenuItems = isAdmin ? adminMenuItems : userMenuItems;
+  const pageTitle = currentMenuItems.find(item => 
+    normalizedPathname === item.href || (item.href !== '/intranet/dashboard' && normalizedPathname.startsWith(item.href))
+  )?.label || 'Panel';
 
   if (!isMounted) return <header className="bg-white border-b border-gray-100 h-16" />;
 

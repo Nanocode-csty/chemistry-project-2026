@@ -100,7 +100,7 @@ export function FormInput({
         id={name}
         name={name}
         type={type}
-        value={value}
+        value={value || ''}
         onChange={onChange}
         placeholder={placeholder}
         required={required}
@@ -131,14 +131,14 @@ export function FormSelect({
       <select
         id={name}
         name={name}
-        value={value}
+        value={value || ''}
         onChange={onChange}
         required={required}
         disabled={disabled}
         className="w-full px-4 py-3 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-gray/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <option value="">{placeholder}</option>
-        {options.map((option) => (
+        {(options || []).map((option) => (
           <option key={option.id} value={option.id}>
             {option.nombre || option.name}
           </option>
@@ -202,9 +202,9 @@ export function Table({ columns, data, actions }) {
           </tr>
         </thead>
         <tbody className="divide-y divide-brand-border">
-          {data.map((row, index) => (
+          {(data || []).map((row, index) => (
             <motion.tr
-              key={row.id}
+              key={row.id || index}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
@@ -260,9 +260,10 @@ export function SearchableSelect({
   const [searchTerm, setSearchTerm] = useState('');
   const containerRef = useRef(null);
 
-  const selectedOption = options.find(opt => opt.id === value);
+  const safeOptions = options || [];
+  const selectedOption = safeOptions.find(opt => opt.id === value);
 
-  const filteredOptions = options.filter(opt =>
+  const filteredOptions = safeOptions.filter(opt =>
     (opt.nombre || opt.name || '').toLowerCase().includes(searchTerm.toLowerCase())
   );
 

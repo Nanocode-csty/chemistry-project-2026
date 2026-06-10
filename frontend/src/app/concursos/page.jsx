@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Trophy, Award, Target, Star, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 

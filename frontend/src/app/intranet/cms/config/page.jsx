@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { FormInput, Button } from '@/components/intranet/Forms';
 import { Save, Loader2, ArrowLeft, Settings } from 'lucide-react';
 import Link from 'next/link';
@@ -127,7 +127,12 @@ export default function CMSConfig() {
             </div>
           </div>
 
-          <div className="pt-8 border-t border-slate-100 flex justify-end">
+          <div className="pt-8 border-t border-slate-100 flex justify-end gap-4">
+            <Link href="/intranet/cms">
+              <Button type="button" variant="secondary">
+                CANCELAR
+              </Button>
+            </Link>
             <Button 
               type="submit" 
               disabled={isSaving}

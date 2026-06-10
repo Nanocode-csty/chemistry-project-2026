@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
 import { ArrowRight, Beaker, ChevronRight, Sparkles, Zap, ShieldCheck, Loader2 } from 'lucide-react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 
 const Hero = () => {
   const [hero, setHero] = useState(null);

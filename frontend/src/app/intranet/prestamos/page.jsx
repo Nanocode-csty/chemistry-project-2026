@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Plus, Trash2, CheckCircle, AlertCircle, Calendar, Search, Filter, History, Clock, Package, User, MapPin, Tag, Info } from 'lucide-react';
 import {
   Modal,
@@ -14,8 +14,12 @@ import {
 import { ConfirmationModal } from '@/components/intranet/ConfirmationModal';
 import { TableSkeleton } from '@/components/intranet/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function PrestamosPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [prestamos, setPrestamos] = useState([]);
   const [equipos, setEquipos] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);

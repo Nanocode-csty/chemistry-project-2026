@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Plus, Trash2, Edit2, AlertCircle, Zap, Package, Search, Filter, Image as ImageIcon, Info, MapPin, Tag, Upload, X as CloseIcon } from 'lucide-react';
 import {
   Modal,
@@ -14,9 +14,19 @@ import {
 import { ConfirmationModal } from '@/components/intranet/ConfirmationModal';
 import { TableSkeleton } from '@/components/intranet/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function EquiposPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [equipos, setEquipos] = useState([]);
+
+  useEffect(() => {
+    if (user && user.rol !== 'admin') {
+      router.replace('/intranet/dashboard');
+    }
+  }, [user, router]);
   const [ambientes, setAmbientes] = useState([]);
   const [categorias, setCategorias] = useState([]);
   const [loading, setLoading] = useState(true);

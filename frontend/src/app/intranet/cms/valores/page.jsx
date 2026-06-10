@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Table, Button, Modal, FormInput } from '@/components/intranet/Forms';
 import { Plus, Edit2, Trash2, Loader2, ArrowLeft, Award } from 'lucide-react';
 import Link from 'next/link';
@@ -154,7 +154,7 @@ export default function CMSValores() {
             required
           />
           <div className="mt-8 flex justify-end gap-4">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
               CANCELAR
             </Button>
             <Button type="submit">

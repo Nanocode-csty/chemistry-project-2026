@@ -406,19 +406,28 @@ app.put('/api/prestamos/:id/devolver', async (req, res) => {
 });
 
 // Auth simulation
-app.post('/api/auth/login', (req, res) => {
+app.post('/api/auth/login', async (req, res) => {
   const { email, password } = req.body;
-  // Use credentials from env or default
-  const adminEmail = process.env.ADMIN_EMAIL || 'admin@escuela-iq.edu';
-  const adminPassword = process.env.ADMIN_PASSWORD || 'admin123';
+  
+  try {
+    const result = await pool.query(
+      'SELECT * FROM usuarios WHERE email = $1 AND password = $2',
+      [email, password]
+    );
 
-  if (email === adminEmail && password === adminPassword) {
-    res.json({
-      user: { id: '1', email: adminEmail, nombre: 'Administrador' },
-      token: 'fake-jwt-token'
-    });
-  } else {
-    res.status(401).json({ error: 'Credenciales inválidas' });
+    if (result.rows.length > 0) {
+      const user = result.rows[0];
+      // No devolvemos el password por seguridad
+      delete user.password;
+      res.json({
+        user: user,
+        token: 'fake-jwt-token-' + user.id
+      });
+    } else {
+      res.status(401).json({ error: 'Credenciales inválidas' });
+    }
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 
@@ -520,6 +529,64 @@ app.post('/api/upload', (req, res) => {
 });
 
 // --- CMS ENDPOINTS ---
+
+// 0. Gestión de Usuarios
+app.get('/api/usuarios', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM usuarios ORDER BY created_at DESC');
+    res.json(result.rows);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/usuarios', async (req, res) => {
+  const { email, password, rol, nombre } = req.body;
+  try {
+    const result = await pool.query(
+      'INSERT INTO usuarios (email, password, rol, nombre) VALUES ($1, $2, $3, $4) RETURNING *',
+      [email, password || 'lab123', rol || 'laboratorio', nombre]
+    );
+    res.status(201).json(result.rows[0]);
+  } catch (err) {
+    if (err.code === '23505') {
+      return res.status(400).json({ error: 'Ya existe un usuario con ese email' });
+    }
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/usuarios/:id', async (req, res) => {
+  const { id } = req.params;
+  const { email, password, rol, nombre } = req.body;
+  try {
+    let query = 'UPDATE usuarios SET email = $1, rol = $2, nombre = $3';
+    let params = [email, rol, nombre];
+    
+    if (password) {
+      query += ', password = $4 WHERE id = $5';
+      params.push(password, id);
+    } else {
+      query += ' WHERE id = $4';
+      params.push(id);
+    }
+    
+    const result = await pool.query(query + ' RETURNING *', params);
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.delete('/api/usuarios/:id', async (req, res) => {
+  const { id } = req.params;
+  try {
+    await pool.query('DELETE FROM usuarios WHERE id = $1', [id]);
+    res.json({ success: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 
 // 1. Nosotros
 app.get('/api/cms/nosotros', async (req, res) => {
@@ -964,6 +1031,29 @@ app.put('/api/cms/profesionales/header', async (req, res) => {
     const result = await pool.query(
       'UPDATE cms_profesionales_header SET titulo = $1, descripcion = $2, alianza_titulo = $3, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM cms_profesionales_header LIMIT 1) RETURNING *',
       [titulo, descripcion, alianza_titulo]
+    );
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// 11. Configuración Global (CMS Config)
+app.get('/api/cms/config', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM cms_config LIMIT 1');
+    res.json(result.rows[0]);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.put('/api/cms/config', async (req, res) => {
+  const { noticias_limite, investigaciones_limite, servicios_limite } = req.body;
+  try {
+    const result = await pool.query(
+      'UPDATE cms_config SET noticias_limite = $1, investigaciones_limite = $2, servicios_limite = $3, updated_at = CURRENT_TIMESTAMP WHERE id = (SELECT id FROM cms_config LIMIT 1) RETURNING *',
+      [noticias_limite, investigaciones_limite, servicios_limite]
     );
     res.json(result.rows[0]);
   } catch (err) {

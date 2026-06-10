@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Plus, Trash2, Edit2, AlertCircle, Layers, Search } from 'lucide-react';
 import {
   Modal,
@@ -13,9 +13,19 @@ import {
 import { ConfirmationModal } from '@/components/intranet/ConfirmationModal';
 import { TableSkeleton } from '@/components/intranet/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function CategoriasPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [categorias, setCategorias] = useState([]);
+
+  useEffect(() => {
+    if (user && user.rol?.toLowerCase() !== 'admin') {
+      router.replace('/intranet/dashboard');
+    }
+  }, [user, router]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

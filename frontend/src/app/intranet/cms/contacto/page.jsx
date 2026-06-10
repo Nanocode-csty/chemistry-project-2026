@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { FormInput, Button } from '@/components/intranet/Forms';
 import { Save, Loader2, ArrowLeft, Mail, Phone, MapPin } from 'lucide-react';
 import Link from 'next/link';

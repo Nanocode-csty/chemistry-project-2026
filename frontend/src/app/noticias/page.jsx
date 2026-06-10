@@ -1,7 +1,7 @@
 'use client';
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Calendar, ArrowRight, Search, Loader2, ChevronLeft, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
 

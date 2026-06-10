@@ -1,7 +1,7 @@
 'use client';
 
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 
 const AuthContext = createContext();
 
@@ -66,9 +66,7 @@ export const AuthProvider = ({ children }) => {
           try {
             const parsedUser = JSON.parse(savedUser);
             setUser(parsedUser);
-            console.log('AuthContext: Restored from localStorage:', parsedUser.email);
-            
-            // Validar sesión
+            console.log('AuthContext: Restored from localStorage:', parsedUser.email, 'Role:', parsedUser.rol);
             checkSession();
           } catch (e) {
             console.error('AuthContext: Error parsing saved user:', e);
@@ -113,38 +111,31 @@ export const AuthProvider = ({ children }) => {
     };
   }, [checkSession]);
 
+  // Login function
   const login = async (email, password) => {
     setIsLoggingIn(true);
     try {
-      console.log('Attempting login for:', email);
-      const response = await dbOperations.login(email, password);
+      const { data, error } = await dbOperations.login(email, password);
       
-      if (response.error) {
-        return { 
-          success: false, 
-          error: typeof response.error === 'string' ? response.error : (response.error.message || 'Credenciales inválidas') 
-        };
+      if (error) {
+        return { success: false, error: error.message || error };
       }
 
-      const { data } = response;
-      
-      // Manejar respuesta de backend local o Supabase
-      const token = data?.token || data?.session?.access_token;
-      const userData = data?.user;
-
-      if (typeof window !== 'undefined' && token && userData) {
-        console.log('Storing token and user data...');
-        localStorage.setItem('iq_token', token);
+      if (data && data.user) {
+        const userData = data.user;
+        
+        // El rol ya viene del backend
+        setUser(userData);
         localStorage.setItem('iq_user', JSON.stringify(userData));
+        localStorage.setItem('iq_token', data.token || 'dummy-token');
         localStorage.setItem('iq_last_activity', Date.now().toString());
+        
+        return { success: true };
       }
-      
-      setUser(userData || null);
-      console.log('User state updated:', data?.user?.email);
-      return { success: true };
+      return { success: false, error: 'No se recibieron datos del usuario' };
     } catch (err) {
       console.error('Login error:', err);
-      return { success: false, error: 'Error inesperado en el servidor' };
+      return { success: false, error: 'Error de conexión' };
     } finally {
       setIsLoggingIn(false);
     }

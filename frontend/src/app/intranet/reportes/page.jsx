@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { AlertCircle, Download, BarChart3, PieChart, Calendar, Filter, FileText, TrendingUp, Clock, Package, Building2, Users } from 'lucide-react';
 import { Button } from '@/components/intranet/Forms';
 import {
@@ -18,6 +18,8 @@ import { Bar, Pie } from 'react-chartjs-2';
 import * as XLSX from 'xlsx';
 import { jsPDF } from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 ChartJS.register(
   CategoryScale,
@@ -30,6 +32,15 @@ ChartJS.register(
 );
 
 export default function ReportesPage() {
+  const { user } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (user && user.rol?.toLowerCase() !== 'admin') {
+      router.replace('/intranet/dashboard');
+    }
+  }, [user, router]);
+
   const [prestamos, setPrestamos] = useState([]);
   const [equipos, setEquipos] = useState([]);
   const [estudiantes, setEstudiantes] = useState([]);

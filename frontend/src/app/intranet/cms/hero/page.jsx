@@ -1,9 +1,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
-import { FormInput, Button } from '@/components/intranet/Forms';
-import { Save, Loader2, ArrowLeft, Layout, Image as ImageIcon } from 'lucide-react';
+import { dbOperations } from '@/lib/api';
+import { FormInput, Button, Modal } from '@/components/intranet/Forms';
+import { Save, Loader2, ArrowLeft, Layout, Image as ImageIcon, Check } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 
@@ -49,7 +49,7 @@ export default function CMSHero() {
     setSaving(true);
     try {
       const { error } = await dbOperations.actualizarHero(hero);
-      if (error) alert('Error al guardar: ' + error);
+      if (error) alert('Error al guardar: ' + (error.message || error));
       else alert('Hero actualizado correctamente');
     } catch (err) {
       console.error(err);
@@ -61,7 +61,7 @@ export default function CMSHero() {
 
   const handleSelectImage = (url) => {
     setHero({ ...hero, imagen_url: url });
-    setIsGalleryOpen(false);
+    // NO cerrar automáticamente para que el usuario confirme
   };
 
   if (loading) {
@@ -132,7 +132,7 @@ export default function CMSHero() {
             <div className="flex-1 border-2 border-brand-border p-3 rounded-sm bg-brand-light text-xs truncate">
               {hero.imagen_url || 'Ninguna imagen seleccionada'}
             </div>
-            <Button variant="secondary" onClick={(e) => { e.preventDefault(); setIsGalleryOpen(true); }} className="!py-2">
+            <Button type="button" variant="secondary" onClick={() => setIsGalleryOpen(true)} className="!py-2">
               <ImageIcon size={18} />
             </Button>
           </div>
@@ -200,36 +200,48 @@ export default function CMSHero() {
         </div>
       </motion.form>
 
-      {/* Galería de Selección de Imágenes */}
-      <div className={`${isGalleryOpen ? 'fixed' : 'hidden'} inset-0 bg-black/60 z-[100] flex items-center justify-center p-4`}>
-        <div className="bg-white rounded-lg shadow-premium max-w-4xl w-full p-8">
-          <div className="flex justify-between items-center mb-8 border-b border-brand-border pb-6">
-            <h2 className="text-2xl font-display font-black text-brand-navy uppercase tracking-tight">Seleccionar de Galería</h2>
-            <button onClick={() => setIsGalleryOpen(false)} className="text-brand-muted hover:text-brand-navy transition-colors">
-              Cerrar
-            </button>
-          </div>
-          <div className="grid grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto p-2">
-            {multimedia.map((img) => (
-              <button
-                key={img.id}
-                onClick={() => handleSelectImage(img.url)}
-                className="group relative aspect-video bg-brand-light overflow-hidden border-2 border-transparent hover:border-brand-navy transition-all"
-              >
-                <img src={img.url} alt={img.titulo} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
-                <div className="absolute inset-0 bg-brand-navy/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
-                  <span className="text-white text-[10px] font-black uppercase tracking-widest">Seleccionar</span>
+      {/* Galería de Selección de Imágenes usando Modal estándar */}
+      <Modal
+        isOpen={isGalleryOpen}
+        onClose={() => setIsGalleryOpen(false)}
+        title="SELECCIONAR IMAGEN DE FONDO"
+        maxWidth="max-w-4xl"
+      >
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-4 max-h-[50vh] overflow-y-auto p-2 custom-scrollbar">
+          {multimedia.map((img) => (
+            <button
+              key={img.id}
+              type="button"
+              onClick={() => handleSelectImage(img.url)}
+              className={`group relative aspect-video bg-brand-light overflow-hidden border-4 transition-all rounded-sm ${
+                hero.imagen_url === img.url ? 'border-brand-accent' : 'border-transparent hover:border-brand-navy'
+              }`}
+            >
+              <img src={img.url} alt={img.titulo} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" />
+              <div className="absolute inset-0 bg-brand-navy/60 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity">
+                <span className="text-white text-[10px] font-black uppercase tracking-widest">Click para seleccionar</span>
+              </div>
+              {hero.imagen_url === img.url && (
+                <div className="absolute top-2 right-2 bg-brand-accent text-brand-navy p-1 rounded-full">
+                  <Check size={12} />
                 </div>
-              </button>
-            ))}
-          </div>
-          <div className="mt-8 flex justify-end">
-            <Button variant="secondary" onClick={() => setIsGalleryOpen(false)}>
-              CANCELAR
-            </Button>
-          </div>
+              )}
+            </button>
+          ))}
+          {multimedia.length === 0 && (
+            <div className="col-span-full py-20 text-center border-2 border-dashed border-brand-border bg-brand-light">
+              <ImageIcon className="mx-auto text-brand-muted mb-4" size={48} />
+              <p className="text-brand-muted uppercase text-xs font-black tracking-widest">No hay imágenes en la galería aún.</p>
+              <Link href="/intranet/cms/multimedia" className="text-brand-navy text-[10px] font-black underline mt-4 inline-block">IR A GALERÍA</Link>
+            </div>
+          )}
         </div>
-      </div>
+        <div className="mt-8 flex justify-end gap-4 pt-6 border-t border-slate-100">
+          <Button variant="secondary" onClick={() => setIsGalleryOpen(false)}>
+            CERRAR GALERÍA
+          </Button>
+        </div>
+      </Modal>
     </div>
   );
 }

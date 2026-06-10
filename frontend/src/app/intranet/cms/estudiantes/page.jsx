@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { FormInput, Button, Table, Modal } from '@/components/intranet/Forms';
 import { Save, Loader2, ArrowLeft, Users, Microscope, ScrollText, Lightbulb, Plus, Edit2, Trash2, ExternalLink, FileDown } from 'lucide-react';
 import Link from 'next/link';
@@ -253,7 +253,7 @@ export default function CMSEstudiantes() {
       <Modal 
         isOpen={showModal} 
         onClose={() => setShowModal(false)}
-        title={`${editingItem?.id ? 'EDITAR' : 'AÑADIR'} ${modalType?.toUpperCase()}`}
+        title={`${editingItem?.id ? 'EDITAR' : 'AÑADIR'} ${(modalType || '').toUpperCase()}`}
       >
         <form onSubmit={handleSaveItem} className="grid gap-4">
           {modalType === 'investigacion' && (
@@ -366,7 +366,7 @@ export default function CMSEstudiantes() {
           )}
 
           <div className="flex justify-end gap-3 mt-6">
-            <Button variant="outline" type="button" onClick={() => setShowModal(false)}>CANCELAR</Button>
+            <Button variant="secondary" type="button" onClick={() => setShowModal(false)}>CANCELAR</Button>
             <Button type="submit" disabled={savingItem}>
               {savingItem ? <Loader2 className="animate-spin" /> : <Save size={18} />}
               <span className="ml-2">GUARDAR CAMBIOS</span>

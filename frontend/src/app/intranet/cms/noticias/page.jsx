@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Table, Button, Modal, FormInput, Badge } from '@/components/intranet/Forms';
 import { Plus, Edit2, Trash2, Loader2, ArrowLeft, Image as ImageIcon } from 'lucide-react';
 import Link from 'next/link';
@@ -112,7 +112,7 @@ export default function CMSNoticias() {
         </div>
       )
     },
-    { key: 'fecha', label: 'FECHA', render: (row) => new Date(row.fecha).toLocaleDateString() },
+    { key: 'fecha', label: 'FECHA', render: (row) => row.fecha ? new Date(row.fecha).toLocaleDateString() : 'N/A' },
     { key: 'titulo', label: 'TÍTULO', render: (row) => <span className="font-bold">{row.titulo}</span> },
     { key: 'categoria', label: 'CATEGORÍA', render: (row) => <Badge color="blue">{row.categoria}</Badge> },
     { key: 'destacada', label: 'DESTACADA', render: (row) => row.destacada ? 'SÍ' : 'NO' },
@@ -266,7 +266,7 @@ export default function CMSNoticias() {
           </div>
 
           <div className="mt-8 flex justify-end gap-4">
-            <Button variant="secondary" onClick={() => setIsModalOpen(false)}>
+            <Button type="button" variant="secondary" onClick={() => setIsModalOpen(false)}>
               CANCELAR
             </Button>
             <Button type="submit">
@@ -338,7 +338,7 @@ export default function CMSNoticias() {
             )}
           </div>
         </div>
-        <div className="mt-8 pt-6 border-t border-slate-100 flex justify-end gap-4">
+        <div className="mt-8 pt-6 border-t border-brand-border flex justify-end gap-4">
           <Button type="button" variant="secondary" onClick={() => setIsGalleryOpen(false)}>
             CANCELAR
           </Button>

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Plus, Trash2, Edit2, AlertCircle, Users, Search, Mail, Fingerprint } from 'lucide-react';
 import {
   Modal,
@@ -13,9 +13,19 @@ import {
 import { ConfirmationModal } from '@/components/intranet/ConfirmationModal';
 import { TableSkeleton } from '@/components/intranet/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAuth } from '@/context/AuthContext';
+import { useRouter } from 'next/navigation';
 
 export default function EstudiantesPage() {
+  const { user } = useAuth();
+  const router = useRouter();
   const [estudiantes, setEstudiantes] = useState([]);
+
+  useEffect(() => {
+    if (user && user.rol !== 'admin') {
+      router.replace('/intranet/dashboard');
+    }
+  }, [user, router]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);

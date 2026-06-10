@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { FormInput, Button } from '@/components/intranet/Forms';
 import { Save, Loader2, ArrowLeft, Target, Eye } from 'lucide-react';
 import Link from 'next/link';
@@ -108,7 +108,12 @@ export default function CMSMisionVision() {
           </div>
         </div>
 
-        <div className="mt-12 flex justify-end">
+        <div className="mt-12 flex justify-end gap-4">
+          <Link href="/intranet/cms">
+            <Button type="button" variant="secondary">
+              CANCELAR
+            </Button>
+          </Link>
           <Button 
             type="submit" 
             disabled={saving}

@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { dbOperations } from '@/lib/supabase';
+import { dbOperations } from '@/lib/api';
 import { Button, Modal, FormInput } from '@/components/intranet/Forms';
 import { Plus, Trash2, Loader2, ArrowLeft, Image as ImageIcon, Link as LinkIcon, FileText } from 'lucide-react';
 import Link from 'next/link';
@@ -87,7 +87,11 @@ export default function CMSMultimedia() {
     );
   }
 
-  const isPDF = (url) => url?.toLowerCase().endsWith('.pdf') || url?.toLowerCase().includes('pdf');
+  const isPDF = (url) => {
+    if (!url) return false;
+    const urlStr = String(url).toLowerCase();
+    return urlStr.endsWith('.pdf') || urlStr.includes('pdf');
+  };
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">

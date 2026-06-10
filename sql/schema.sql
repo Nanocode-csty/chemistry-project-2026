@@ -125,17 +125,17 @@ $$ LANGUAGE plpgsql;
 -- 8. OPCIONAL: Tabla de Usuarios (para autenticación de admin)
 -- Nota: En local se usa un ID autogenerado. En Supabase se vincula a auth.users
 CREATE TABLE IF NOT EXISTS usuarios (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  id BIGSERIAL PRIMARY KEY,
   email VARCHAR(255) NOT NULL UNIQUE,
+  password VARCHAR(255) DEFAULT 'lab123',
   rol VARCHAR(50) DEFAULT 'admin',
   nombre VARCHAR(255),
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- Insertar admin inicial (cambiar credenciales después)
--- Las credenciales reales se crean a través de Supabase Auth UI o API
-INSERT INTO usuarios (email, rol, nombre) 
-VALUES ('admin@escuela-iq.edu', 'admin', 'Administrador') 
+-- Insertar admin inicial
+INSERT INTO usuarios (email, password, rol, nombre) 
+VALUES ('admin@escuela-iq.edu', 'admin123', 'admin', 'Administrador') 
 ON CONFLICT DO NOTHING;
 
 -- 9. Views útiles para reportes
