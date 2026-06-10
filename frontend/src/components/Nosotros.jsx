@@ -200,21 +200,38 @@ export default function Nosotros() {
               <h2 className="text-4xl md:text-5xl font-display font-black text-white uppercase tracking-tighter">Nuestro Círculo Dorado</h2>
             </div>
             <div className="grid lg:grid-cols-3 gap-12">
-              <div className="bg-white/5 p-12 border border-white/10 hover:bg-white/10 transition-colors">
-                <Target className="text-brand-accent mb-8" size={40} />
-                <h3 className="text-2xl font-display font-black uppercase mb-6">{circuloDorado.proposito_titulo}</h3>
-                <p className="text-white/70 leading-relaxed font-sans">{circuloDorado.proposito_descripcion}</p>
-              </div>
-              <div className="bg-white/5 p-12 border border-white/10 hover:bg-white/10 transition-colors">
-                <Compass className="text-brand-accent mb-8" size={40} />
-                <h3 className="text-2xl font-display font-black uppercase mb-6">{circuloDorado.proceso_titulo}</h3>
-                <p className="text-white/70 leading-relaxed font-sans">{circuloDorado.proceso_descripcion}</p>
-              </div>
-              <div className="bg-white/5 p-12 border border-white/10 hover:bg-white/10 transition-colors">
-                <Zap className="text-brand-accent mb-8" size={40} />
-                <h3 className="text-2xl font-display font-black uppercase mb-6">{circuloDorado.resultados_titulo}</h3>
-                <p className="text-white/70 leading-relaxed font-sans">{circuloDorado.resultados_descripcion}</p>
-              </div>
+              <motion.div 
+                whileHover={{ y: -10 }}
+                className="bg-white p-12 border-b-8 border-[#98C560] shadow-2xl transition-all duration-500 group"
+              >
+                <div className="bg-slate-50 w-16 h-16 flex items-center justify-center text-[#002b45] rounded-sm mb-10 group-hover:bg-[#002b45] group-hover:text-white transition-all duration-300">
+                  <Target size={32} />
+                </div>
+                <h3 className="text-2xl font-display font-black uppercase mb-6 text-[#002b45]">{circuloDorado.proposito_titulo}</h3>
+                <p className="text-slate-500 leading-relaxed font-sans font-medium">{circuloDorado.proposito_descripcion}</p>
+              </motion.div>
+
+              <motion.div 
+                whileHover={{ y: -10 }}
+                className="bg-white p-12 border-b-8 border-[#98C560] shadow-2xl transition-all duration-500 group"
+              >
+                <div className="bg-slate-50 w-16 h-16 flex items-center justify-center text-[#002b45] rounded-sm mb-10 group-hover:bg-[#002b45] group-hover:text-white transition-all duration-300">
+                  <Compass size={32} />
+                </div>
+                <h3 className="text-2xl font-display font-black uppercase mb-6 text-[#002b45]">{circuloDorado.proceso_titulo}</h3>
+                <p className="text-slate-500 leading-relaxed font-sans font-medium">{circuloDorado.proceso_descripcion}</p>
+              </motion.div>
+
+              <motion.div 
+                whileHover={{ y: -10 }}
+                className="bg-white p-12 border-b-8 border-[#98C560] shadow-2xl transition-all duration-500 group"
+              >
+                <div className="bg-slate-50 w-16 h-16 flex items-center justify-center text-[#002b45] rounded-sm mb-10 group-hover:bg-[#002b45] group-hover:text-white transition-all duration-300">
+                  <Zap size={32} />
+                </div>
+                <h3 className="text-2xl font-display font-black uppercase mb-6 text-[#002b45]">{circuloDorado.resultados_titulo}</h3>
+                <p className="text-slate-500 leading-relaxed font-sans font-medium">{circuloDorado.resultados_descripcion}</p>
+              </motion.div>
             </div>
           </div>
         </section>
@@ -249,12 +266,12 @@ export default function Nosotros() {
                     className="relative group"
                   >
                     {/* Node Dot */}
-                    <div className="hidden lg:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white border-4 border-gray-200 rounded-full group-hover:border-[#98C560] group-hover:scale-125 transition-all duration-500 z-20 items-center justify-center">
+                    <div className="hidden lg:flex absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-8 h-8 bg-white border-4 border-gray-200 rounded-full group-hover:border-[#98C560] group-hover:scale-125 transition-all duration-500 z-30 items-center justify-center">
                       <div className="w-2 h-2 bg-gray-200 group-hover:bg-[#98C560] rounded-full transition-colors" />
                     </div>
 
-                    <div className={`flex flex-col ${idx % 2 === 0 ? 'lg:mb-40' : 'lg:mt-40 lg:flex-col-reverse'}`}>
-                      <div className={`p-8 bg-white shadow-xl rounded-sm border-t-4 border-[#002b45] group-hover:border-[#98C560] transition-all duration-500 group-hover:-translate-y-2 relative ${idx % 2 === 0 ? 'mb-8' : 'mt-8 lg:mb-0 lg:mt-8'}`}>
+                    <div className={`flex flex-col ${idx % 2 === 0 ? 'lg:mb-48' : 'lg:mt-48 lg:flex-col-reverse'}`}>
+                      <div className={`p-8 bg-white shadow-xl rounded-sm border-t-4 border-[#002b45] group-hover:border-[#98C560] transition-all duration-500 group-hover:-translate-y-2 relative z-20 ${idx % 2 === 0 ? 'mb-8' : 'mt-8 lg:mb-0 lg:mt-8'}`}>
                         {/* Triangle Arrow */}
                         <div className={`absolute left-1/2 -translate-x-1/2 w-4 h-4 bg-white rotate-45 border-r border-b border-gray-100 hidden lg:block ${idx % 2 === 0 ? '-bottom-2' : '-top-2'}`} />
                         

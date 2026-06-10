@@ -32,8 +32,7 @@ export default function PapersPage() {
 
   return (
     <main className="min-h-screen bg-white pt-32 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+      <div className="max-w-7xl mx-auto px-4  py-12 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="flex flex-col lg:flex-row justify-between items-end gap-12 mb-24">
           <motion.div
@@ -41,20 +40,20 @@ export default function PapersPage() {
             animate={{ opacity: 1, x: 0 }}
             className="lg:w-2/3"
           >
-            <div className="w-20 h-2 bg-brand-navy mb-8" />
-            <h1 className="text-5xl md:text-7xl font-display font-black text-brand-navy uppercase tracking-tighter leading-none mb-8">
+            <div className="w-12 h-1.5 bg-[#002b45] mb-4" />
+            <h1 className="text-4xl md:text-6xl text-[#002b45] font-display font-black uppercase tracking-tighter leading-none mb-8">
               PUBLICACIONES <br />
-              <span className="text-brand-teal italic">CIENTÍFICAS</span>
+              <span className="text-[#9ABE00] italic">CIENTÍFICAS</span>
             </h1>
             <p className="text-xl text-gray-600 max-w-2xl font-sans leading-relaxed">
-              Nuestro repositorio de conocimiento revisado por pares, contribuyendo al 
+              Nuestro repositorio de conocimiento revisado por pares, contribuyendo al
               avance de la ingeniería química global.
             </p>
           </motion.div>
-          
+
           <div className="hidden lg:block text-right">
             <span className="block text-[150px] font-display font-black text-slate-100 leading-none -mb-10 select-none">Q1</span>
-            <span className="text-brand-navy font-display font-black text-2xl uppercase tracking-widest relative z-10">INDEXED JOURNALS</span>
+            <span className="text-[#002b45] font-display font-black text-2xl uppercase tracking-widest relative z-10">INDEXED JOURNALS</span>
           </div>
         </div>
 
@@ -79,9 +78,9 @@ export default function PapersPage() {
                     {paper.revista}
                   </div>
                   {paper.pdf_url && (
-                    <a 
-                      href={paper.pdf_url} 
-                      target="_blank" 
+                    <a
+                      href={paper.pdf_url}
+                      target="_blank"
                       rel="noopener noreferrer"
                       className="inline-flex items-center gap-3 text-[11px] font-black tracking-widest uppercase text-brand-navy hover:text-brand-teal transition-colors border-b-2 border-brand-teal pb-2"
                     >
@@ -105,7 +104,7 @@ export default function PapersPage() {
                     {paper.doi && (
                       <>
                         <div className="w-1.5 h-1.5 bg-brand-teal rounded-full hidden sm:block" />
-                        <a 
+                        <a
                           href={`https://doi.org/${paper.doi}`}
                           target="_blank"
                           rel="noopener noreferrer"

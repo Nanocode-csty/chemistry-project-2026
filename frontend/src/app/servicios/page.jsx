@@ -38,7 +38,7 @@ export default function ServiciosPage() {
 
   return (
     <main className="min-h-screen bg-brand-gray pt-32 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:px-8">
         
         {/* Header Section - Estilo Profesional / Técnico */}
         <div className="relative mb-24">
@@ -48,15 +48,15 @@ export default function ServiciosPage() {
             transition={{ duration: 0.8 }}
             className="max-w-4xl"
           >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-1 bg-brand-navy" />
-              <span className="text-brand-navy font-display font-black text-[11px] tracking-[0.4em] uppercase">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-1 bg-[#9ABE00]" />
+              <span className="text-[#002b45] font-display font-black text-[11px] tracking-[0.4em] uppercase">
                 Soporte de Alto Nivel
               </span>
             </div>
-            <h1 className="text-6xl md:text-8xl font-display font-black text-brand-navy uppercase tracking-tighter leading-[0.85] mb-8">
-              SERVICIOS <br />
-              <span className="text-brand-navy italic opacity-80">ESPECIALIZADOS</span>
+            <h1 className="text-4xl md:text-6xl text-[#002b45] font-display font-black uppercase tracking-tighter leading-none mb-8">
+              SERVICIOS<br />
+              <span className="text-[#9ABE00] italic">ESPECIALIZADOS</span>
             </h1>
             
             {/* Línea sutil con iconos relacionados - Mejorada */}
@@ -72,7 +72,7 @@ export default function ServiciosPage() {
 
             <p className="text-xl text-gray-600 max-w-2xl font-sans leading-relaxed border-l-4 border-brand-navy pl-8">
               Brindamos soporte especializado de alto nivel para la industria química, 
-              garantizando resultados bajo estándares internacionales de calidad.
+              garantizando resultados de calidad Internacional.
             </p>
           </motion.div>
         </div>

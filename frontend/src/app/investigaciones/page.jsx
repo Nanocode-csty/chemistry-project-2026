@@ -33,8 +33,8 @@ export default function InvestigacionesPage() {
 
   return (
     <main className="min-h-screen bg-brand-gray pt-32 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        
+      <div className="max-w-7xl mx-auto px-4  py-12 sm:px-6 lg:px-8">
+
         {/* Header Section - Rediseñado sin la figura lateral */}
         <div className="relative mb-24">
           <motion.div
@@ -43,19 +43,19 @@ export default function InvestigacionesPage() {
             transition={{ duration: 0.8 }}
             className="max-w-4xl"
           >
-            <div className="flex items-center gap-4 mb-6">
-              <div className="w-16 h-1 bg-brand-accent" />
-              <span className="text-brand-navy font-display font-black text-[11px] tracking-[0.4em] uppercase">
+            <div className="flex items-center gap-4 mb-4">
+              <div className="w-16 h-1 bg-[#9ABE00]" />
+              <span className="text-[#002b45] font-display font-black text-[11px] tracking-[0.4em] uppercase">
                 Excelencia Científica
               </span>
             </div>
-            <h1 className="text-6xl md:text-8xl font-display font-black text-brand-navy uppercase tracking-tighter leading-[0.85] mb-8">
-              PROGRAMA DE <br />
-              <span className="text-brand-navy italic opacity-80">INVESTIGACIÓN</span>
+            <h1 className="text-4xl md:text-6xl text-[#002b45] font-display font-black uppercase tracking-tighter leading-none mb-8">
+              CENTRO DE <br />
+              <span className="text-[#9ABE00] italic">INVESTIGACIONES</span>
             </h1>
-            
+
             {/* Línea sutil con iconos relacionados */}
-            <div className="flex items-center gap-6 mb-10 text-brand-muted">
+            <div className="flex items-center gap-6 mb-8 text-brand-muted">
               <div className="h-[1px] flex-grow bg-brand-border" />
               <Microscope size={20} className="opacity-40" />
               <Beaker size={20} className="opacity-40" />
@@ -63,15 +63,11 @@ export default function InvestigacionesPage() {
               <div className="h-[1px] flex-grow bg-brand-border" />
             </div>
 
-            <p className="text-xl text-gray-600 max-w-2xl font-sans leading-relaxed border-l-4 border-brand-accent pl-8">
-              Lideramos la frontera del conocimiento químico para resolver los desafíos 
-              más críticos de la industria y el medio ambiente a nivel global.
-            </p>
           </motion.div>
         </div>
 
         {/* Content Grid - Hover corregido */}
-        <div className="grid lg:grid-cols-3 gap-8 mb-24">
+        <div className="grid lg:grid-cols-3 gap-8 mb-16">
           {investigaciones.length > 0 ? investigaciones.map((inv, idx) => (
             <motion.div
               key={inv.id}
@@ -82,7 +78,7 @@ export default function InvestigacionesPage() {
             >
               {/* Decorative background element on hover - Sutil */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-light -mr-16 -mt-16 rounded-full group-hover:bg-brand-accent/5 group-hover:scale-150 transition-all duration-700" />
-              
+
               <div className="p-10 flex-grow relative z-10">
                 <div className="w-16 h-16 bg-white border-2 border-brand-navy flex items-center justify-center text-brand-navy mb-8 group-hover:bg-brand-navy group-hover:text-white transition-all duration-500 shadow-sm group-hover:-translate-y-2">
                   <Microscope size={32} />
@@ -94,9 +90,9 @@ export default function InvestigacionesPage() {
                   {inv.descripcion}
                 </p>
               </div>
-              
+
               <div className="p-10 pt-0 relative z-10">
-                <Link 
+                <Link
                   href={inv.link || `/investigaciones/${inv.id}`}
                   className="inline-flex items-center gap-3 text-[11px] font-display font-black tracking-[0.2em] text-brand-navy uppercase group-hover:gap-5 transition-all border-b-2 border-transparent hover:border-brand-accent pb-1"
                 >

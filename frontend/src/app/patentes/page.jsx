@@ -32,7 +32,7 @@ export default function PatentesPage() {
 
   return (
     <main className="min-h-screen bg-brand-gray pt-32 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="relative mb-24 overflow-hidden bg-white p-12 lg:p-24 shadow-premium border-t-8 border-brand-teal">
@@ -44,13 +44,13 @@ export default function PatentesPage() {
           >
             <div className="flex items-center gap-4 mb-8">
               <Lightbulb className="text-brand-teal" size={40} strokeWidth={2.5} />
-              <span className="text-brand-navy font-display font-black text-[12px] tracking-[0.4em] uppercase">
+              <span className="text-[#002b45] font-display font-black text-[12px] tracking-[0.4em] uppercase">
                 Propiedad Intelectual & Activos Tecnológicos
               </span>
             </div>
-            <h1 className="text-5xl md:text-8xl font-display font-black text-brand-navy uppercase tracking-tighter leading-none mb-10">
+            <h1 className="text-4xl md:text-6xl font-display font-black text-[#9ABE00] uppercase tracking-tighter leading-none mb-10">
               PATENTES <br />
-              <span className="text-brand-teal">REGISTRADAS</span>
+              <span className="text-[#002b45] italic">REGISTRADAS</span>
             </h1>
             <div className="grid md:grid-cols-2 gap-12 items-center">
               <p className="text-xl text-gray-600 font-sans leading-relaxed">

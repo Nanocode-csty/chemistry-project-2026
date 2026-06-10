@@ -128,29 +128,35 @@ const Profesionales = () => {
           </div>
           
           <div className="relative group/carousel">
-            <div className="grid md:grid-cols-3 gap-0 border border-gray-100 shadow-2xl overflow-hidden rounded-sm">
+            <div className="grid md:grid-cols-3 gap-8">
               {mockProyectosIndustriales.map((proy, idx) => (
                 <motion.div
                   key={proy.id}
                   initial={{ opacity: 0, y: 30 }}
                   whileInView={{ opacity: 1, y: 0 }}
-                  whileHover={{ y: -5 }}
                   viewport={{ once: true }}
                   transition={{ delay: idx * 0.1, duration: 0.6 }}
-                  className="bg-white text-[#002b45] p-12 border-r border-b border-gray-50 last:border-r-0 hover:bg-[#002b45] hover:text-white transition-all duration-500 group cursor-pointer relative"
+                  className="bg-white p-10 border-2 border-slate-100 hover:border-[#002b45] shadow-sm hover:shadow-2xl transition-all duration-500 group cursor-pointer relative rounded-sm flex flex-col h-full"
                   onClick={() => router.push(`/proyectos/${proy.id}`)}
                 >
-                  <div className="flex justify-between items-start mb-12">
-                    <span className="text-[11px] font-black tracking-[0.3em] uppercase text-slate-400 group-hover:text-[#98C560] transition-colors">Estudio de Caso</span>
-                    <ArrowUpRight className="text-[#98C560] group-hover:rotate-45 transition-transform duration-500" size={28} />
+                  <div className="flex justify-between items-start mb-10">
+                    <div className="bg-slate-50 p-3 rounded-sm group-hover:bg-[#002b45] transition-colors duration-500">
+                      <Zap size={24} className="text-[#002b45] group-hover:text-[#98C560]" />
+                    </div>
+                    <div className="flex items-center gap-2 text-[#98C560] opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-2 group-hover:translate-x-0">
+                      <span className="text-[10px] font-black uppercase tracking-widest">Ver Proyecto</span>
+                      <ArrowUpRight size={18} />
+                    </div>
                   </div>
-                  <h4 className="text-2xl font-display font-black uppercase leading-tight mb-6 tracking-tight">{proy.titulo}</h4>
-                  <p className="text-slate-500 group-hover:text-slate-300 text-[15px] leading-relaxed mb-10 line-clamp-3 font-medium">
+                  
+                  <h4 className="text-xl font-display font-black uppercase leading-tight mb-6 tracking-tight text-[#002b45] group-hover:text-[#005180] transition-colors">{proy.titulo}</h4>
+                  <p className="text-slate-500 text-[14px] leading-relaxed mb-10 line-clamp-3 font-medium flex-grow">
                     {proy.descripcion}
                   </p>
-                  <div className="text-[12px] font-black uppercase tracking-[0.2em] border-t border-gray-50 group-hover:border-white/10 pt-8 flex items-center gap-3">
-                    <span className="text-slate-400 group-hover:text-white/40">Partner:</span>
-                    <span className="text-[#98C560] font-black">{proy.cliente}</span>
+                  
+                  <div className="text-[11px] font-black uppercase tracking-[0.2em] border-t border-slate-100 pt-8 flex items-center justify-between">
+                    <span className="text-slate-400">PARTNER:</span>
+                    <span className="text-[#002b45] font-black">{proy.cliente}</span>
                   </div>
                 </motion.div>
               ))}
@@ -171,10 +177,19 @@ const Profesionales = () => {
             </div>
             <div className="lg:w-2/3 grid sm:grid-cols-2 gap-8 w-full">
               {mockConcursos.map((concurso) => (
-                <Link key={concurso.id} href="/concursos" className="bg-white/5 border border-white/10 p-10 flex items-center justify-between group hover:bg-white hover:text-[#002b45] transition-all duration-500 rounded-sm">
-                  <span className="font-display font-black text-sm uppercase tracking-[0.15em] group-hover:translate-x-2 transition-transform duration-300">{concurso.nombre}</span>
-                  <span className="text-[#98C560] font-black text-2xl italic tracking-tighter">{concurso.anio}</span>
-                </Link>
+                <motion.div
+                  key={concurso.id}
+                  whileHover={{ scale: 1.05 }}
+                  transition={{ type: "spring", stiffness: 400, damping: 10 }}
+                >
+                  <Link 
+                    href="/concursos" 
+                    className="bg-white p-10 flex items-center justify-between group shadow-xl hover:shadow-2xl transition-all duration-500 rounded-sm border-l-4 border-[#98C560]"
+                  >
+                    <span className="font-display font-black text-sm uppercase tracking-[0.15em] text-[#002b45] group-hover:text-[#005180] transition-colors">{concurso.nombre}</span>
+                    <span className="text-[#98C560] font-black text-2xl italic tracking-tighter">{concurso.anio}</span>
+                  </Link>
+                </motion.div>
               ))}
             </div>
           </div>

@@ -152,14 +152,14 @@ const Hero = () => {
                   animate="animate"
                   className="absolute bottom-8 left-0 right-0 px-8 z-30"
                 >
-                  <div className="bg-[#002b45] p-8 text-white shadow-2xl relative overflow-hidden group/card border-t-4 border-[#98C560]">
+                  <div className="bg-white p-8 text-white shadow-2xl relative overflow-hidden group/card border-t-4 border-[#98C560]">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
                     <div className="flex items-center gap-2 text-[#98C560] text-[11px] font-black tracking-[0.3em] uppercase mb-4">
                       <Zap size={16} /> NOVEDAD TECNOLÓGICA
                     </div>
-                    <h3 className="text-2xl font-display font-black uppercase mb-3 relative z-10 leading-tight tracking-tight">Síntesis de <br />Hidrógeno Verde</h3>
-                    <p className="text-sm text-slate-300 mb-6 relative z-10 font-sans font-medium">Nuevo proceso catalítico optimizado para la industria energética.</p>
-                    <Link href="/investigaciones" className="flex items-center gap-2 text-[11px] font-black tracking-[0.25em] uppercase relative z-10 text-[#98C560] hover:text-white transition-colors">
+                    <h3 className="text-2xl font-display text-[#002b45] font-black uppercase mb-3 relative z-10 leading-tight tracking-tight">Síntesis de <br />Hidrógeno Verde</h3>
+                    <p className="text-sm text-slate-700 text-[#002b45] mb-6 relative z-10 font-sans font-medium">Nuevo proceso catalítico optimizado para la industria energética.</p>
+                    <Link href="/investigaciones" className="flex items-center gap-2 text-[11px] font-black tracking-[0.25em] uppercase relative z-10 text-[#98C560] hover:text-[#002b45] transition-colors">
                       VER DETALLES <ChevronRight size={16} />
                     </Link>
                   </div>
