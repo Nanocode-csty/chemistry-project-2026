@@ -3,7 +3,7 @@ import { Facebook, Twitter, Linkedin, Instagram, Youtube, ArrowRight, Mail, Phon
 
 const Footer = () => {
   return (
-    <footer className="bg-[#002b45] text-white pt-24 pb-12 overflow-hidden relative border-t-[6px] border-[#98C560]">
+    <footer className="bg-[#002b45] text-white pt-24 pb-12 overflow-hidden relative border-t-[6px] border-[#9ABE00]">
       <div className="absolute top-0 right-0 w-full h-full bg-[radial-gradient(circle_at_top_right,rgba(152,197,96,0.08),transparent)] pointer-events-none" />
       <div className="absolute bottom-0 left-0 w-1/3 h-full bg-white/[0.02] skew-x-12 -translate-x-1/2 pointer-events-none" />
       
@@ -37,7 +37,7 @@ const Footer = () => {
 
           {/* Links Column 1 */}
           <div className="lg:col-span-2 lg:ml-auto">
-            <h4 className="text-[#98C560] font-display font-black text-[12px] tracking-[0.2em] uppercase mb-10 border-b border-white/10 pb-4 inline-block">ACADEMIA</h4>
+            <h4 className="text-[#9ABE00] font-display font-black text-[12px] tracking-[0.2em] uppercase mb-10 border-b border-white/10 pb-4 inline-block">ACADEMIA</h4>
             <ul className="space-y-4">
               <FooterLink href="/investigaciones">Investigación</FooterLink>
               <FooterLink href="/papers">Publicaciones</FooterLink>
@@ -48,7 +48,7 @@ const Footer = () => {
 
           {/* Links Column 2 */}
           <div className="lg:col-span-2">
-            <h4 className="text-[#98C560] font-display font-black text-[12px] tracking-[0.2em] uppercase mb-10 border-b border-white/10 pb-4 inline-block">INDUSTRIA</h4>
+            <h4 className="text-[#9ABE00] font-display font-black text-[12px] tracking-[0.2em] uppercase mb-10 border-b border-white/10 pb-4 inline-block">INDUSTRIA</h4>
             <ul className="space-y-4">
               <FooterLink href="/proyectos">Proyectos</FooterLink>
               <FooterLink href="/servicios">Servicios Técnicos</FooterLink>
@@ -60,7 +60,7 @@ const Footer = () => {
 
           {/* Contact Column */}
           <div className="lg:col-span-4">
-            <h4 className="text-[#98C560] font-display font-black text-[12px] tracking-[0.2em] uppercase mb-10 border-b border-white/10 pb-4 inline-block">CONTACTO DIRECTO</h4>
+            <h4 className="text-[#9ABE00] font-display font-black text-[12px] tracking-[0.2em] uppercase mb-10 border-b border-white/10 pb-4 inline-block">CONTACTO DIRECTO</h4>
             <div className="space-y-6">
               <ContactItem icon={<Mail size={20} />} text="contacto@labcam.edu.pe" />
               <ContactItem icon={<Phone size={20} />} text="+51 (1) 456-7890" />
@@ -68,7 +68,7 @@ const Footer = () => {
               <div className="pt-6">
                 <Link 
                   href="#contacto" 
-                  className="inline-flex items-center gap-4 bg-[#98C560] text-[#002b45] px-10 py-5 font-display font-black text-[11px] tracking-[0.25em] hover:bg-white transition-all duration-300 uppercase shadow-[0_10px_30px_-10px_rgba(152,197,96,0.3)] rounded-sm group"
+                  className="inline-flex items-center gap-4 bg-[#9ABE00] text-[#002b45] px-10 py-5 font-display font-black text-[11px] tracking-[0.25em] hover:bg-white transition-all duration-300 uppercase shadow-[0_10px_30px_-10px_rgba(152,197,96,0.3)] rounded-sm group"
                 >
                   SOLICITAR INFORMACIÓN <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-300" />
                 </Link>
@@ -82,12 +82,12 @@ const Footer = () => {
         <div className="border-t border-white/10 pt-12 flex flex-col md:flex-row justify-between items-center gap-8">
           <div className="text-[11px] font-bold text-slate-500 uppercase tracking-[0.15em] flex items-center gap-4">
             <span>&copy; {new Date().getFullYear()} LABCAM. TODOS LOS DERECHOS RESERVADOS.</span>
-            <span className="hidden md:block w-1.5 h-1.5 bg-[#98C560] rounded-full" />
+            <span className="hidden md:block w-1.5 h-1.5 bg-[#9ABE00] rounded-full" />
             <span className="hidden md:block">EXCELENCIA EN INVESTIGACIÓN</span>
           </div>
           <div className="flex gap-10 text-[11px] font-bold text-slate-500 uppercase tracking-[0.15em]">
-            <Link href="#" className="hover:text-[#98C560] transition-colors">Privacidad</Link>
-            <Link href="#" className="hover:text-[#98C560] transition-colors">Términos Legales</Link>
+            <Link href="#" className="hover:text-[#9ABE00] transition-colors">Privacidad</Link>
+            <Link href="#" className="hover:text-[#9ABE00] transition-colors">Términos Legales</Link>
           </div>
         </div>
 
@@ -95,7 +95,7 @@ const Footer = () => {
         <div className="mt-12 text-center">
           <p className="text-[10px] font-mono font-medium text-slate-400 uppercase tracking-[0.4em] transition-all duration-500 cursor-default flex items-center justify-center gap-2">
             <span className="opacity-50">Powered by</span> 
-            <span className="text-[#98C560] font-black border-b border-[#98C560]/30 pb-0.5">ROO</span> 
+            <span className="text-[#9ABE00] font-black border-b border-[#9ABE00]/30 pb-0.5">ROO</span> 
             <span className="text-white/20">|</span> 
             <span className="opacity-80">Soluciones Digitales</span>
           </p>
@@ -110,7 +110,7 @@ const SocialLink = ({ icon, label }) => (
   <a 
     href="#" 
     aria-label={label}
-    className="w-12 h-12 bg-white/[0.03] border border-white/10 flex items-center justify-center text-slate-400 hover:bg-[#98C560] hover:text-[#002b45] hover:border-[#98C560] transition-all duration-300 rounded-sm group shadow-lg"
+    className="w-12 h-12 bg-white/[0.03] border border-white/10 flex items-center justify-center text-slate-400 hover:bg-[#9ABE00] hover:text-[#002b45] hover:border-[#9ABE00] transition-all duration-300 rounded-sm group shadow-lg"
   >
     <div className="transition-transform duration-300 group-hover:scale-110">
       {icon}
@@ -121,7 +121,7 @@ const SocialLink = ({ icon, label }) => (
 const FooterLink = ({ href, children }) => (
   <li>
     <Link href={href} className="text-[14px] font-semibold text-slate-400 hover:text-white transition-all flex items-center gap-3 group">
-      <span className="w-2.5 h-[2px] bg-[#98C560] scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
+      <span className="w-2.5 h-[2px] bg-[#9ABE00] scale-x-0 group-hover:scale-x-100 transition-transform origin-left duration-300" />
       {children}
     </Link>
   </li>
@@ -129,7 +129,7 @@ const FooterLink = ({ href, children }) => (
 
 const ContactItem = ({ icon, text }) => (
   <div className="flex items-center gap-5 group cursor-default">
-    <div className="w-12 h-12 bg-white/[0.03] border border-white/10 flex items-center justify-center text-[#98C560] group-hover:bg-[#98C560] group-hover:text-[#002b45] transition-all duration-300 rounded-sm shadow-md">
+    <div className="w-12 h-12 bg-white/[0.03] border border-white/10 flex items-center justify-center text-[#9ABE00] group-hover:bg-[#9ABE00] group-hover:text-[#002b45] transition-all duration-300 rounded-sm shadow-md">
       {icon}
     </div>
     <span className="text-[14px] font-semibold text-slate-400 group-hover:text-white transition-colors">{text}</span>

@@ -361,7 +361,7 @@ export default function PrestamosPage() {
                   ) : (
                     <div className="text-center space-y-3">
                       <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
-                        <Package className="w-8 h-8 text-[#98C560]" />
+                        <Package className="w-8 h-8 text-[#9ABE00]" />
                       </div>
                       <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin imagen</p>
                     </div>
@@ -378,9 +378,9 @@ export default function PrestamosPage() {
             </div>
 
             {formData.equipo_id && (
-              <div className="bg-[#002b45] p-5 rounded-sm shadow-lg border-l-4 border-[#98C560]">
-                <p className="text-[9px] font-black text-[#98C560] uppercase tracking-[0.2em] mb-1">Estado de Salida</p>
-                <p className="text-xs text-white font-bold">El equipo pasará a estado <span className="text-[#98C560] underline">OCUPADO</span> inmediatamente después de confirmar.</p>
+              <div className="bg-[#002b45] p-5 rounded-sm shadow-lg border-l-4 border-[#9ABE00]">
+                <p className="text-[9px] font-black text-[#9ABE00] uppercase tracking-[0.2em] mb-1">Estado de Salida</p>
+                <p className="text-xs text-white font-bold">El equipo pasará a estado <span className="text-[#9ABE00] underline">OCUPADO</span> inmediatamente después de confirmar.</p>
               </div>
             )}
           </div>
@@ -389,20 +389,20 @@ export default function PrestamosPage() {
           <div className="lg:w-2/3 space-y-6">
             <div className="bg-white p-6 rounded-sm border border-slate-100 shadow-sm space-y-6">
               <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
-                <Info className="w-5 h-5 text-[#98C560]" />
+                <Info className="w-5 h-5 text-[#9ABE00]" />
                 <h3 className="font-display font-black text-[#002b45] text-sm uppercase tracking-tight">Detalles del Préstamo</h3>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
-                    <MapPin className="w-3 h-3 text-[#98C560]" /> 1. Laboratorio
+                    <MapPin className="w-3 h-3 text-[#9ABE00]" /> 1. Laboratorio
                   </label>
                   <select
                     name="ambiente_id"
                     value={formData.ambiente_id}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#9ABE00] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
                   >
                     <option value="">Todos los ambientes</option>
                     {ambientes.map(a => (
@@ -415,14 +415,14 @@ export default function PrestamosPage() {
 
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
-                    <Package className="w-3 h-3 text-[#98C560]" /> 2. Equipo Disponible
+                    <Package className="w-3 h-3 text-[#9ABE00]" /> 2. Equipo Disponible
                   </label>
                   <select
                     name="equipo_id"
                     value={formData.equipo_id}
                     onChange={handleInputChange}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#9ABE00] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
                   >
                     <option value="">Selecciona un equipo...</option>
                     {equiposDisponiblesPorAmbiente.map(e => (
@@ -434,14 +434,14 @@ export default function PrestamosPage() {
 
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
-                  <User className="w-3 h-3 text-[#98C560]" /> 3. Estudiante / Beneficiario
+                  <User className="w-3 h-3 text-[#9ABE00]" /> 3. Estudiante / Beneficiario
                 </label>
                 <select
                   name="estudiante_id"
                   value={formData.estudiante_id}
                   onChange={handleInputChange}
                   required
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#9ABE00] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
                 >
                   <option value="">Selecciona al estudiante...</option>
                   {estudiantes.map(est => (
@@ -464,7 +464,7 @@ export default function PrestamosPage() {
                 onClick={handleSave}
                 disabled={isSaving || !formData.equipo_id || !formData.estudiante_id}
                 fullWidth
-                className="!py-3 !bg-[#002b45] hover:!bg-[#98C560] hover:!text-[#002b45]"
+                className="!py-3 !bg-[#002b45] hover:!bg-[#9ABE00] hover:!text-[#002b45]"
               >
                 {isSaving ? 'PROCESANDO...' : 'CONFIRMAR PRÉSTAMO'}
               </Button>

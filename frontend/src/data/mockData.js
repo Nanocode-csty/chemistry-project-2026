@@ -4,7 +4,7 @@ export const mockInvestigaciones = [
     titulo: 'Biorremediación de efluentes textiles', 
     descripcion: 'Uso de microorganismos para degradar colorantes en aguas residuales de la industria textil.',
     contenidoDetallado: 'Este proyecto se enfoca en la utilización de cepas bacterianas autóctonas con capacidad enzimática para la decoloración de tintes azoicos, comunes en la industria textil peruana. El proceso busca una alternativa biotecnológica de bajo costo y alta eficiencia.',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ', // Placeholder video
+    videoUrl: 'https://youtu.be/3OkcXj87vd0', // Placeholder video
     metodologia: 'Aislamiento de microorganismos, pruebas de toxicidad y diseño de biorreactor a escala piloto.',
     impacto: 'Reducción del 95% de la carga contaminante en efluentes industriales.'
   }, 
@@ -13,7 +13,7 @@ export const mockInvestigaciones = [
     titulo: 'Síntesis de nanopartículas para catálisis', 
     descripcion: 'Desarrollo de nanocatalizadores para reacciones de oxidación selectiva.',
     contenidoDetallado: 'Investigación sobre la síntesis verde de nanopartículas de plata y oro utilizando extractos vegetales. Estas partículas son aplicadas en procesos de catálisis heterogénea para la industria química fina.',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    videoUrl: 'https://youtu.be/3OkcXj87vd0',
     metodologia: 'Reducción química, caracterización por TEM/XRD and pruebas de actividad catalítica.',
     impacto: 'Incremento de la selectividad en un 30% comparado con catalizadores comerciales.'
   }, 
@@ -22,7 +22,7 @@ export const mockInvestigaciones = [
     titulo: 'Obtención de bioplásticos a partir de residuos agrícolas', 
     descripcion: 'Transformación de desechos de plátano y piña en polímeros biodegradables.',
     contenidoDetallado: 'Desarrollo de películas biodegradables a partir de almidón extraído de cáscaras de frutas. El proyecto aborda la problemática de los plásticos de un solo uso mediante la valorización de residuos orgánicos.',
-    videoUrl: 'https://www.youtube.com/embed/dQw4w9WgXcQ',
+    videoUrl: 'https://youtu.be/3OkcXj87vd0',
     metodologia: 'Extracción de polímeros, plastificación y extrusión de películas delgadas.',
     impacto: 'Alternativa 100% compostable a las bolsas plásticas convencionales.'
   }, 

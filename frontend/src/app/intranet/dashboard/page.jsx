@@ -23,7 +23,7 @@ import { useAuth } from '@/context/AuthContext';
 function StatCard({ icon: Icon, label, value, subtext, color = 'blue', delay = 0 }) {
   const colorMap = {
     blue: 'border-blue-100 bg-blue-50/30 text-blue-600 icon-bg-blue-100/10',
-    green: 'border-[#98C560]/20 bg-[#98C560]/5 text-[#98C560] icon-bg-[#98C560]/10',
+    green: 'border-[#9ABE00]/20 bg-[#9ABE00]/5 text-[#9ABE00] icon-bg-[#9ABE00]/10',
     red: 'border-red-100 bg-red-50/30 text-red-600 icon-bg-red-100/10',
     yellow: 'border-yellow-100 bg-yellow-50/30 text-yellow-600 icon-bg-yellow-100/10',
     navy: 'border-[#002b45]/10 bg-[#002b45]/5 text-[#002b45] icon-bg-[#002b45]/10',
@@ -57,7 +57,7 @@ function RecentActivity({ prestamos }) {
     <div className="bg-white rounded-sm shadow-xl border border-gray-100 overflow-hidden">
       <div className="p-8 border-b border-gray-100 flex items-center justify-between bg-slate-50/50">
         <h3 className="font-display font-black text-[#002b45] tracking-tighter uppercase text-lg">Préstamos Recientes</h3>
-        <Link href="/intranet/prestamos" className="text-[11px] font-black text-[#98C560] hover:text-[#002b45] transition-all tracking-[0.2em] uppercase flex items-center gap-2 border-b-2 border-[#98C560] pb-1">
+        <Link href="/intranet/prestamos" className="text-[11px] font-black text-[#9ABE00] hover:text-[#002b45] transition-all tracking-[0.2em] uppercase flex items-center gap-2 border-b-2 border-[#9ABE00] pb-1">
           VER TODOS <ChevronRight className="w-4 h-4" />
         </Link>
       </div>
@@ -71,7 +71,7 @@ function RecentActivity({ prestamos }) {
             className="p-6 flex items-center justify-between hover:bg-slate-50 transition-colors group"
           >
             <div className="flex items-center gap-5">
-              <div className={`p-3 rounded-sm transition-colors ${p.fecha_devolucion ? 'bg-slate-100 text-slate-400' : 'bg-[#002b45] text-white shadow-lg group-hover:bg-[#98C560] group-hover:text-[#002b45]'}`}>
+              <div className={`p-3 rounded-sm transition-colors ${p.fecha_devolucion ? 'bg-slate-100 text-slate-400' : 'bg-[#002b45] text-white shadow-lg group-hover:bg-[#9ABE00] group-hover:text-[#002b45]'}`}>
                 <Package className="w-5 h-5" />
               </div>
               <div>
@@ -182,7 +182,7 @@ export default function Dashboard() {
         </div>
         <div className="flex gap-4">
           <Link href="/intranet/prestamos">
-            <Button variant="primary" className="!bg-[#002b45] hover:!bg-[#98C560] hover:!text-[#002b45] font-bold tracking-wider text-[11px] px-6">
+            <Button variant="primary" className="!bg-[#002b45] hover:!bg-[#9ABE00] hover:!text-[#002b45] font-bold tracking-wider text-[11px] px-6">
               <Plus className="w-4 h-4 mr-2" /> NUEVO PRÉSTAMO
             </Button>
           </Link>
@@ -281,7 +281,7 @@ export default function Dashboard() {
             
             <div className="mt-10 p-5 bg-slate-50 rounded-sm border border-slate-100">
               <div className="flex items-start gap-3">
-                <AlertCircle className="w-4 h-4 text-[#98C560] mt-0.5" />
+                <AlertCircle className="w-4 h-4 text-[#9ABE00] mt-0.5" />
                 <p className="text-[10px] text-slate-500 leading-relaxed font-medium">
                   Se recomienda revisar los equipos en mantenimiento para optimizar el inventario disponible.
                 </p>

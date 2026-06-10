@@ -57,7 +57,7 @@ const Profesionales = () => {
             <div className="w-16 h-1.5 bg-[#002b45] mb-8" />
             <h2 className="text-4xl md:text-6xl font-display font-black leading-tight uppercase tracking-tighter mb-8 text-[#002b45]">
               {(header.titulo || '').split(' ')[0]} <br />
-              <span className="text-[#98C560] italic">{(header.titulo || '').split(' ').slice(1).join(' ')}</span>
+              <span className="text-[#9ABE00] italic">{(header.titulo || '').split(' ').slice(1).join(' ')}</span>
             </h2>
             <p className="text-xl text-slate-500 font-sans font-medium leading-relaxed mb-12 border-l-4 border-[#002b45] pl-8">
               {header.descripcion}
@@ -80,8 +80,8 @@ const Profesionales = () => {
               >
                 <Link href={servicio.link || "/servicios"} className="block bg-white p-10 border border-gray-100 hover:border-[#002b45] hover:shadow-2xl transition-all duration-500 group h-full rounded-sm shadow-sm relative overflow-hidden">
                   <div className="absolute top-0 right-0 w-16 h-16 bg-slate-50 rounded-full -mr-8 -mt-8 group-hover:scale-150 transition-transform duration-700" />
-                  <Zap className="text-[#002b45] group-hover:text-[#98C560] group-hover:scale-110 transition-all duration-300 mb-6 relative z-10" size={32} />
-                  <h4 className="font-display font-black text-[13px] uppercase tracking-wider leading-tight text-[#002b45] relative z-10 group-hover:text-[#98C560] transition-colors">{servicio.titulo}</h4>
+                  <Zap className="text-[#002b45] group-hover:text-[#9ABE00] group-hover:scale-110 transition-all duration-300 mb-6 relative z-10" size={32} />
+                  <h4 className="font-display font-black text-[13px] uppercase tracking-wider leading-tight text-[#002b45] relative z-10 group-hover:text-[#9ABE00] transition-colors">{servicio.titulo}</h4>
                 </Link>
               </motion.div>
             ))}
@@ -90,7 +90,7 @@ const Profesionales = () => {
       </div>
 
       {/* Top Banner - Professional Style */}
-      <div className="relative h-[600px] w-full mb-32 border-y-[10px] border-[#98C560]">
+      <div className="relative h-[600px] w-full mb-32 border-y-[10px] border-[#9ABE00]">
         <img 
           src="https://images.unsplash.com/photo-1513828583688-c52646db42da?auto=format&fit=crop&q=80&w=1600" 
           alt="Sector Industrial" 
@@ -106,10 +106,10 @@ const Profesionales = () => {
               viewport={{ once: true }}
               className="max-w-3xl"
             >
-              <div className="w-20 h-2 bg-[#98C560] mb-8 shadow-lg" />
+              <div className="w-20 h-2 bg-[#9ABE00] mb-8 shadow-lg" />
               <h2 className="text-5xl md:text-8xl font-display font-black leading-tight uppercase tracking-tighter text-white drop-shadow-2xl">
                 {(header.alianza_titulo || '').split(' ')[0]} <br />
-                <span className="text-[#98C560] italic">{(header.alianza_titulo || '').split(' ').slice(1).join(' ')}</span>
+                <span className="text-[#9ABE00] italic">{(header.alianza_titulo || '').split(' ').slice(1).join(' ')}</span>
               </h2>
             </motion.div>
           </div>
@@ -122,7 +122,7 @@ const Profesionales = () => {
         <div className="mb-32">
           <div className="flex flex-col md:flex-row items-center justify-between gap-10 mb-20 border-b border-gray-100 pb-12">
             <h3 className="text-4xl font-display font-black uppercase tracking-tight text-[#002b45]">PROYECTOS DE IMPACTO</h3>
-            <Link href="/proyectos" className="text-[11px] font-black tracking-[0.3em] text-[#98C560] hover:text-[#002b45] transition-all uppercase border-b-2 border-[#98C560] pb-1">
+            <Link href="/proyectos" className="text-[11px] font-black tracking-[0.3em] text-[#9ABE00] hover:text-[#002b45] transition-all uppercase border-b-2 border-[#9ABE00] pb-1">
               Ver Catálogo Completo
             </Link>
           </div>
@@ -141,9 +141,9 @@ const Profesionales = () => {
                 >
                   <div className="flex justify-between items-start mb-10">
                     <div className="bg-slate-50 p-3 rounded-sm group-hover:bg-[#002b45] transition-colors duration-500">
-                      <Zap size={24} className="text-[#002b45] group-hover:text-[#98C560]" />
+                      <Zap size={24} className="text-[#002b45] group-hover:text-[#9ABE00]" />
                     </div>
-                    <div className="flex items-center gap-2 text-[#98C560] opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-2 group-hover:translate-x-0">
+                    <div className="flex items-center gap-2 text-[#9ABE00] opacity-0 group-hover:opacity-100 transition-all duration-500 translate-x-2 group-hover:translate-x-0">
                       <span className="text-[10px] font-black uppercase tracking-widest">Ver Proyecto</span>
                       <ArrowUpRight size={18} />
                     </div>
@@ -165,15 +165,15 @@ const Profesionales = () => {
         </div>
 
         {/* Recognition Section */}
-        <div className="bg-[#002b45] p-16 lg:p-24 relative overflow-hidden rounded-sm shadow-2xl border-l-[12px] border-[#98C560]">
+        <div className="bg-[#002b45] p-16 lg:p-24 relative overflow-hidden rounded-sm shadow-2xl border-l-[12px] border-[#9ABE00]">
           <div className="absolute top-0 right-0 w-64 h-64 bg-white/[0.03] rounded-full -mr-32 -mt-32" />
           <div className="relative z-10 flex flex-col lg:flex-row gap-20 items-center">
             <div className="lg:w-1/3 text-white">
-              <div className="bg-[#98C560] w-20 h-20 flex items-center justify-center text-[#002b45] rounded-sm mb-10 shadow-xl">
+              <div className="bg-[#9ABE00] w-20 h-20 flex items-center justify-center text-[#002b45] rounded-sm mb-10 shadow-xl">
                 <Trophy size={48} strokeWidth={2} />
               </div>
-              <h3 className="text-4xl font-display font-black uppercase leading-[1.1] mb-6 tracking-tight">LOGROS Y <br /><span className="text-[#98C560]">PREMIOS</span></h3>
-              <p className="font-black uppercase text-[11px] tracking-[0.3em] text-[#98C560] opacity-80">Excelencia Reconocida Internacionalmente</p>
+              <h3 className="text-4xl font-display font-black uppercase leading-[1.1] mb-6 tracking-tight text-white">LOGROS Y <br /><span className="text-[#9ABE00]">PREMIOS</span></h3>
+              <p className="font-black uppercase text-[11px] tracking-[0.3em] text-[#9ABE00] opacity-80">Excelencia Reconocida Internacionalmente</p>
             </div>
             <div className="lg:w-2/3 grid sm:grid-cols-2 gap-8 w-full">
               {mockConcursos.map((concurso) => (
@@ -184,10 +184,10 @@ const Profesionales = () => {
                 >
                   <Link 
                     href="/concursos" 
-                    className="bg-white p-10 flex items-center justify-between group shadow-xl hover:shadow-2xl transition-all duration-500 rounded-sm border-l-4 border-[#98C560]"
+                    className="bg-white p-10 flex items-center justify-between group shadow-xl hover:shadow-2xl transition-all duration-500 rounded-sm border-l-4 border-[#9ABE00]"
                   >
                     <span className="font-display font-black text-sm uppercase tracking-[0.15em] text-[#002b45] group-hover:text-[#005180] transition-colors">{concurso.nombre}</span>
-                    <span className="text-[#98C560] font-black text-2xl italic tracking-tighter">{concurso.anio}</span>
+                    <span className="text-[#9ABE00] font-black text-2xl italic tracking-tighter">{concurso.anio}</span>
                   </Link>
                 </motion.div>
               ))}

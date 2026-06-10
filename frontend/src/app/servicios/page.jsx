@@ -31,7 +31,7 @@ export default function ServiciosPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-gray">
-        <Loader2 className="animate-spin text-brand-navy" size={48} />
+        <Loader2 className="animate-spin text-[#002A45]" size={48} />
       </div>
     );
   }
@@ -60,7 +60,7 @@ export default function ServiciosPage() {
             </h1>
             
             {/* Línea sutil con iconos relacionados - Mejorada */}
-            <div className="flex items-center gap-6 mb-10 text-brand-navy/20">
+            <div className="flex items-center gap-6 mb-10 text-[#002A45]/20">
               <div className="h-[1px] flex-grow bg-brand-border" />
               <div className="flex gap-4">
                 <Settings size={20} />
@@ -70,7 +70,7 @@ export default function ServiciosPage() {
               <div className="h-[1px] flex-grow bg-brand-border" />
             </div>
 
-            <p className="text-xl text-gray-600 max-w-2xl font-sans leading-relaxed border-l-4 border-brand-navy pl-8">
+            <p className="text-xl text-gray-600 max-w-2xl font-sans leading-relaxed border-l-4 border-[#002A45] pl-8">
               Brindamos soporte especializado de alto nivel para la industria química, 
               garantizando resultados de calidad Internacional.
             </p>
@@ -85,20 +85,20 @@ export default function ServiciosPage() {
               initial={{ opacity: 0, y: 30 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: idx * 0.1 }}
-              className="group bg-white border border-brand-border hover:border-brand-navy/20 shadow-soft hover:shadow-premium transition-all duration-500 flex flex-col h-full relative overflow-hidden"
+              className="group bg-white border-2 border-brand-navy/20 hover:border-[#002A45] shadow-soft hover:shadow-premium transition-all duration-500 flex flex-col h-full relative overflow-hidden"
             >
               {/* Decorative background element on hover */}
               <div className="absolute top-0 right-0 w-32 h-32 bg-brand-light -mr-16 -mt-16 rounded-full group-hover:bg-brand-accent/5 group-hover:scale-150 transition-all duration-700" />
               
               <div className="p-10 flex-grow relative z-10">
                 <div className="flex items-start justify-between mb-12">
-                  <div className="w-16 h-16 bg-white border-2 border-brand-navy flex items-center justify-center text-brand-navy group-hover:bg-brand-navy group-hover:text-white transition-all duration-500 shadow-sm group-hover:-translate-y-2">
+                  <div className="w-16 h-16 bg-white border-2 border-[#002A45] flex items-center justify-center text-[#002A45] group-hover:bg-[#002A45] group-hover:text-white transition-all duration-500 shadow-sm group-hover:-translate-y-2">
                     {getIcon(idx)}
                   </div>
-                  <span className="text-[10px] font-black text-slate-200 group-hover:text-brand-accent uppercase tracking-[0.5em] transition-colors">SERVICE 0{idx + 1}</span>
+                  <span className="text-[10px] font-black text-slate-200 group-hover:text-[#9ABE00] uppercase tracking-[0.5em] transition-colors">SERVICIO 0{idx + 1}</span>
                 </div>
                 
-                <h2 className="text-3xl font-display font-black text-brand-navy uppercase mb-6 tracking-tight group-hover:text-brand-navy transition-colors">
+                <h2 className="text-3xl font-display font-black text-[#002A45] uppercase mb-6 tracking-tight group-hover:text-[#002A45] transition-colors">
                   {servicio.titulo}
                 </h2>
                 <p className="text-slate-600 font-sans leading-relaxed mb-10 text-lg">
@@ -107,7 +107,7 @@ export default function ServiciosPage() {
                 
                 <Link 
                   href="/#contacto"
-                  className="inline-flex items-center gap-4 text-[11px] font-black tracking-widest uppercase text-brand-accent hover:text-brand-navy transition-colors border-b-2 border-transparent hover:border-brand-accent pb-1"
+                  className="inline-flex items-center gap-4 text-[11px] font-black tracking-widest uppercase text-[#9ABE00] hover:text-[#002A45] transition-colors border-b-2 border-transparent hover:border-[#9ABE00] pb-1"
                 >
                   SOLICITAR COTIZACIÓN <MessageSquare size={16} />
                 </Link>

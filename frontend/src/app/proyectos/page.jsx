@@ -65,7 +65,7 @@ export default function ProyectosPage() {
               <div className="h-[1px] flex-grow bg-brand-border" />
             </div>
 
-            <p className="text-xl text-gray-600 max-w-2xl font-sans leading-relaxed border-l-4 border-brand-navy pl-8">
+            <p className="text-xl text-gray-600 max-w-2xl font-sans leading-relaxed border-l-4 border-[#002b45] pl-8">
               Desarrollo y precisión para los procesos más exigentes del mercado, 
               optimizando y maximizando la eficiencia operativa.
             </p>

@@ -90,14 +90,14 @@ export function IntranetSidebar({ isOpen, onClose }) {
           <Link href="/intranet/dashboard" className="flex items-center gap-3">
             <div className="bg-[#002b45] p-1.5 rounded-sm">
               <img 
-                src="/img-logo-labcam-completo-movil.png" 
+                src="/favicon-labcam.png" 
                 alt="LABCAM" 
                 className="w-6 h-6 object-contain brightness-0 invert"
               />
             </div>
             <div className="flex flex-col">
               <h1 className="font-display font-black text-lg tracking-tight leading-none text-[#002b45]">INTRANET</h1>
-              <p className="text-[9px] text-[#98C560] font-black tracking-widest uppercase mt-0.5">Gestión de Laboratorios</p>
+              <p className="text-[9px] text-[#9ABE00] font-black tracking-widest uppercase mt-0.5">Gestión de Laboratorios</p>
             </div>
           </Link>
         </div>
@@ -106,11 +106,11 @@ export function IntranetSidebar({ isOpen, onClose }) {
         {isMounted && user && (
           <div className="px-6 py-4 border-b border-gray-100 bg-slate-50">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-sm bg-[#002b45] flex items-center justify-center text-[#98C560] font-black text-xs shadow-sm uppercase">
+              <div className="w-8 h-8 rounded-sm bg-[#002b45] flex items-center justify-center text-[#9ABE00] font-black text-xs shadow-sm uppercase">
                 {user.email ? user.email[0] : 'A'}
               </div>
               <div className="flex flex-col overflow-hidden">
-                <p className="text-[9px] text-[#98C560] font-black tracking-widest uppercase">
+                <p className="text-[9px] text-[#9ABE00] font-black tracking-widest uppercase">
                   {user.rol === 'admin' ? 'Administrador' : 'Laboratorio'}
                 </p>
                 <p className="font-bold truncate text-[#002b45] text-xs tracking-tight uppercase">{user.email?.split('@')[0]}</p>
@@ -137,12 +137,12 @@ export function IntranetSidebar({ isOpen, onClose }) {
                         : 'text-slate-500 hover:bg-slate-50 hover:text-[#002b45]'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#98C560]' : 'text-slate-400 group-hover:text-[#002b45]'}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#9ABE00]' : 'text-slate-400 group-hover:text-[#002b45]'}`} />
                     <span className="font-sans font-bold text-[11px] tracking-wider uppercase">
                       {item.label}
                     </span>
                     {isActive && (
-                      <div className="ml-auto w-1 h-3 bg-[#98C560] rounded-full" />
+                      <div className="ml-auto w-1 h-3 bg-[#9ABE00] rounded-full" />
                     )}
                   </Link>
                 </li>
@@ -157,7 +157,7 @@ export function IntranetSidebar({ isOpen, onClose }) {
             href="/"
             className="flex items-center gap-3 px-4 py-2.5 rounded-sm transition-all duration-200 text-slate-400 hover:bg-white hover:text-[#002b45] group"
           >
-            <Home className="w-4 h-4 text-slate-300 group-hover:text-[#98C560]" />
+            <Home className="w-4 h-4 text-slate-300 group-hover:text-[#9ABE00]" />
             <span className="font-sans font-bold text-[10px] tracking-widest uppercase">
               SITIO PÚBLICO
             </span>
@@ -212,10 +212,10 @@ export function IntranetHeader({ onMenuOpen }) {
         
         <div className="flex items-center gap-6">
           <div className="hidden md:flex flex-col items-end border-r border-white/10 pr-6">
-            <span className="text-[9px] text-[#98C560] font-black tracking-[0.2em] uppercase">LABCAM 2026</span>
+            <span className="text-[9px] text-[#9ABE00] font-black tracking-[0.2em] uppercase">LABCAM 2026</span>
             <span className="text-[10px] text-white/40 font-bold uppercase tracking-wider">Sistema Administrativo</span>
           </div>
-          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#98C560] font-black text-[10px] border border-white/10">
+          <div className="w-8 h-8 rounded-full bg-white/5 flex items-center justify-center text-[#9ABE00] font-black text-[10px] border border-white/10">
             ADM
           </div>
         </div>

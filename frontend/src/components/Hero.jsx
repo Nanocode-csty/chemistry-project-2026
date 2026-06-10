@@ -66,9 +66,9 @@ const Hero = () => {
   };
 
   return (
-    <section className="relative min-h-screen flex items-center overflow-hidden bg-white">
+    <section className="relative min-h-screen flex items-center overflow-hidden bg-white py-12">
       {/* Background Layer for Split Design */}
-      <div className="absolute top-0 right-0 w-full lg:w-[45%] h-full bg-[#002b45] hidden lg:block z-0" />
+      <div className="absolute top-0 right-0 w-full  lg:w-[45%] h-full bg-[#002b45] hidden lg:block z-0" />
       
       <div className="relative z-10 w-full max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20">
         <div className="grid lg:grid-cols-12 gap-8 items-center">
@@ -84,9 +84,9 @@ const Hero = () => {
                 variants={itemVariants}
                 className="flex items-center gap-4 mb-6"
               >
-                <div className="w-12 h-1.5 bg-[#98C560]" />
+                <div className="w-12 h-1.5 bg-[#9ABE00]" />
                 <span className="text-[#002b45] font-display font-black text-[12px] tracking-[0.4em] uppercase flex items-center gap-2">
-                  <Sparkles size={16} className="text-[#98C560]" /> INNOVACIÓN QUÍMICA 2026
+                  <Sparkles size={16} className="text-[#9ABE00]" /> INNOVACIÓN QUÍMICA 2026
                 </span>
               </motion.div>
               
@@ -95,7 +95,7 @@ const Hero = () => {
                 className="text-5xl md:text-8xl font-display font-black text-[#002b45] leading-[0.9] mb-8 tracking-tighter uppercase"
               >
                 {hero.titulo_linea1} <br />
-                {(hero.titulo_linea2 || '').split(' ')[0]} <span className="text-[#98C560] italic">{(hero.titulo_linea2 || '').split(' ').slice(1).join(' ')}</span> <br />
+                {(hero.titulo_linea2 || '').split(' ')[0]} <span className="text-[#9ABE00] italic">{(hero.titulo_linea2 || '').split(' ').slice(1).join(' ')}</span> <br />
                 {hero.titulo_linea3}
               </motion.h1>
               
@@ -138,7 +138,7 @@ const Hero = () => {
               transition={{ duration: 1.2, ease: [0.22, 1, 0.36, 1], delay: 0.4 }}
               className="relative z-10 h-full"
             >
-              <div className="relative overflow-hidden shadow-2xl aspect-[4/5] lg:aspect-[3/4] lg:h-[650px] group border-b-[10px] border-[#98C560] bg-slate-50">
+              <div className="relative overflow-hidden shadow-2xl aspect-[4/5] lg:aspect-[3/4] lg:h-[650px] group border-b-[10px] border-[#9ABE00] bg-slate-50">
                 <img 
                   src={hero.imagen_url || "https://images.unsplash.com/photo-1576086213369-97a306d36557?auto=format&fit=crop&q=80&w=1200"} 
                   alt="Ingeniería Química Avanzada" 
@@ -152,14 +152,14 @@ const Hero = () => {
                   animate="animate"
                   className="absolute bottom-8 left-0 right-0 px-8 z-30"
                 >
-                  <div className="bg-white p-8 text-white shadow-2xl relative overflow-hidden group/card border-t-4 border-[#98C560]">
+                  <div className="bg-white p-8 text-white shadow-2xl relative overflow-hidden group/card border-t-4 border-[#9ABE00]">
                     <div className="absolute top-0 right-0 w-32 h-32 bg-white/5 rounded-full -mr-16 -mt-16 blur-2xl" />
-                    <div className="flex items-center gap-2 text-[#98C560] text-[11px] font-black tracking-[0.3em] uppercase mb-4">
+                    <div className="flex items-center gap-2 text-[#9ABE00] text-[11px] font-black tracking-[0.3em] uppercase mb-4">
                       <Zap size={16} /> NOVEDAD TECNOLÓGICA
                     </div>
                     <h3 className="text-2xl font-display text-[#002b45] font-black uppercase mb-3 relative z-10 leading-tight tracking-tight">Síntesis de <br />Hidrógeno Verde</h3>
                     <p className="text-sm text-slate-700 text-[#002b45] mb-6 relative z-10 font-sans font-medium">Nuevo proceso catalítico optimizado para la industria energética.</p>
-                    <Link href="/investigaciones" className="flex items-center gap-2 text-[11px] font-black tracking-[0.25em] uppercase relative z-10 text-[#98C560] hover:text-[#002b45] transition-colors">
+                    <Link href="/investigaciones" className="flex items-center gap-2 text-[11px] font-black tracking-[0.25em] uppercase relative z-10 text-[#9ABE00] hover:text-[#002b45] transition-colors">
                       VER DETALLES <ChevronRight size={16} />
                     </Link>
                   </div>
@@ -188,12 +188,12 @@ const StatItem = ({ value, label }) => (
   <div className="group cursor-pointer">
     <motion.div 
       whileHover={{ y: -5 }}
-      className="text-5xl md:text-6xl font-display font-black text-[#002b45] group-hover:text-[#98C560] transition-colors italic tracking-tighter"
+      className="text-5xl md:text-6xl font-display font-black text-[#002b45] group-hover:text-[#9ABE00] transition-colors italic tracking-tighter"
     >
       {value}
     </motion.div>
     <div className="text-[11px] uppercase tracking-[0.2em] font-black text-slate-400 mt-2">{label}</div>
-    <div className="w-0 group-hover:w-full h-1 bg-[#98C560] transition-all duration-500 mt-3" />
+    <div className="w-0 group-hover:w-full h-1 bg-[#9ABE00] transition-all duration-500 mt-3" />
   </div>
 );
 
@@ -202,7 +202,7 @@ const CTAButton = ({ href, children, primary }) => (
     href={href || '#'}
     className={`inline-flex items-center justify-center gap-4 px-10 py-5 font-display font-black text-[12px] tracking-[0.25em] uppercase transition-all duration-300 rounded-sm shadow-xl group ${
       primary 
-        ? 'bg-[#002b45] text-white hover:bg-[#98C560] hover:text-[#002b45]' 
+        ? 'bg-[#002b45] text-white hover:bg-[#9ABE00] hover:text-[#002b45]' 
         : 'bg-white text-[#002b45] border-2 border-[#002b45] hover:bg-[#002b45] hover:text-white'
     }`}
   >

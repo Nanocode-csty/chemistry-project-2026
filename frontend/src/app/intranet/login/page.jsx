@@ -48,7 +48,7 @@ export default function LoginPage() {
           <div className="inline-block animate-spin">
             <div className="w-12 h-12 border-4 border-brand-border border-t-brand-navy rounded-full"></div>
           </div>
-          <p className="mt-4 text-brand-navy font-bold animate-pulse tracking-widest uppercase text-xs">Cargando acceso...</p>
+          <p className="mt-4 text-[#002b45] font-bold animate-pulse tracking-widest uppercase text-xs">Cargando acceso...</p>
         </div>
       </div>
     );
@@ -57,7 +57,7 @@ export default function LoginPage() {
   if (user) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-brand-navy via-brand-teal to-brand-accent px-4 py-12">
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#002b45] via-brand-teal to-[#002b49] px-4 py-12">
       <div className="w-full max-w-lg">
         {/* Enlace para volver al sitio */}
         <div className="mb-8">
@@ -79,13 +79,13 @@ export default function LoginPage() {
             <div className="flex justify-center mb-6">
               <motion.div 
                 whileHover={{ scale: 1.05, rotate: -2 }}
-                className="bg-brand-navy p-4 rounded-sm shadow-2xl relative overflow-hidden"
+                className="bg-[#002b45] p-4 rounded-sm shadow-2xl relative overflow-hidden"
               >
                 <div className="absolute inset-0 bg-gradient-to-br from-brand-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
                 <Lock className="w-10 h-10 text-white relative z-10" />
               </motion.div>
             </div>
-            <h1 className="font-display font-black text-4xl text-brand-navy tracking-tight mb-2">INTRANET IQ</h1>
+            <h1 className="font-display font-black text-4xl text-[#002b45] tracking-tight mb-2">INTRANET LABCAM</h1>
             <p className="text-brand-teal font-bold text-sm tracking-[0.3em] uppercase">Sistema de Gestión de Inventarios</p>
           </div>
 
@@ -106,7 +106,7 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block font-display font-bold text-sm text-brand-navy tracking-widest mb-3">
+              <label htmlFor="email" className="block font-display font-bold text-sm text-[#002b45] tracking-widest mb-3">
                 CORREO ELECTRÓNICO
               </label>
               <input
@@ -115,13 +115,13 @@ export default function LoginPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 required
-                className="w-full px-5 py-4 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-gray/30 transition-all font-sans"
+                className="w-full px-5 py-4 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-[#9ABE00] bg-brand-gray/30 transition-all font-sans"
                 placeholder="admin@escuela-iq.edu"
               />
             </div>
 
             <div>
-              <label htmlFor="password" className="block font-display font-bold text-sm text-brand-navy tracking-widest mb-3">
+              <label htmlFor="password" className="block font-display font-bold text-sm text-[#002b45] tracking-widest mb-3">
                 CONTRASEÑA
               </label>
               <input
@@ -130,7 +130,7 @@ export default function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
-                className="w-full px-5 py-4 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-gray/30 transition-all font-sans"
+                className="w-full px-5 py-4 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-[#9ABE00] bg-brand-gray/30 transition-all font-sans"
                 placeholder="••••••••"
               />
             </div>
@@ -140,10 +140,10 @@ export default function LoginPage() {
               whileTap={{ scale: 0.95 }}
               type="submit"
               disabled={isLoading}
-              className="w-full bg-brand-navy hover:bg-brand-teal text-white font-display font-black text-sm tracking-widest py-5 px-8 rounded-sm shadow-lg hover:shadow-premium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-brand-navy disabled:hover:shadow-lg disabled:hover:y-0"
+              className="w-full bg-[#002b45] hover:bg-brand-teal text-white font-display font-black text-sm tracking-widest py-5 px-8 rounded-sm shadow-lg hover:shadow-premium transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-[#002b45] disabled:hover:shadow-lg disabled:hover:y-0"
             >
               <div className="flex items-center justify-center gap-3">
-                <Sparkles className="w-5 h-5 text-brand-accent" />
+                <Sparkles className="w-5 h-5 text-[#9ABE00]" />
                 {isLoading ? 'INGRESANDO...' : 'INGRESAR'}
               </div>
             </motion.button>
@@ -157,10 +157,6 @@ export default function LoginPage() {
           </div>
         </motion.div>
 
-        {/* Texto adicional */}
-        <p className="text-center text-white/70 font-display font-bold text-xs tracking-[0.3em] uppercase mt-8">
-          Sistema de gestión de inventarios para la Escuela de Ingeniería Química
-        </p>
       </div>
     </div>
   );

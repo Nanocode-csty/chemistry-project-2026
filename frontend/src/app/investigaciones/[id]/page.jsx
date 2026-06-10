@@ -13,7 +13,7 @@ export default function InvestigacionDetailPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-brand-gray">
         <div className="text-center">
-          <h1 className="text-4xl font-display font-black text-brand-navy mb-4">NOT FOUND</h1>
+          <h1 className="text-4xl font-display font-black text-[#002A45] mb-4">NOT FOUND</h1>
           <Link href="/investigaciones" className="text-brand-teal font-bold uppercase tracking-widest border-b-2 border-brand-teal pb-1">Volver al listado</Link>
         </div>
       </div>
@@ -22,12 +22,12 @@ export default function InvestigacionDetailPage() {
 
   return (
     <main className="min-h-screen bg-white pt-32 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         
         {/* Navigation */}
         <Link 
           href="/investigaciones" 
-          className="inline-flex items-center gap-2 text-[10px] font-black tracking-[0.3em] text-slate-400 hover:text-brand-navy transition-colors mb-12 uppercase"
+          className="inline-flex items-center gap-2 text-[10px] font-black tracking-[0.3em] text-slate-400 hover:text-[#002A45] transition-colors mb-12 uppercase"
         >
           <ArrowLeft size={14} /> VOLVER A INVESTIGACIONES
         </Link>
@@ -41,12 +41,12 @@ export default function InvestigacionDetailPage() {
               animate={{ opacity: 1, y: 0 }}
             >
               <div className="w-20 h-2 bg-brand-teal mb-8" />
-              <h1 className="text-4xl md:text-6xl font-display font-black text-brand-navy uppercase leading-tight tracking-tighter mb-10">
+              <h1 className="text-4xl md:text-6xl font-display font-black text-[#002A45] uppercase leading-tight tracking-tighter mb-10">
                 {investigacion.titulo}
               </h1>
               
               {/* Video Section */}
-              <div className="relative aspect-video bg-brand-navy mb-16 shadow-premium group overflow-hidden border-b-8 border-brand-teal">
+              <div className="relative aspect-video bg-[#002A45] mb-16 shadow-premium group overflow-hidden border-b-8 border-brand-teal">
                 <iframe 
                   className="w-full h-full"
                   src={investigacion.videoUrl}
@@ -58,7 +58,7 @@ export default function InvestigacionDetailPage() {
 
               <div className="prose prose-lg max-w-none text-gray-600 font-sans leading-relaxed space-y-8">
                 <div className="bg-brand-gray p-10 border-l-8 border-brand-navy">
-                  <h3 className="text-brand-navy font-display font-black text-sm tracking-[0.2em] uppercase mb-4 flex items-center gap-3">
+                  <h3 className="text-[#002A45] font-display font-black text-sm tracking-[0.2em] uppercase mb-4 flex items-center gap-3">
                     <Info size={18} className="text-brand-teal" /> Resumen Ejecutivo
                   </h3>
                   <p className="text-xl italic font-medium">{investigacion.contenidoDetallado}</p>
@@ -66,13 +66,13 @@ export default function InvestigacionDetailPage() {
 
                 <div className="grid md:grid-cols-2 gap-12 mt-16">
                   <div>
-                    <h3 className="text-brand-navy font-display font-black text-sm tracking-[0.2em] uppercase mb-6 flex items-center gap-3">
+                    <h3 className="text-[#002A45] font-display font-black text-sm tracking-[0.2em] uppercase mb-6 flex items-center gap-3">
                       <Target size={18} className="text-brand-teal" /> Metodología Aplicada
                     </h3>
                     <p>{investigacion.metodologia}</p>
                   </div>
                   <div>
-                    <h3 className="text-brand-navy font-display font-black text-sm tracking-[0.2em] uppercase mb-6 flex items-center gap-3">
+                    <h3 className="text-[#002A45] font-display font-black text-sm tracking-[0.2em] uppercase mb-6 flex items-center gap-3">
                       <Award size={18} className="text-brand-teal" /> Impacto Proyectado
                     </h3>
                     <p>{investigacion.impacto}</p>
@@ -84,25 +84,25 @@ export default function InvestigacionDetailPage() {
 
           {/* Sidebar */}
           <div className="lg:col-span-4 space-y-8">
-            <div className="bg-brand-navy p-10 text-white shadow-premium">
-              <h3 className="text-brand-teal font-display font-black text-[11px] tracking-[0.3em] uppercase mb-8">DATOS DEL EXPEDIENTE</h3>
+            <div className="bg-[#002A45] p-10 text-white shadow-premium">
+              <h3 className="text-[#9ABE00] font-display font-black text-[11px] tracking-[0.3em] uppercase mb-8">DATOS DEL EXPEDIENTE</h3>
               <div className="space-y-6">
                 <SidebarItem label="ESTADO" value="En Proceso de Patente" />
                 <SidebarItem label="LABORATORIO" value="Nanotecnología & Procesos" />
                 <SidebarItem label="FACULTAD" value="Ingeniería Química" />
                 <SidebarItem label="AÑO INICIO" value="2024" />
               </div>
-              <button className="w-full mt-10 py-4 bg-brand-teal text-brand-navy font-display font-black text-[11px] tracking-widest uppercase hover:bg-white transition-all">
+              <button className="w-full mt-10 py-4 bg-white text-[#002A45] font-display font-black text-[11px] tracking-widest uppercase hover:bg-white transition-all">
                 DESCARGAR REPORTE PDF
               </button>
             </div>
             
             <div className="p-10 border border-slate-100 bg-brand-gray">
-              <h3 className="text-brand-navy font-display font-black text-[11px] tracking-[0.3em] uppercase mb-6">INVESTIGADORES</h3>
+              <h3 className="text-[#002A45] font-display font-black text-[11px] tracking-[0.3em] uppercase mb-6">INVESTIGADORES</h3>
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-slate-300 rounded-full" />
                 <div>
-                  <div className="text-sm font-black text-brand-navy uppercase">Dr. Ricardo Palma</div>
+                  <div className="text-sm font-black text-[#002A45] uppercase">Dr. Ricardo Palma</div>
                   <div className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Líder de Proyecto</div>
                 </div>
               </div>

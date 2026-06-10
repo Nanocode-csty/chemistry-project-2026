@@ -47,21 +47,21 @@ export default function NoticiasPage() {
 
   return (
     <main className="min-h-screen bg-slate-50 pt-32 pb-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="max-w-7xl mx-auto px-4 py-12 sm:px-6 lg:px-8">
         
         {/* Header */}
-        <div className="relative mb-20 overflow-hidden bg-[#002b45] p-12 lg:p-24 text-white shadow-2xl rounded-sm border-b-[10px] border-[#98C560]">
+        <div className="relative mb-20 overflow-hidden bg-[#002b45] p-12 lg:p-24 text-white shadow-2xl rounded-sm border-b-[10px] border-[#9ABE00]">
           <div className="absolute top-0 right-0 w-1/2 h-full bg-white/[0.02] -skew-x-12 translate-x-1/4" />
           <motion.div
             initial={{ opacity: 0, x: -30 }}
             animate={{ opacity: 1, x: 0 }}
             className="relative z-10"
           >
-            <div className="w-20 h-2 bg-[#98C560] mb-10 shadow-lg" />
-            <h1 className="text-5xl md:text-8xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-10">
-              CENTRO DE <br /><span className="text-[#98C560] italic">NOTICIAS</span>
+            <div className="w-20 h-2 bg-[#9ABE00] mb-8 shadow-lg" />
+            <h1 className="text-white text-5xl md:text-7xl font-display font-black uppercase tracking-tighter leading-[0.85] mb-10">
+              CENTRO DE <br /><span className="text-[#9ABE00] italic">NOTICIAS</span>
             </h1>
-            <p className="text-xl text-slate-300 max-w-2xl font-sans font-medium leading-relaxed border-l-4 border-[#98C560] pl-8 italic">
+            <p className="text-xl text-slate-300 max-w-2xl font-sans font-medium leading-relaxed border-l-4 border-[#9ABE00] pl-8 italic">
               Explora las crónicas de innovación, investigación y excelencia que definen 
               el día a día de nuestra institución.
             </p>
@@ -72,13 +72,13 @@ export default function NoticiasPage() {
         <div className="flex flex-col lg:flex-row justify-between items-center gap-10 mb-16 bg-white p-8 shadow-xl rounded-sm border border-gray-100">
           <div className="flex items-center gap-4 w-full lg:w-auto">
             <div className="relative w-full lg:w-96 group">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#98C560] transition-colors" size={20} />
+              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-[#9ABE00] transition-colors" size={20} />
               <input 
                 type="text" 
                 placeholder="Buscar por título o contenido..." 
                 value={searchTerm}
                 onChange={(e) => { setSearchTerm(e.target.value); setCurrentPage(1); }}
-                className="w-full pl-14 pr-6 py-4 bg-slate-50 border-none focus:ring-2 focus:ring-[#98C560] focus:outline-none text-sm font-bold text-[#002b45] rounded-sm transition-all"
+                className="w-full pl-14 pr-6 py-4 bg-slate-50 border-none focus:ring-2 focus:ring-[#9ABE00] focus:outline-none text-sm font-bold text-[#002b45] rounded-sm transition-all"
               />
             </div>
           </div>
@@ -126,9 +126,9 @@ export default function NoticiasPage() {
 
                   <div className="p-10 flex-grow">
                     <div className="flex items-center gap-3 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] mb-6">
-                      <Calendar size={16} className="text-[#98C560]" /> {new Date(noticia.fecha).toLocaleDateString()}
+                      <Calendar size={16} className="text-[#9ABE00]" /> {new Date(noticia.fecha).toLocaleDateString()}
                     </div>
-                    <h2 className="text-2xl font-display font-black text-[#002b45] mb-6 leading-tight group-hover:text-[#98C560] transition-colors uppercase tracking-tight">
+                    <h2 className="text-2xl font-display font-black text-[#002b45] mb-6 leading-tight group-hover:text-[#9ABE00] transition-colors uppercase tracking-tight">
                       {noticia.titulo}
                     </h2>
                     <p className="text-slate-500 font-sans font-medium leading-relaxed mb-8 line-clamp-3">
@@ -136,7 +136,7 @@ export default function NoticiasPage() {
                     </p>
                     <Link 
                       href={`/noticias/${noticia.id}`}
-                      className="inline-flex items-center gap-3 text-[11px] font-black tracking-[0.25em] text-[#002b45] uppercase group-hover:text-[#98C560] transition-all border-b-2 border-[#98C560] pb-2 mt-auto"
+                      className="inline-flex items-center gap-3 text-[11px] font-black tracking-[0.25em] text-[#002b45] uppercase group-hover:text-[#9ABE00] transition-all border-b-2 border-[#9ABE00] pb-2 mt-auto"
                     >
                       EXPANDIR NOTICIA <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform" />
                     </Link>

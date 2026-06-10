@@ -269,7 +269,7 @@ export default function EquiposPage() {
           </div>
           <div className="flex flex-col">
             <span className="font-bold text-[#002b45] text-sm uppercase tracking-tight">{row.nombre}</span>
-            <span className="text-[10px] font-black text-[#98C560] uppercase tracking-widest">{row.codigo}</span>
+            <span className="text-[10px] font-black text-[#9ABE00] uppercase tracking-widest">{row.codigo}</span>
           </div>
         </div>
       )
@@ -497,7 +497,7 @@ export default function EquiposPage() {
                   onClick={() => fileInputRef.current?.click()}
                 >
                   <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
-                    <Upload className="w-8 h-8 text-[#98C560]" />
+                    <Upload className="w-8 h-8 text-[#9ABE00]" />
                   </div>
                   <div className="space-y-1">
                     <p className="text-[10px] font-black text-[#002b45] uppercase tracking-widest">Cargar Imagen</p>
@@ -549,7 +549,7 @@ export default function EquiposPage() {
                       className={`py-2 px-3 rounded-sm text-[9px] font-black uppercase tracking-wider transition-all border ${
                         formData.estado === est 
                           ? est === 'disponible' 
-                            ? 'bg-[#98C560] border-[#98C560] text-white shadow-md' 
+                            ? 'bg-[#9ABE00] border-[#9ABE00] text-white shadow-md' 
                             : 'bg-red-500 border-red-500 text-white shadow-md'
                           : 'bg-white border-slate-200 text-slate-400 hover:border-slate-300'
                       }`}
@@ -566,7 +566,7 @@ export default function EquiposPage() {
           <div className="lg:w-2/3 space-y-6">
             <div className="bg-white p-6 rounded-sm border border-slate-100 shadow-sm space-y-6">
               <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
-                <Info className="w-5 h-5 text-[#98C560]" />
+                <Info className="w-5 h-5 text-[#9ABE00]" />
                 <h3 className="font-display font-black text-[#002b45] text-sm uppercase tracking-tight">Información General</h3>
               </div>
 
@@ -592,13 +592,13 @@ export default function EquiposPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
-                    <MapPin className="w-3 h-3 text-[#98C560]" /> UBICACIÓN
+                    <MapPin className="w-3 h-3 text-[#9ABE00]" /> UBICACIÓN
                   </label>
                   <select
                     name="ambiente_id"
                     value={formData.ambiente_id}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#9ABE00] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
                   >
                     <option value="">Selecciona Laboratorio</option>
                     {ambientes.map(a => (
@@ -608,13 +608,13 @@ export default function EquiposPage() {
                 </div>
                 <div className="space-y-2">
                   <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
-                    <Tag className="w-3 h-3 text-[#98C560]" /> CATEGORÍA
+                    <Tag className="w-3 h-3 text-[#9ABE00]" /> CATEGORÍA
                   </label>
                   <select
                     name="categoria_id"
                     value={formData.categoria_id}
                     onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#98C560] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
+                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#9ABE00] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
                   >
                     <option value="">Selecciona Categoría</option>
                     {categorias.map(c => (
@@ -647,7 +647,7 @@ export default function EquiposPage() {
                 onClick={handleSave}
                 disabled={isSaving}
                 fullWidth
-                className="!py-3 !bg-[#002b45] hover:!bg-[#98C560] hover:!text-[#002b45]"
+                className="!py-3 !bg-[#002b45] hover:!bg-[#9ABE00] hover:!text-[#002b45]"
               >
                 {isSaving ? 'PROCESANDO...' : editingId ? 'ACTUALIZAR EQUIPO' : 'REGISTRAR EQUIPO'}
               </Button>

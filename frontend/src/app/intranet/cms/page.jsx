@@ -141,7 +141,7 @@ export default function CMSPage() {
         <h1 className="text-4xl font-display font-black text-[#002b45] uppercase tracking-tighter mb-4 italic">
           GESTIÓN DE CONTENIDO WEB
         </h1>
-        <div className="h-1.5 w-24 bg-[#98C560] mb-6 rounded-full"></div>
+        <div className="h-1.5 w-24 bg-[#9ABE00] mb-6 rounded-full"></div>
         <p className="text-slate-500 text-lg max-w-2xl font-sans font-medium">
           Administra toda la información pública del sitio web. Los cambios realizados aquí 
           se reflejarán inmediatamente en el portal principal.
@@ -172,7 +172,7 @@ export default function CMSPage() {
                 </div>
                 
                 <div className="relative z-10">
-                  <h3 className="text-xl font-display font-black text-[#002b45] mb-4 uppercase tracking-tight group-hover:text-[#98C560] transition-colors leading-tight">
+                  <h3 className="text-xl font-display font-black text-[#002b45] mb-4 uppercase tracking-tight group-hover:text-[#9ABE00] transition-colors leading-tight">
                     {section.title}
                   </h3>
                   <p className="text-slate-400 text-xs font-bold leading-relaxed uppercase tracking-wider">
@@ -180,7 +180,7 @@ export default function CMSPage() {
                   </p>
                 </div>
 
-                <div className="mt-8 flex items-center gap-2 text-[#98C560] font-black text-[10px] tracking-[0.2em] uppercase opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0">
+                <div className="mt-8 flex items-center gap-2 text-[#9ABE00] font-black text-[10px] tracking-[0.2em] uppercase opacity-0 group-hover:opacity-100 transition-all duration-300 translate-x-[-10px] group-hover:translate-x-0">
                   Gestionar Sección <Layout size={12} />
                 </div>
               </Link>

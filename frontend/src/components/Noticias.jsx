@@ -55,7 +55,7 @@ const Noticias = () => {
           >
             <div className="w-16 h-1.5 bg-[#002b45] mb-6" />
             <h2 className="text-5xl md:text-7xl font-display font-black text-[#002b45] leading-tight tracking-tight uppercase">
-              NOTICIAS & <br /><span className="text-[#98C560] italic">ACTUALIDAD</span>
+              NOTICIAS & <br /><span className="text-[#9ABE00] italic">ACTUALIDAD</span>
             </h2>
             <p className="mt-8 text-xl text-slate-500 font-sans font-medium leading-relaxed max-w-2xl border-l-4 border-[#002b45] pl-8">
               Mantente al día con los últimos avances, convenios e hitos de nuestra 
@@ -65,7 +65,7 @@ const Noticias = () => {
           <div className="lg:w-1/3 flex justify-end">
             <Link 
               href="/noticias" 
-              className="group flex items-center gap-4 text-[11px] font-black tracking-[0.3em] text-[#002b45] uppercase border-b-2 border-[#98C560] pb-2 hover:text-[#98C560] transition-all"
+              className="group flex items-center gap-4 text-[11px] font-black tracking-[0.3em] text-[#002b45] uppercase border-b-2 border-[#9ABE00] pb-2 hover:text-[#9ABE00] transition-all"
             >
               VER TODAS LAS NOTICIAS <ArrowRight size={18} className="group-hover:translate-x-2 transition-transform duration-300" />
             </Link>
@@ -99,9 +99,9 @@ const Noticias = () => {
               {/* Content */}
               <div className="p-10 flex-grow">
                 <div className="flex items-center gap-3 text-slate-400 text-[11px] font-black uppercase tracking-[0.2em] mb-6">
-                  <Calendar size={16} className="text-[#98C560]" /> {new Date(noticia.fecha).toLocaleDateString()}
+                  <Calendar size={16} className="text-[#9ABE00]" /> {new Date(noticia.fecha).toLocaleDateString()}
                 </div>
-                <h3 className="text-2xl font-display font-black text-[#002b45] mb-6 leading-tight group-hover:text-[#98C560] transition-colors uppercase tracking-tight">
+                <h3 className="text-2xl font-display font-black text-[#002b45] mb-6 leading-tight group-hover:text-[#9ABE00] transition-colors uppercase tracking-tight">
                   {noticia.titulo}
                 </h3>
                 <p className="text-slate-500 text-[15px] leading-relaxed mb-8 line-clamp-3 font-medium">
@@ -113,9 +113,9 @@ const Noticias = () => {
               <div className="p-10 pt-0 mt-auto">
                 <Link 
                   href={`/noticias/${noticia.id}`}
-                  className="inline-flex items-center gap-3 text-[11px] font-black tracking-[0.25em] text-[#002b45] uppercase group-hover:text-[#98C560] transition-all"
+                  className="inline-flex items-center gap-3 text-[11px] font-black tracking-[0.25em] text-[#002b45] uppercase group-hover:text-[#9ABE00] transition-all"
                 >
-                  LEER MÁS <ChevronRight size={18} className="text-[#98C560] group-hover:translate-x-1 transition-transform" />
+                  LEER MÁS <ChevronRight size={18} className="text-[#9ABE00] group-hover:translate-x-1 transition-transform" />
                 </Link>
               </div>
             </motion.div>
