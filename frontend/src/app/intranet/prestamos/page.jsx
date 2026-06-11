@@ -2,9 +2,10 @@
 
 import { useState, useEffect } from 'react';
 import { dbOperations } from '@/lib/api';
-import { Plus, Trash2, CheckCircle, AlertCircle, Calendar, Search, Filter, History, Clock, Package, User, MapPin, Tag, Info } from 'lucide-react';
+import { Plus, Trash2, CheckCircle, AlertCircle, Calendar, Search, History, Clock, Package, User, MapPin, Info, Image as ImageIcon } from 'lucide-react';
 import {
   Modal,
+  FormInput,
   FormSelect,
   SearchableSelect,
   Button,
@@ -37,6 +38,7 @@ export default function PrestamosPage() {
   const [isSaving, setIsSaving] = useState(false);
   const [tab, setTab] = useState('activos'); // activos | todos
   const [searchTerm, setSearchTerm] = useState('');
+  const [isMounted, setIsMounted] = useState(false);
 
   const fetchData = async () => {
     try {
@@ -63,8 +65,6 @@ export default function PrestamosPage() {
       setLoading(false);
     }
   };
-
-  const [isMounted, setIsMounted] = useState(false);
 
   useEffect(() => {
     setIsMounted(true);
@@ -148,9 +148,7 @@ export default function PrestamosPage() {
     return disponible && matchesAmbiente;
   });
 
-  const ambientesConEquipos = ambientes.filter(a => 
-    equipos.some(e => e.ambiente_id === a.id && e.estado === 'disponible')
-  );
+  const selectedEquipo = equipos.find(e => e.id === parseInt(formData.equipo_id));
 
   const columns = [
     {
@@ -184,6 +182,9 @@ export default function PrestamosPage() {
         <div className="flex flex-col">
           <span className="font-medium text-gray-700">{row.estudiante?.nombre || 'N/A'}</span>
           <span className="text-[10px] font-mono font-bold text-gray-400">{row.estudiante?.matricula || 'N/A'}</span>
+          {row.estudiante?.ciclo && (
+            <span className="text-[9px] text-brand-navy font-black uppercase tracking-widest">Ciclo {row.estudiante.ciclo}</span>
+          )}
         </div>
       ),
     },
@@ -238,7 +239,7 @@ export default function PrestamosPage() {
       </div>
 
       {/* Tabs and Search */}
-      <div className="bg-white p-2 rounded-lg shadow-sm border border-brand-border flex flex-col lg:flex-row items-center gap-4">
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-brand-border flex flex-col lg:flex-row items-center gap-4">
         <div className="flex p-1 bg-brand-gray rounded-sm w-full lg:w-auto">
           <button
             onClick={() => setTab('activos')}
@@ -280,7 +281,7 @@ export default function PrestamosPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-brand-red/10 border-l-4 border-brand-red p-6 rounded-sm overflow-hidden"
+            className="bg-red-50 border-l-4 border-brand-red p-6 rounded-sm overflow-hidden"
           >
             <div className="flex items-center gap-4">
               <AlertCircle className="w-6 h-6 text-brand-red" />
@@ -309,7 +310,7 @@ export default function PrestamosPage() {
                 ? 'Todos los equipos están disponibles o en mantenimiento.' 
                 : 'Aún no se han registrado movimientos en el sistema.'}
             </p>
-            {(searchTerm) && (
+            {searchTerm && (
               <Button 
                 variant="secondary" 
                 onClick={() => setSearchTerm('')} 
@@ -339,7 +340,7 @@ export default function PrestamosPage() {
         )}
       </div>
 
-      {/* New Loan Modal */}
+      {/* New Loan Modal - Improved Layout */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
@@ -347,107 +348,114 @@ export default function PrestamosPage() {
         maxWidth="max-w-4xl"
       >
         <div className="flex flex-col lg:flex-row gap-8">
-          {/* Columna Izquierda: Visualización del Equipo Seleccionado */}
+          {/* Left Column - Selected Equipment Preview */}
           <div className="lg:w-1/3 space-y-6">
-            <div className="relative aspect-square bg-slate-50 border-2 border-dashed border-slate-200 rounded-sm overflow-hidden flex flex-col items-center justify-center p-4">
-              {formData.equipo_id ? (
-                <>
-                  {equipos.find(e => String(e.id) === String(formData.equipo_id))?.imagen_url ? (
-                    <img 
-                      src={equipos.find(e => String(e.id) === String(formData.equipo_id))?.imagen_url} 
-                      alt="Equipo" 
-                      className="w-full h-full object-cover rounded-sm"
-                    />
-                  ) : (
-                    <div className="text-center space-y-3">
-                      <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
-                        <Package className="w-8 h-8 text-[#9ABE00]" />
-                      </div>
-                      <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Sin imagen</p>
-                    </div>
-                  )}
-                </>
-              ) : (
-                <div className="text-center space-y-3">
-                  <div className="w-16 h-16 bg-white rounded-full flex items-center justify-center mx-auto shadow-sm border border-slate-100">
-                    <Package className="w-8 h-8 text-slate-200" />
+            <div className="bg-slate-50 p-6 rounded-sm border border-slate-100">
+              <div className="flex items-center gap-3 border-b border-slate-100 pb-4 mb-4">
+                <Info className="w-5 h-5 text-brand-teal" />
+                <h3 className="font-display font-black text-brand-navy text-sm uppercase tracking-tight">Equipo Seleccionado</h3>
+              </div>
+              
+              {selectedEquipo ? (
+                <div className="space-y-4">
+                  <div className="aspect-square bg-white rounded-sm border border-slate-200 overflow-hidden flex items-center justify-center">
+                    {selectedEquipo.imagen_url ? (
+                      <img 
+                        src={selectedEquipo.imagen_url} 
+                        alt={selectedEquipo.nombre} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <Package className="w-16 h-16 text-slate-300" />
+                    )}
                   </div>
-                  <p className="text-[10px] font-black text-slate-300 uppercase tracking-widest">Selecciona un equipo</p>
+                  <div>
+                    <h4 className="font-bold text-brand-navy text-sm mb-1">{selectedEquipo.nombre}</h4>
+                    <p className="text-[10px] font-mono text-brand-teal uppercase">{selectedEquipo.codigo}</p>
+                  </div>
+                  <div className="space-y-2">
+                    {selectedEquipo.descripcion && (
+                      <p className="text-xs text-gray-600">{selectedEquipo.descripcion}</p>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <div className="text-center py-12 text-slate-400">
+                  <Package className="w-12 h-12 mx-auto mb-3 opacity-50" />
+                  <p className="text-xs font-medium">Selecciona un equipo para ver sus detalles</p>
                 </div>
               )}
             </div>
-
-            {formData.equipo_id && (
-              <div className="bg-[#002b45] p-5 rounded-sm shadow-lg border-l-4 border-[#9ABE00]">
-                <p className="text-[9px] font-black text-[#9ABE00] uppercase tracking-[0.2em] mb-1">Estado de Salida</p>
-                <p className="text-xs text-white font-bold">El equipo pasará a estado <span className="text-[#9ABE00] underline">OCUPADO</span> inmediatamente después de confirmar.</p>
-              </div>
-            )}
           </div>
 
-          {/* Columna Derecha: Formulario de Préstamo */}
+          {/* Right Column - Form Fields */}
           <div className="lg:w-2/3 space-y-6">
+            {/* Error display inside modal */}
+            <AnimatePresence>
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  className="bg-brand-red/10 border-l-4 border-brand-red p-4 rounded-sm overflow-hidden"
+                >
+                  <div className="flex items-center gap-3">
+                    <AlertCircle className="w-5 h-5 text-brand-red" />
+                    <p className="text-brand-red font-bold text-sm">{error}</p>
+                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             <div className="bg-white p-6 rounded-sm border border-slate-100 shadow-sm space-y-6">
               <div className="flex items-center gap-3 border-b border-slate-50 pb-4">
-                <Info className="w-5 h-5 text-[#9ABE00]" />
-                <h3 className="font-display font-black text-[#002b45] text-sm uppercase tracking-tight">Detalles del Préstamo</h3>
+                <Info className="w-5 h-5 text-brand-teal" />
+                <h3 className="font-display font-black text-brand-navy text-sm uppercase tracking-tight">Datos del Préstamo</h3>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="space-y-6">
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
-                    <MapPin className="w-3 h-3 text-[#9ABE00]" /> 1. Laboratorio
+                  <label className="flex items-center gap-2 text-[10px] font-black text-brand-navy uppercase tracking-[0.2em]">
+                    <MapPin className="w-3 h-3 text-brand-teal" /> AMBIENTE DE PRÁCTICAS
                   </label>
-                  <select
+                  <FormSelect
                     name="ambiente_id"
                     value={formData.ambiente_id}
-                    onChange={handleInputChange}
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#9ABE00] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
-                  >
-                    <option value="">Todos los ambientes</option>
-                    {ambientes.map(a => (
-                      <option key={a.id} value={a.id}>
-                        {a.nombre} ({equipos.filter(e => e.ambiente_id === a.id && e.estado === 'disponible').length} disponibles)
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(e) => {
+                      handleInputChange(e);
+                      setFormData(prev => ({ ...prev, equipo_id: '' })); // Reset equipo when ambiente changes
+                    }}
+                    options={[{ value: '', label: 'Selecciona un ambiente' }, ...ambientes.map(a => ({ value: a.id, label: a.nombre }))]}
+                    required
+                  />
                 </div>
 
                 <div className="space-y-2">
-                  <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
-                    <Package className="w-3 h-3 text-[#9ABE00]" /> 2. Equipo Disponible
+                  <label className="flex items-center gap-2 text-[10px] font-black text-brand-navy uppercase tracking-[0.2em]">
+                    <Package className="w-3 h-3 text-brand-teal" /> EQUIPO A PRESTAR
                   </label>
-                  <select
+                  <FormSelect
                     name="equipo_id"
                     value={formData.equipo_id}
                     onChange={handleInputChange}
+                    options={[{ value: '', label: 'Selecciona un equipo' }, ...equiposDisponiblesPorAmbiente.map(e => ({ value: e.id, label: `${e.nombre} (${e.codigo})` }))]}
+                    disabled={!formData.ambiente_id || equiposDisponiblesPorAmbiente.length === 0}
                     required
-                    className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#9ABE00] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
-                  >
-                    <option value="">Selecciona un equipo...</option>
-                    {equiposDisponiblesPorAmbiente.map(e => (
-                      <option key={e.id} value={e.id}>{e.nombre} [{e.codigo}]</option>
-                    ))}
-                  </select>
+                  />
                 </div>
-              </div>
 
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-[10px] font-black text-[#002b45] uppercase tracking-[0.2em]">
-                  <User className="w-3 h-3 text-[#9ABE00]" /> 3. Estudiante / Beneficiario
-                </label>
-                <select
-                  name="estudiante_id"
-                  value={formData.estudiante_id}
-                  onChange={handleInputChange}
-                  required
-                  className="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-sm focus:outline-none focus:ring-2 focus:ring-[#9ABE00] transition-all font-sans text-xs font-bold text-slate-600 uppercase"
-                >
-                  <option value="">Selecciona al estudiante...</option>
-                  {estudiantes.map(est => (
-                    <option key={est.id} value={est.id}>{est.nombre} ({est.matricula})</option>
-                  ))}
-                </select>
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-[10px] font-black text-brand-navy uppercase tracking-[0.2em]">
+                    <User className="w-3 h-3 text-brand-teal" /> ESTUDIANTE
+                  </label>
+                  <SearchableSelect
+                    name="estudiante_id"
+                    value={formData.estudiante_id}
+                    onChange={handleInputChange}
+                    options={estudiantes.map(e => ({ value: e.id, label: `${e.nombre} (${e.matricula})` }))}
+                    required
+                  />
+                </div>
               </div>
             </div>
 
@@ -456,32 +464,29 @@ export default function PrestamosPage() {
                 onClick={() => setIsModalOpen(false)}
                 variant="secondary"
                 fullWidth
-                className="!py-3"
               >
                 CANCELAR
               </Button>
               <Button
                 onClick={handleSave}
-                disabled={isSaving || !formData.equipo_id || !formData.estudiante_id}
+                disabled={isSaving}
                 fullWidth
-                className="!py-3 !bg-[#002b45] hover:!bg-[#9ABE00] hover:!text-[#002b45]"
               >
-                {isSaving ? 'PROCESANDO...' : 'CONFIRMAR PRÉSTAMO'}
+                {isSaving ? 'PROCESANDO...' : 'REGISTRAR PRÉSTAMO'}
               </Button>
             </div>
           </div>
         </div>
       </Modal>
 
-      {/* Return Confirmation Modal */}
+      {/* Devolution Modal */}
       <ConfirmationModal
         isOpen={isDevolverModalOpen}
         onClose={() => setIsDevolverModalOpen(false)}
         onConfirm={handleDevolver}
-        title="CONFIRMAR DEVOLUCIÓN"
-        message="¿El equipo ha sido entregado en buenas condiciones? Esta acción marcará el equipo como disponible nuevamente."
-        confirmText="SÍ, DEVOLVER"
-        variant="success"
+        title="DEVOLVER EQUIPO"
+        message="¿Estás seguro de que deseas marcar este préstamo como devuelto?"
+        confirmText="DEVOLVER"
       />
     </div>
   );

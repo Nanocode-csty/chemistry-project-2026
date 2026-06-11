@@ -42,12 +42,44 @@ CREATE TABLE IF NOT EXISTS estudiantes (
   email VARCHAR(255),
   matricula VARCHAR(100) NOT NULL UNIQUE,
   carrera VARCHAR(255),
+  ciclo INTEGER, -- Nuevo campo: ciclo académico (1-10)
   estado VARCHAR(50) DEFAULT 'activo', -- activo, inactivo
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 5. Tabla de Préstamos (Histórico)
+-- 5. Tabla de Investigaciones
+CREATE TABLE IF NOT EXISTS investigaciones (
+  id BIGSERIAL PRIMARY KEY,
+  titulo VARCHAR(255) NOT NULL,
+  tipo VARCHAR(50) NOT NULL, -- paper, tesis
+  estado VARCHAR(50) DEFAULT 'en_progreso', -- en_progreso, finalizado, pausado
+  descripcion TEXT,
+  fecha_inicio DATE,
+  fecha_fin DATE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 6. Tabla de Relación Investigación <-> Estudiante
+CREATE TABLE IF NOT EXISTS investigacion_estudiantes (
+  id BIGSERIAL PRIMARY KEY,
+  investigacion_id BIGINT NOT NULL REFERENCES investigaciones(id) ON DELETE CASCADE,
+  estudiante_id BIGINT NOT NULL REFERENCES estudiantes(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(investigacion_id, estudiante_id)
+);
+
+-- 7. Tabla de Relación Investigación <-> Equipo
+CREATE TABLE IF NOT EXISTS investigacion_equipos (
+  id BIGSERIAL PRIMARY KEY,
+  investigacion_id BIGINT NOT NULL REFERENCES investigaciones(id) ON DELETE CASCADE,
+  equipo_id BIGINT NOT NULL REFERENCES equipos(id) ON DELETE CASCADE,
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  UNIQUE(investigacion_id, equipo_id)
+);
+
+-- 8. Tabla de Préstamos (Histórico)
 CREATE TABLE IF NOT EXISTS prestamos (
   id BIGSERIAL PRIMARY KEY,
   equipo_id BIGINT NOT NULL REFERENCES equipos(id) ON DELETE CASCADE,

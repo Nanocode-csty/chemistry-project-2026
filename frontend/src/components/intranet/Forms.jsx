@@ -14,7 +14,6 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl'
 
   useEffect(() => {
     if (isOpen) {
-      // Incrementar contador de modales abiertos en el body
       const openModals = parseInt(document.body.getAttribute('data-open-modals') || '0');
       document.body.setAttribute('data-open-modals', (openModals + 1).toString());
       document.body.style.overflow = 'hidden';
@@ -27,7 +26,6 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl'
       }
     }
     return () => {
-      // No resetear aquí directamente para evitar conflictos entre modales
     };
   }, [isOpen]);
 
@@ -37,7 +35,6 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl'
     <AnimatePresence>
       {isOpen && (
         <div className={`fixed inset-0 w-full h-full ${zIndex} flex items-start justify-center overflow-y-auto custom-scrollbar`}>
-          {/* Overlay Oscuro Total */}
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -138,11 +135,15 @@ export function FormSelect({
         className="w-full px-4 py-3 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-gray/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
       >
         <option value="">{placeholder}</option>
-        {(options || []).map((option) => (
-          <option key={option.id} value={option.id}>
-            {option.nombre || option.name}
-          </option>
-        ))}
+        {(options || []).map((option) => {
+          const optionValue = option.value !== undefined ? option.value : option.id;
+          const optionLabel = option.nombre || option.name || option.label || optionValue;
+          return (
+            <option key={option.id || option.value} value={optionValue}>
+              {optionLabel}
+            </option>
+          );
+        })}
       </select>
     </div>
   );
@@ -261,11 +262,17 @@ export function SearchableSelect({
   const containerRef = useRef(null);
 
   const safeOptions = options || [];
-  const selectedOption = safeOptions.find(opt => opt.id === value);
+  
+  // Find selected option - support both value and id
+  const selectedOption = safeOptions.find(opt => {
+    const optValue = opt.value !== undefined ? opt.value : opt.id;
+    return String(optValue) === String(value);
+  });
 
-  const filteredOptions = safeOptions.filter(opt =>
-    (opt.nombre || opt.name || '').toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredOptions = safeOptions.filter(opt => {
+    const optLabel = opt.nombre || opt.name || opt.label || '';
+    return optLabel.toLowerCase().includes(searchTerm.toLowerCase());
+  });
 
   useEffect(() => {
     const handleClickOutside = (event) => {
@@ -278,33 +285,38 @@ export function SearchableSelect({
   }, []);
 
   const handleSelect = (option) => {
-    onChange({ target: { name, value: option.id } });
+    const optionValue = option.value !== undefined ? option.value : option.id;
+    onChange({ target: { name, value: optionValue } });
     setIsOpen(false);
     setSearchTerm('');
   };
 
+  const getLabel = (option) => {
+    return option.nombre || option.name || option.label || '';
+  };
+
   return (
     <div className="mb-4" ref={containerRef}>
-      <label className="block text-sm font-medium text-gray-700 mb-2">
+      <label className="block font-display font-bold text-sm text-brand-navy tracking-widest mb-3">
         {label}
-        {required && <span className="text-red-500">*</span>}
+        {required && <span className="text-brand-red ml-1">*</span>}
       </label>
       
       <div className="relative">
         <button
           type="button"
           onClick={() => setIsOpen(!isOpen)}
-          className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 bg-white text-left flex items-center justify-between"
+          className="w-full px-4 py-3 border-2 border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-accent focus:border-brand-accent bg-brand-gray/30 text-left flex items-center justify-between transition-all"
         >
           <span className={selectedOption ? 'text-gray-800' : 'text-gray-500'}>
-            {selectedOption ? (selectedOption.nombre || selectedOption.name) : placeholder}
+            {selectedOption ? getLabel(selectedOption) : placeholder}
           </span>
           <ChevronDown className={`w-4 h-4 text-gray-500 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
         </button>
 
         {isOpen && (
-          <div className="absolute z-50 w-full mt-1 bg-white border border-gray-300 rounded-lg shadow-lg max-h-60 overflow-y-auto">
-            <div className="p-2 border-b border-gray-200">
+          <div className="absolute z-[99999] w-full mt-1 bg-white border border-brand-border rounded-sm shadow-lg max-h-60 overflow-y-auto">
+            <div className="p-2 border-b border-brand-border">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
                 <input
@@ -312,7 +324,7 @@ export function SearchableSelect({
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                   placeholder="Buscar..."
-                  className="w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                  className="w-full pl-10 pr-3 py-2 border border-brand-border rounded-sm focus:outline-none focus:ring-2 focus:ring-brand-teal"
                   autoFocus
                 />
               </div>
@@ -324,18 +336,21 @@ export function SearchableSelect({
                   No se encontraron resultados
                 </div>
               ) : (
-                filteredOptions.map((option) => (
-                  <button
-                    key={option.id}
-                    type="button"
-                    onClick={() => handleSelect(option)}
-                    className={`w-full px-3 py-2 text-left hover:bg-blue-50 transition-colors ${
-                      option.id === value ? 'bg-blue-50 text-blue-800' : 'text-gray-800'
-                    }`}
-                  >
-                    {option.nombre || option.name}
-                  </button>
-                ))
+                filteredOptions.map((option) => {
+                  const optValue = option.value !== undefined ? option.value : option.id;
+                  return (
+                    <button
+                      key={option.id || option.value}
+                      type="button"
+                      onClick={() => handleSelect(option)}
+                      className={`w-full px-4 py-2 text-left hover:bg-brand-teal/10 transition-colors ${
+                        String(optValue) === String(value) ? 'bg-brand-teal/10 text-brand-navy' : 'text-gray-800'
+                      }`}
+                    >
+                      {getLabel(option)}
+                    </button>
+                  );
+                })
               )}
             </div>
           </div>

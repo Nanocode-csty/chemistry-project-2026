@@ -12,7 +12,7 @@ export default function InvestigacionesPage() {
   useEffect(() => {
     const fetchInvestigaciones = async () => {
       try {
-        const { data, error } = await dbOperations.getInvestigaciones();
+        const { data, error } = await dbOperations.getCMSInvestigaciones();
         if (data) setInvestigaciones(data);
       } catch (err) {
         console.error('Error fetching investigaciones:', err);

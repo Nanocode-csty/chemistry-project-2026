@@ -121,17 +121,17 @@ export const dbOperations = {
     return await fetchLocal('/estudiantes');
   },
 
-  async crearEstudiante(nombre, email, matricula) {
+  async crearEstudiante(nombre, email, matricula, ciclo) {
     return await fetchLocal('/estudiantes', {
       method: 'POST',
-      body: JSON.stringify({ nombre, email, matricula }),
+      body: JSON.stringify({ nombre, email, matricula, ciclo }),
     });
   },
 
-  async actualizarEstudiante(id, nombre, email, matricula) {
+  async actualizarEstudiante(id, nombre, email, matricula, ciclo) {
     return await fetchLocal(`/estudiantes/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ nombre, email, matricula }),
+      body: JSON.stringify({ nombre, email, matricula, ciclo }),
     });
   },
 
@@ -241,6 +241,31 @@ export const dbOperations = {
     return await fetchLocal('/reports/ambientes-mas-prestamos');
   },
 
+  // Investigaciones
+  async getInvestigaciones() {
+    return await fetchLocal('/investigaciones');
+  },
+
+  async crearInvestigacion(data) {
+    return await fetchLocal('/investigaciones', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async actualizarInvestigacion(id, data) {
+    return await fetchLocal(`/investigaciones/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    });
+  },
+
+  async eliminarInvestigacion(id) {
+    return await fetchLocal(`/investigaciones/${id}`, {
+      method: 'DELETE',
+    });
+  },
+
   // --- CMS OPERATIONS ---
   
   // Nosotros
@@ -323,16 +348,16 @@ export const dbOperations = {
   async actualizarEstudiantesHeader(content) {
     return await fetchLocal('/cms/estudiantes/header', { method: 'PUT', body: JSON.stringify(content) });
   },
-  async getInvestigaciones() {
+  async getCMSInvestigaciones() {
     return await fetchLocal('/cms/investigaciones');
   },
-  async crearInvestigacion(content) {
+  async crearCMSInvestigacion(content) {
     return await fetchLocal('/cms/investigaciones', { method: 'POST', body: JSON.stringify(content) });
   },
-  async actualizarInvestigacion(id, content) {
+  async actualizarCMSInvestigacion(id, content) {
     return await fetchLocal(`/cms/investigaciones/${id}`, { method: 'PUT', body: JSON.stringify(content) });
   },
-  async eliminarInvestigacion(id) {
+  async eliminarCMSInvestigacion(id) {
     return await fetchLocal(`/cms/investigaciones/${id}`, { method: 'DELETE' });
   },
 

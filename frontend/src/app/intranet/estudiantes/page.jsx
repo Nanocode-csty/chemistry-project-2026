@@ -2,10 +2,11 @@
 
 import { useState, useEffect } from 'react';
 import { dbOperations } from '@/lib/api';
-import { Plus, Trash2, Edit2, AlertCircle, Users, Search, Mail, Fingerprint } from 'lucide-react';
+import { Plus, Trash2, Edit2, AlertCircle, Users, Search, Mail, Fingerprint, GraduationCap } from 'lucide-react';
 import {
   Modal,
   FormInput,
+  FormSelect,
   Button,
   Table,
   Badge,
@@ -15,6 +16,13 @@ import { TableSkeleton } from '@/components/intranet/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
+
+const ciclos = Array.from({ length: 10 }, (_, i) => ({
+  value: i + 1,
+  label: `Ciclo ${i + 1}`,
+  id: i + 1,
+  nombre: `Ciclo ${i + 1}`,
+}));
 
 export default function EstudiantesPage() {
   const { user } = useAuth();
@@ -36,9 +44,11 @@ export default function EstudiantesPage() {
     nombre: '',
     email: '',
     matricula: '',
+    ciclo: '',
   });
   const [isSaving, setIsSaving] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [filterCiclo, setFilterCiclo] = useState('');
   const [isMounted, setIsMounted] = useState(false);
 
   const fetchEstudiantes = async () => {
@@ -67,7 +77,7 @@ export default function EstudiantesPage() {
 
   const handleNew = () => {
     setEditingId(null);
-    setFormData({ nombre: '', email: '', matricula: '' });
+    setFormData({ nombre: '', email: '', matricula: '', ciclo: '' });
     setError(null);
     setIsModalOpen(true);
   };
@@ -78,18 +88,30 @@ export default function EstudiantesPage() {
       nombre: estudiante.nombre,
       email: estudiante.email || '',
       matricula: estudiante.matricula,
+      ciclo: estudiante.ciclo || '',
     });
     setError(null);
     setIsModalOpen(true);
   };
 
   const handleSave = async () => {
+    // Validations
     if (!formData.nombre.trim() || !formData.matricula.trim()) {
       setError('Nombre y matrícula son requeridos');
       return;
     }
+    // Validate matricula is exactly 10 digits
+    if (!/^\d{10}$/.test(formData.matricula.trim())) {
+      setError('La matrícula debe ser exactamente 10 dígitos numéricos');
+      return;
+    }
+    // Validate email ends with @unitru.edu.pe
+    if (formData.email && !/^[a-zA-Z0-9._%+-]+@unitru\.edu\.pe$/.test(formData.email.trim())) {
+      setError('El correo debe ser del dominio @unitru.edu.pe');
+      return;
+    }
 
-    // Validar duplicado localmente (matrícula)
+    // Validate duplicate
     const duplicate = estudiantes.find(e => 
       e.matricula.toLowerCase() === formData.matricula.toLowerCase().trim() && 
       e.id !== editingId
@@ -110,13 +132,15 @@ export default function EstudiantesPage() {
           editingId,
           formData.nombre.trim(),
           formData.email.trim(),
-          formData.matricula.trim()
+          formData.matricula.trim(),
+          formData.ciclo || null,
         );
       } else {
         result = await dbOperations.crearEstudiante(
           formData.nombre.trim(),
           formData.email.trim(),
-          formData.matricula.trim()
+          formData.matricula.trim(),
+          formData.ciclo || null,
         );
       }
 
@@ -152,11 +176,16 @@ export default function EstudiantesPage() {
     }
   };
 
-  const filteredEstudiantes = estudiantes.filter(e => 
-    e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    e.matricula.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (e.email && e.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const filteredEstudiantes = estudiantes.filter(e => {
+    const matchesSearch = !searchTerm || 
+      e.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      e.matricula.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (e.email && e.email.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+    const matchesCiclo = !filterCiclo || String(e.ciclo) === String(filterCiclo);
+    
+    return matchesSearch && matchesCiclo;
+  });
 
   const columns = [
     { 
@@ -195,6 +224,16 @@ export default function EstudiantesPage() {
       )
     },
     { 
+      key: 'ciclo', 
+      label: 'Ciclo',
+      render: (row) => (
+        <div className="flex items-center gap-2 text-gray-600">
+          <GraduationCap className="w-4 h-4 text-brand-navy" />
+          <Badge color="teal">{row.ciclo ? `Ciclo ${row.ciclo}` : 'N/A'}</Badge>
+        </div>
+      )
+    },
+    { 
       key: 'id', 
       label: 'ID', 
       render: (row) => <Badge color="gray">#{row.id}</Badge> 
@@ -220,8 +259,8 @@ export default function EstudiantesPage() {
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white p-4 rounded-lg shadow-sm border border-brand-border flex items-center gap-4">
-        <div className="relative flex-1">
+      <div className="bg-white p-4 rounded-lg shadow-sm border border-brand-border flex flex-col md:flex-row items-center gap-4">
+        <div className="relative flex-1 w-full">
           <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
           <input
             type="text"
@@ -231,6 +270,30 @@ export default function EstudiantesPage() {
             className="w-full pl-12 pr-4 py-3 bg-brand-gray/30 border-2 border-transparent focus:border-brand-accent rounded-sm outline-none transition-all font-sans"
           />
         </div>
+        <div className="flex items-center gap-2 w-full md:w-auto">
+          <span className="text-sm font-medium text-gray-500">Ciclo:</span>
+          <select
+            value={filterCiclo}
+            onChange={(e) => setFilterCiclo(e.target.value)}
+            className="bg-brand-gray/30 border border-brand-border rounded-sm px-4 py-3 focus:outline-none focus:border-brand-teal text-sm font-medium"
+          >
+            <option value="">Todos los ciclos</option>
+            {Array.from({ length: 10 }, (_, i) => i + 1).map(ciclo => (
+              <option key={ciclo} value={ciclo}>Ciclo {ciclo}</option>
+            ))}
+          </select>
+        </div>
+        {(searchTerm || filterCiclo) && (
+          <Button 
+            variant="secondary" 
+            onClick={() => {
+              setSearchTerm('');
+              setFilterCiclo('');
+            }}
+          >
+            Limpiar filtros
+          </Button>
+        )}
       </div>
 
       {/* Error message */}
@@ -240,7 +303,7 @@ export default function EstudiantesPage() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: 'auto' }}
             exit={{ opacity: 0, height: 0 }}
-            className="bg-brand-red/10 border-l-4 border-brand-red p-6 rounded-sm overflow-hidden"
+            className="bg-red-50 border-l-4 border-brand-red p-6 rounded-sm overflow-hidden"
           >
             <div className="flex items-center gap-4">
               <AlertCircle className="w-6 h-6 text-brand-red" />
@@ -316,22 +379,29 @@ export default function EstudiantesPage() {
           />
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <FormInput
-              label="MATRÍCULA"
+              label="MATRÍCULA (10 DÍGITOS)"
               name="matricula"
               value={formData.matricula}
               onChange={handleInputChange}
-              placeholder="Ej: IQ-2024-001"
+              placeholder="Ej: 2024000001"
               required
             />
             <FormInput
-              label="CORREO ELECTRÓNICO"
+              label="CORREO ELECTRÓNICO (@unitru.edu.pe)"
               name="email"
               type="email"
               value={formData.email}
               onChange={handleInputChange}
-              placeholder="juan.perez@ejemplo.com"
+              placeholder="juan.perez@unitru.edu.pe"
             />
           </div>
+          <FormSelect
+            label="CICLO"
+            name="ciclo"
+            value={formData.ciclo}
+            onChange={handleInputChange}
+            options={[{ value: '', label: 'Seleccione un ciclo' }, ...ciclos]}
+          />
           <div className="flex gap-4 pt-4">
             <Button
               onClick={() => setIsModalOpen(false)}

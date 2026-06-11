@@ -19,7 +19,7 @@ const Estudiantes = () => {
       try {
         const [headerRes, invRes, papersRes, patRes, configRes] = await Promise.all([
           dbOperations.getEstudiantesHeader(),
-          dbOperations.getInvestigaciones(),
+          dbOperations.getCMSInvestigaciones(),
           dbOperations.getPapers(),
           dbOperations.getPatentes(),
           dbOperations.getConfig()

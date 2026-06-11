@@ -31,7 +31,7 @@ export default function CMSEstudiantes() {
     try {
       const [headerRes, invRes, papersRes, patentesRes] = await Promise.all([
         dbOperations.getEstudiantesHeader(),
-        dbOperations.getInvestigaciones(),
+        dbOperations.getCMSInvestigaciones(),
         dbOperations.getPapers(),
         dbOperations.getPatentes()
       ]);
@@ -81,8 +81,8 @@ export default function CMSEstudiantes() {
       let res;
       if (modalType === 'investigacion') {
         res = editingItem.id 
-          ? await dbOperations.actualizarInvestigacion(editingItem.id, editingItem)
-          : await dbOperations.crearInvestigacion(editingItem);
+          ? await dbOperations.actualizarCMSInvestigacion(editingItem.id, editingItem)
+          : await dbOperations.crearCMSInvestigacion(editingItem);
       } else if (modalType === 'paper') {
         // Validaciones para papers
         if (!editingItem.anio || isNaN(editingItem.anio)) {
@@ -116,7 +116,7 @@ export default function CMSEstudiantes() {
     if (!confirm('¿Estás seguro de eliminar este elemento?')) return;
     try {
       let res;
-      if (type === 'investigacion') res = await dbOperations.eliminarInvestigacion(id);
+      if (type === 'investigacion') res = await dbOperations.eliminarCMSInvestigacion(id);
       else if (type === 'paper') res = await dbOperations.eliminarPaper(id);
       else if (type === 'patente') res = await dbOperations.eliminarPatente(id);
       

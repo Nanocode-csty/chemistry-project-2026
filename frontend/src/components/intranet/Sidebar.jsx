@@ -15,6 +15,7 @@ import {
   LogOut,
   Home,
   Globe,
+  Microscope,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -26,6 +27,7 @@ const adminMenuItems = [
   { href: '/intranet/equipos', label: 'Equipos', icon: Package },
   { href: '/intranet/estudiantes', label: 'Estudiantes', icon: Users },
   { href: '/intranet/prestamos', label: 'Préstamos', icon: FileText },
+  { href: '/intranet/investigaciones', label: 'Investigaciones', icon: Microscope },
   { href: '/intranet/reportes', label: 'Reportes', icon: BarChart3 },
   { href: '/intranet/cms', label: 'Sitio Web', icon: Globe },
 ];

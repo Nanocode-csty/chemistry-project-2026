@@ -191,11 +191,11 @@ app.get('/api/estudiantes', async (req, res) => {
 });
 
 app.post('/api/estudiantes', async (req, res) => {
-  const { nombre, email, matricula } = req.body;
+  const { nombre, email, matricula, ciclo } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO estudiantes (nombre, email, matricula) VALUES ($1, $2, $3) RETURNING *',
-      [nombre, email, matricula]
+      'INSERT INTO estudiantes (nombre, email, matricula, ciclo) VALUES ($1, $2, $3, $4) RETURNING *',
+      [nombre, email, matricula, ciclo]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
@@ -208,11 +208,11 @@ app.post('/api/estudiantes', async (req, res) => {
 
 app.put('/api/estudiantes/:id', async (req, res) => {
   const { id } = req.params;
-  const { nombre, email, matricula } = req.body;
+  const { nombre, email, matricula, ciclo } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE estudiantes SET nombre = $1, email = $2, matricula = $3 WHERE id = $4 RETURNING *',
-      [nombre, email, matricula, id]
+      'UPDATE estudiantes SET nombre = $1, email = $2, matricula = $3, ciclo = $4 WHERE id = $5 RETURNING *',
+      [nombre, email, matricula, ciclo, id]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -394,6 +394,239 @@ app.put('/api/prestamos/:id/devolver', async (req, res) => {
       'UPDATE equipos SET estado = $1 WHERE id = $2',
       ['disponible', equipo_id]
     );
+    
+    await client.query('COMMIT');
+    res.json({ success: true });
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (client) client.release();
+  }
+});
+
+// 6. Investigaciones
+app.get('/api/investigaciones', async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM investigaciones ORDER BY created_at DESC');
+    
+    const investigaciones = result.rows;
+    
+    // Añadir investigadores y equipos para cada investigación
+    for (const inv of investigaciones) {
+      const investigadoresRes = await pool.query(
+        `SELECT e.* FROM estudiantes e JOIN investigacion_estudiantes ie ON e.id = ie.estudiante_id WHERE ie.investigacion_id = $1`,
+        [inv.id]
+      );
+      inv.investigadores = investigadoresRes.rows;
+      inv.investigadores_ids = investigadoresRes.rows.map(e => e.id);
+      
+      const equiposRes = await pool.query(
+        `SELECT eq.* FROM equipos eq JOIN investigacion_equipos ieq ON eq.id = ieq.equipo_id WHERE ieq.investigacion_id = $1`,
+        [inv.id]
+      );
+      inv.equipos = equiposRes.rows;
+      inv.equipos_ids = equiposRes.rows.map(e => e.id);
+    }
+    
+    res.json(investigaciones);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/api/investigaciones', async (req, res) => {
+  const { titulo, tipo, estado, descripcion, fecha_inicio, fecha_fin, investigadores_ids, equipos_ids } = req.body;
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+    
+    // Convert empty strings to null for date fields
+    const processedFechaInicio = fecha_inicio === '' ? null : fecha_inicio;
+    const processedFechaFin = fecha_fin === '' ? null : fecha_fin;
+    
+    const invResult = await client.query(
+      'INSERT INTO investigaciones (titulo, tipo, estado, descripcion, fecha_inicio, fecha_fin) VALUES ($1, $2, $3, $4, $5, $6) RETURNING *',
+      [titulo, tipo, estado || 'en_progreso', descripcion, processedFechaInicio, processedFechaFin]
+    );
+    const inv = invResult.rows[0];
+    
+    // Insertar investigadores
+    if (investigadores_ids && investigadores_ids.length > 0) {
+      for (const estId of investigadores_ids) {
+        await client.query(
+          'INSERT INTO investigacion_estudiantes (investigacion_id, estudiante_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [inv.id, estId]
+        );
+      }
+    }
+    
+    // Insertar equipos y marcar como OCUPADO
+    if (equipos_ids && equipos_ids.length > 0) {
+      for (const eqId of equipos_ids) {
+        await client.query(
+          'INSERT INTO investigacion_equipos (investigacion_id, equipo_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [inv.id, eqId]
+        );
+        await client.query(
+          "UPDATE equipos SET estado = 'ocupado' WHERE id = $1",
+          [eqId]
+        );
+      }
+    }
+    
+    await client.query('COMMIT');
+    res.status(201).json(inv);
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (client) client.release();
+  }
+});
+
+app.put('/api/investigaciones/:id', async (req, res) => {
+  const { id } = req.params;
+  const { titulo, tipo, estado, descripcion, fecha_inicio, fecha_fin, investigadores_ids, equipos_ids } = req.body;
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+    
+    // Convert empty strings to null for date fields
+    const processedFechaInicio = fecha_inicio === '' ? null : fecha_inicio;
+    const processedFechaFin = fecha_fin === '' ? null : fecha_fin;
+    
+    // Get current equipos in this investigation
+    const currentEquiposRes = await client.query(
+      'SELECT equipo_id FROM investigacion_equipos WHERE investigacion_id = $1',
+      [id]
+    );
+    const currentEquipoIds = currentEquiposRes.rows.map(r => r.equipo_id);
+    
+    // Extract new equipo ids
+    const newEquipoIds = equipos_ids || [];
+    
+    // Find equipos to remove: in current but not in new
+    const equiposToRemove = currentEquipoIds.filter(eqId => !newEquipoIds.includes(eqId));
+    
+    // Find equipos to add: in new but not in current
+    const equiposToAdd = newEquipoIds.filter(eqId => !currentEquipoIds.includes(eqId));
+    
+    const invResult = await client.query(
+      'UPDATE investigaciones SET titulo = $1, tipo = $2, estado = $3, descripcion = $4, fecha_inicio = $5, fecha_fin = $6, updated_at = NOW() WHERE id = $7 RETURNING *',
+      [titulo, tipo, estado, descripcion, processedFechaInicio, processedFechaFin, id]
+    );
+    if (invResult.rows.length === 0) throw new Error('Investigación no encontrada');
+    const inv = invResult.rows[0];
+    
+    // Actualizar investigadores
+    await client.query('DELETE FROM investigacion_estudiantes WHERE investigacion_id = $1', [id]);
+    if (investigadores_ids && investigadores_ids.length > 0) {
+      for (const estId of investigadores_ids) {
+        await client.query(
+          'INSERT INTO investigacion_estudiantes (investigacion_id, estudiante_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+          [id, estId]
+        );
+      }
+    }
+    
+    // Actualizar equipos
+    // Remove old ones
+    for (const eqId of equiposToRemove) {
+      await client.query('DELETE FROM investigacion_equipos WHERE investigacion_id = $1 AND equipo_id = $2', [id, eqId]);
+      // Check if equipo is still in any other active investigation or préstamo before marking disponible
+      const stillInUseRes = await client.query(`
+        SELECT COUNT(*) 
+        FROM investigacion_equipos ie 
+        JOIN investigaciones i ON ie.investigacion_id = i.id 
+        WHERE ie.equipo_id = $1 AND i.estado != 'finalizado'
+        UNION ALL
+        SELECT COUNT(*) 
+        FROM prestamos 
+        WHERE equipo_id = $1 AND fecha_devolucion IS NULL
+      `, [eqId]);
+      const totalInUse = stillInUseRes.rows.reduce((sum, row) => sum + parseInt(row.count), 0);
+      if (totalInUse === 0) {
+        await client.query("UPDATE equipos SET estado = 'disponible' WHERE id = $1", [eqId]);
+      }
+    }
+    // Add new ones
+    for (const eqId of equiposToAdd) {
+      await client.query(
+        'INSERT INTO investigacion_equipos (investigacion_id, equipo_id) VALUES ($1, $2) ON CONFLICT DO NOTHING',
+        [id, eqId]
+      );
+      await client.query("UPDATE equipos SET estado = 'ocupado' WHERE id = $1", [eqId]);
+    }
+    
+    // If investigation is finalizado, mark all its equipos as disponible if not used elsewhere
+    if (estado === 'finalizado') {
+      for (const eqId of newEquipoIds) {
+        const stillInUseRes = await client.query(`
+          SELECT COUNT(*) 
+          FROM investigacion_equipos ie 
+          JOIN investigaciones i ON ie.investigacion_id = i.id 
+          WHERE ie.equipo_id = $1 AND i.estado != 'finalizado' AND i.id != $2
+          UNION ALL
+          SELECT COUNT(*) 
+          FROM prestamos 
+          WHERE equipo_id = $1 AND fecha_devolucion IS NULL
+        `, [eqId, id]);
+        const totalInUse = stillInUseRes.rows.reduce((sum, row) => sum + parseInt(row.count), 0);
+        if (totalInUse === 0) {
+          await client.query("UPDATE equipos SET estado = 'disponible' WHERE id = $1", [eqId]);
+        }
+      }
+    }
+    
+    await client.query('COMMIT');
+    res.json(inv);
+  } catch (err) {
+    if (client) await client.query('ROLLBACK');
+    res.status(500).json({ error: err.message });
+  } finally {
+    if (client) client.release();
+  }
+});
+
+app.delete('/api/investigaciones/:id', async (req, res) => {
+  const { id } = req.params;
+  let client;
+  try {
+    client = await pool.connect();
+    await client.query('BEGIN');
+    
+    // Get equipos in this investigation first
+    const equiposToCheckRes = await client.query(
+      'SELECT equipo_id FROM investigacion_equipos WHERE investigacion_id = $1',
+      [id]
+    );
+    const equiposToCheck = equiposToCheckRes.rows.map(r => r.equipo_id);
+    
+    // Delete the investigation (cascades to join tables if we have ON DELETE CASCADE, but let's do manually)
+    await client.query('DELETE FROM investigacion_equipos WHERE investigacion_id = $1', [id]);
+    await client.query('DELETE FROM investigacion_estudiantes WHERE investigacion_id = $1', [id]);
+    await client.query('DELETE FROM investigaciones WHERE id = $1', [id]);
+    
+    // Check each equipo and mark as disponible if not used elsewhere
+    for (const eqId of equiposToCheck) {
+      const stillInUseRes = await client.query(`
+        SELECT COUNT(*) 
+        FROM investigacion_equipos ie 
+        JOIN investigaciones i ON ie.investigacion_id = i.id 
+        WHERE ie.equipo_id = $1 AND i.estado != 'finalizado'
+        UNION ALL
+        SELECT COUNT(*) 
+        FROM prestamos 
+        WHERE equipo_id = $1 AND fecha_devolucion IS NULL
+      `, [eqId]);
+      const totalInUse = stillInUseRes.rows.reduce((sum, row) => sum + parseInt(row.count), 0);
+      if (totalInUse === 0) {
+        await client.query("UPDATE equipos SET estado = 'disponible' WHERE id = $1", [eqId]);
+      }
+    }
     
     await client.query('COMMIT');
     res.json({ success: true });
