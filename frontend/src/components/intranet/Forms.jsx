@@ -239,10 +239,14 @@ export function Badge({ children, color = 'blue' }) {
     red: 'bg-brand-red/20 text-brand-red border border-brand-red/30',
     yellow: 'bg-brand-yellow/20 text-brand-navy border border-brand-yellow/30',
     gray: 'bg-brand-gray/50 text-brand-navy border border-brand-border',
+    teal: 'bg-brand-teal/15 text-brand-teal border border-brand-teal/30',
+    navy: 'bg-[#002b45]/10 text-[#002b45] border border-[#002b45]/20',
+    orange: 'bg-amber-100 text-amber-800 border border-amber-200',
+    purple: 'bg-purple-100 text-purple-800 border border-purple-200',
   };
 
   return (
-    <span className={`inline-block px-4 py-2 rounded-sm text-xs font-display font-bold tracking-widest ${colors[color]}`}>
+    <span className={`inline-block px-4 py-2 rounded-sm text-xs font-display font-bold tracking-widest ${colors[color] || colors.blue}`}>
       {children}
     </span>
   );

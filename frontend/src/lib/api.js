@@ -141,42 +141,51 @@ export const dbOperations = {
     });
   },
 
-  // Equipos
-  async getEquipos() {
-    return await fetchLocal('/equipos');
+  // Equipos, Materiales y Reactivos
+  async getEquipos(tipoItem = '') {
+    const query = tipoItem ? `?tipo_item=${encodeURIComponent(tipoItem)}` : '';
+    return await fetchLocal(`/equipos${query}`);
   },
 
   async getEquiposPorAmbiente(ambienteId) {
     return await fetchLocal(`/equipos?ambiente=${ambienteId}`);
   },
 
-  async crearEquipo(nombre, codigo, ambienteId, categoriaId, descripcion, imagenUrl = '') {
+  async crearEquipo(nombreOrPayload, codigo, ambienteId, categoriaId, descripcion, imagenUrl = '', extra = {}) {
+    const payload = typeof nombreOrPayload === 'object' && nombreOrPayload !== null
+      ? { estado: 'disponible', ...nombreOrPayload }
+      : {
+          nombre: nombreOrPayload,
+          codigo,
+          ambiente_id: ambienteId,
+          categoria_id: categoriaId,
+          descripcion,
+          imagen_url: imagenUrl,
+          estado: 'disponible',
+          ...extra,
+        };
     return await fetchLocal('/equipos', {
       method: 'POST',
-      body: JSON.stringify({ 
-        nombre, 
-        codigo, 
-        ambiente_id: ambienteId, 
-        categoria_id: categoriaId, 
-        descripcion,
-        imagen_url: imagenUrl,
-        estado: 'disponible' 
-      }),
+      body: JSON.stringify(payload),
     });
   },
 
-  async actualizarEquipo(id, nombre, codigo, ambienteId, categoriaId, descripcion, estado, imagenUrl = '') {
+  async actualizarEquipo(id, nombreOrPayload, codigo, ambienteId, categoriaId, descripcion, estado, imagenUrl = '', extra = {}) {
+    const payload = typeof nombreOrPayload === 'object' && nombreOrPayload !== null
+      ? { ...nombreOrPayload }
+      : {
+          nombre: nombreOrPayload,
+          codigo,
+          ambiente_id: ambienteId,
+          categoria_id: categoriaId,
+          descripcion,
+          estado,
+          imagen_url: imagenUrl,
+          ...extra,
+        };
     return await fetchLocal(`/equipos/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ 
-        nombre, 
-        codigo, 
-        ambiente_id: ambienteId, 
-        categoria_id: categoriaId, 
-        descripcion, 
-        estado,
-        imagen_url: imagenUrl
-      }),
+      body: JSON.stringify(payload),
     });
   },
 
