@@ -71,6 +71,7 @@ const ensureDatabaseSchema = async () => {
       ALTER TABLE equipos ADD COLUMN IF NOT EXISTS formula_quimica VARCHAR(100);
       ALTER TABLE equipos ADD COLUMN IF NOT EXISTS concentracion VARCHAR(100);
       ALTER TABLE equipos ADD COLUMN IF NOT EXISTS fecha_vencimiento DATE;
+      ALTER TABLE prestamos ADD COLUMN IF NOT EXISTS cantidad_prestada INTEGER DEFAULT 1;
     `);
 
     // Actualizar materiales de cristalería y seguridad existentes si aún están por defecto
@@ -517,12 +518,24 @@ app.get('/api/prestamos', async (req, res) => {
 });
 
 app.post('/api/prestamos', async (req, res) => {
-  const { equipo_id, equipo_ids, estudiante_id, observaciones } = req.body;
-  const ids = Array.isArray(equipo_ids) && equipo_ids.length > 0
-    ? equipo_ids
-    : (equipo_id ? [equipo_id] : []);
+  const { equipo_id, equipo_ids, items, estudiante_id, observaciones } = req.body;
 
-  if (ids.length === 0 || !estudiante_id) {
+  let loanItems = [];
+  if (Array.isArray(items) && items.length > 0) {
+    loanItems = items.map((it) => ({
+      equipo_id: parseInt(it.equipo_id || it.id),
+      cantidad_prestada: Math.max(1, parseInt(it.cantidad_prestada || it.cantidad || 1)),
+    }));
+  } else if (Array.isArray(equipo_ids) && equipo_ids.length > 0) {
+    loanItems = equipo_ids.map((id) => ({
+      equipo_id: parseInt(id),
+      cantidad_prestada: 1,
+    }));
+  } else if (equipo_id) {
+    loanItems = [{ equipo_id: parseInt(equipo_id), cantidad_prestada: 1 }];
+  }
+
+  if (loanItems.length === 0 || !estudiante_id) {
     return res.status(400).json({ error: 'Debes indicar al menos un equipo y un estudiante' });
   }
 
@@ -532,20 +545,32 @@ app.post('/api/prestamos', async (req, res) => {
     await client.query('BEGIN');
     
     const createdPrestamos = [];
-    for (const eqId of ids) {
+    for (const item of loanItems) {
+      const eqRes = await client.query('SELECT id, nombre, cantidad, estado FROM equipos WHERE id = $1 FOR UPDATE', [item.equipo_id]);
+      if (eqRes.rows.length === 0) {
+        throw new Error(`El ítem con ID ${item.equipo_id} no existe`);
+      }
+      const eqRow = eqRes.rows[0];
+      const stockActual = parseInt(eqRow.cantidad) || 1;
+      const cantPrestar = Math.min(item.cantidad_prestada, stockActual > 0 ? stockActual : 1);
+
       const prestamoRes = await client.query(
-        'INSERT INTO prestamos (equipo_id, estudiante_id, observaciones) VALUES ($1, $2, $3) RETURNING *',
-        [eqId, estudiante_id, observaciones || null]
+        'INSERT INTO prestamos (equipo_id, estudiante_id, cantidad_prestada, observaciones) VALUES ($1, $2, $3, $4) RETURNING *',
+        [item.equipo_id, estudiante_id, cantPrestar, observaciones || null]
       );
       createdPrestamos.push(prestamoRes.rows[0]);
+
+      const nuevoStock = Math.max(0, stockActual - cantPrestar);
+      const nuevoEstado = nuevoStock <= 0 ? 'ocupado' : 'disponible';
+
       await client.query(
-        'UPDATE equipos SET estado = $1 WHERE id = $2',
-        ['ocupado', eqId]
+        'UPDATE equipos SET cantidad = $1, estado = $2 WHERE id = $3',
+        [nuevoStock, nuevoEstado, item.equipo_id]
       );
     }
     
     await client.query('COMMIT');
-    res.status(201).json(ids.length === 1 ? createdPrestamos[0] : createdPrestamos);
+    res.status(201).json(loanItems.length === 1 ? createdPrestamos[0] : createdPrestamos);
   } catch (err) {
     if (client) await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });
@@ -561,10 +586,17 @@ app.put('/api/prestamos/:id/devolver', async (req, res) => {
     client = await pool.connect();
     await client.query('BEGIN');
     
-    // Obtener equipo_id
-    const prestamo = await client.query('SELECT equipo_id FROM prestamos WHERE id = $1', [id]);
+    // Obtener equipo_id y cantidad_prestada
+    const prestamo = await client.query(
+      'SELECT equipo_id, cantidad_prestada, fecha_devolucion FROM prestamos WHERE id = $1 FOR UPDATE',
+      [id]
+    );
     if (prestamo.rows.length === 0) throw new Error('Préstamo no encontrado');
-    const equipo_id = prestamo.rows[0].equipo_id;
+    const { equipo_id, cantidad_prestada, fecha_devolucion } = prestamo.rows[0];
+    if (fecha_devolucion) {
+      throw new Error('Este préstamo ya fue devuelto');
+    }
+    const cantDevuelta = parseInt(cantidad_prestada) || 1;
     
     // Actualizar préstamo
     await client.query(
@@ -572,10 +604,10 @@ app.put('/api/prestamos/:id/devolver', async (req, res) => {
       [id]
     );
     
-    // Actualizar equipo
+    // Reponer stock y marcar equipo como disponible
     await client.query(
-      'UPDATE equipos SET estado = $1 WHERE id = $2',
-      ['disponible', equipo_id]
+      'UPDATE equipos SET cantidad = COALESCE(cantidad, 0) + $1, estado = $2 WHERE id = $3',
+      [cantDevuelta, 'disponible', equipo_id]
     );
     
     await client.query('COMMIT');

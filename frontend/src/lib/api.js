@@ -203,15 +203,23 @@ export const dbOperations = {
   },
 
   // Préstamos
-  async crearPrestamo(equipoIdOrArray, estudianteId, observaciones = '') {
-    const isArray = Array.isArray(equipoIdOrArray);
+  async crearPrestamo(itemsOrId, estudianteId, observaciones = '') {
+    let payload = {
+      estudiante_id: estudianteId,
+      observaciones,
+    };
+    if (Array.isArray(itemsOrId)) {
+      if (typeof itemsOrId[0] === 'object' && itemsOrId[0] !== null) {
+        payload.items = itemsOrId;
+      } else {
+        payload.equipo_ids = itemsOrId;
+      }
+    } else {
+      payload.equipo_id = itemsOrId;
+    }
     return await fetchLocal('/prestamos', {
       method: 'POST',
-      body: JSON.stringify({
-        ...(isArray ? { equipo_ids: equipoIdOrArray } : { equipo_id: equipoIdOrArray }),
-        estudiante_id: estudianteId,
-        observaciones,
-      }),
+      body: JSON.stringify(payload),
     });
   },
 

@@ -93,6 +93,7 @@ CREATE TABLE IF NOT EXISTS prestamos (
   id BIGSERIAL PRIMARY KEY,
   equipo_id BIGINT NOT NULL REFERENCES equipos(id) ON DELETE CASCADE,
   estudiante_id BIGINT NOT NULL REFERENCES estudiantes(id) ON DELETE CASCADE,
+  cantidad_prestada INTEGER DEFAULT 1,
   fecha_prestamo TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_devolucion TIMESTAMP,
   observaciones TEXT,
