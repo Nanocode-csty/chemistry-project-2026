@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { dbOperations } from '@/lib/api';
+import { getItemTotalInfo } from '@/lib/units';
 import { Plus, Trash2, CheckCircle, AlertCircle, Calendar, Search, History, Clock, Package, User, MapPin, Info, Image as ImageIcon } from 'lucide-react';
 import {
   Modal,
@@ -171,7 +172,14 @@ export default function PrestamosPage() {
       render: (row) => (
         <div className="flex flex-col">
           <span className="font-bold text-brand-navy">{row.equipo?.nombre || 'N/A'}</span>
-          <span className="text-[10px] font-black text-brand-teal uppercase tracking-widest">{row.equipo?.codigo || 'N/A'}</span>
+          <div className="flex items-center gap-2">
+            <span className="text-[10px] font-black text-brand-teal uppercase tracking-widest">{row.equipo?.codigo || 'N/A'}</span>
+            {row.equipo?.unidad_medida && (
+              <span className="text-[10px] font-bold text-slate-400 uppercase">
+                • {row.equipo.presentacion || 'Unidad'} {row.equipo.capacidad || 1} {row.equipo.unidad_medida}
+              </span>
+            )}
+          </div>
         </div>
       ),
     },
@@ -372,6 +380,9 @@ export default function PrestamosPage() {
                   <div>
                     <h4 className="font-bold text-brand-navy text-sm mb-1">{selectedEquipo.nombre}</h4>
                     <p className="text-[10px] font-mono text-brand-teal uppercase">{selectedEquipo.codigo}</p>
+                    <p className="text-[11px] font-black text-[#002b45] uppercase mt-1">
+                      {getItemTotalInfo(selectedEquipo).presentacionLabel} ({getItemTotalInfo(selectedEquipo).fullTotalLabel})
+                    </p>
                   </div>
                   <div className="space-y-2">
                     {selectedEquipo.descripcion && (
@@ -438,7 +449,7 @@ export default function PrestamosPage() {
                     name="equipo_id"
                     value={formData.equipo_id}
                     onChange={handleInputChange}
-                    options={[{ value: '', label: 'Selecciona un equipo' }, ...equiposDisponiblesPorAmbiente.map(e => ({ value: e.id, label: `${e.nombre} (${e.codigo})` }))]}
+                    options={[{ value: '', label: 'Selecciona un equipo' }, ...equiposDisponiblesPorAmbiente.map(e => ({ value: e.id, label: `${e.nombre} — ${getItemTotalInfo(e).presentacionLabel} (${e.codigo})` }))]}
                     disabled={!formData.ambiente_id || equiposDisponiblesPorAmbiente.length === 0}
                     required
                   />
