@@ -16,6 +16,7 @@ import {
   Home,
   Globe,
   Microscope,
+  FlaskConical,
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 
@@ -24,7 +25,8 @@ const adminMenuItems = [
   { href: '/intranet/usuarios', label: 'Usuarios', icon: Users },
   { href: '/intranet/ambientes', label: 'Ambientes', icon: Building2 },
   { href: '/intranet/categorias', label: 'Categorías', icon: Layers },
-  { href: '/intranet/equipos', label: 'Equipos', icon: Package },
+  { href: '/intranet/equipos', label: 'Materiales y Equipos', icon: Package },
+  { href: '/intranet/reactivos', label: 'Reactivos', icon: FlaskConical },
   { href: '/intranet/estudiantes', label: 'Estudiantes', icon: Users },
   { href: '/intranet/prestamos', label: 'Préstamos', icon: FileText },
   { href: '/intranet/investigaciones', label: 'Investigaciones', icon: Microscope },
@@ -34,6 +36,7 @@ const adminMenuItems = [
 
 const userMenuItems = [
   { href: '/intranet/dashboard', label: 'Inicio', icon: BarChart3 },
+  { href: '/intranet/reactivos', label: 'Reactivos', icon: FlaskConical },
   { href: '/intranet/prestamos', label: 'Gestión Préstamos', icon: FileText },
 ];
 
