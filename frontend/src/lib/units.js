@@ -1,9 +1,9 @@
 // Utilidades para Unidades de Medida, Presentaciones y Cálculo de Totales de Laboratorio (LABCAM)
 
 export const TIPOS_ITEM = [
-  { value: 'reactivo', label: 'Reactivo Químico' },
-  { value: 'material', label: 'Material / Cristalería' },
   { value: 'equipo', label: 'Equipo / Instrumento' },
+  { value: 'material', label: 'Material / Cristalería' },
+  { value: 'reactivo', label: 'Reactivo Químico' },
   { value: 'seguridad', label: 'Seguridad / EPP' },
 ];
 
@@ -64,7 +64,6 @@ export const UNIDADES_MEDIDA_GRUPOS = [
 
 export const UNIDADES_MEDIDA_FLAT = UNIDADES_MEDIDA_GRUPOS.flatMap((g) => g.opciones);
 
-// Factores de conversión para sumar distintos frascos del mismo reactivo/material
 const MASS_TO_MG = {
   mg: 1,
   g: 1000,
@@ -99,28 +98,78 @@ export function pluralizePresentacion(presentacion = 'Unidad', cantidad = 1) {
 }
 
 /**
- * Calcula el desglose de un ítem individual (ej. 3 Frascos x 100 mg = 300 mg)
+ * Formatea la información de presentación, medida y cantidad total de forma inteligente
+ * distinguiendo entre Equipos/Instrumentos, Materiales/Cristalería y Reactivos Químicos.
  */
 export function getItemTotalInfo(item) {
+  const tipo = item?.tipo_item || 'equipo';
   const cantidad = Number(item?.cantidad ?? 1) || 0;
   const capacidad = Number(item?.capacidad ?? 1) || 1;
   const unidad = item?.unidad_medida || 'und';
   const presentacion = item?.presentacion || 'Unidad';
-  const totalNeto = cantidad * capacidad;
 
-  // Si es un equipo o unidad simple (Unidad x 1 und)
   const isSimpleUnit =
-    (presentacion === 'Unidad' || !presentacion) &&
-    capacidad === 1 &&
-    (unidad === 'und' || !unidad);
+    tipo === 'equipo' ||
+    ((presentacion === 'Unidad' || !presentacion) &&
+      capacidad === 1 &&
+      (unidad === 'und' || !unidad));
 
-  const presentacionLabel = isSimpleUnit
-    ? `${formatNumber(cantidad)} ${unidad}`
-    : `${ presentacion } × ${formatNumber(capacidad)} ${unidad}`;
+  // Caso 1: Equipos o ítems unitarios sin medida de envase
+  if (isSimpleUnit) {
+    const unidadesTexto = `${formatNumber(cantidad)} ${cantidad === 1 ? 'Unidad' : 'Unidades'}`;
+    return {
+      tipo,
+      cantidad,
+      capacidad: 1,
+      unidad: 'und',
+      presentacion: 'Unidad',
+      totalNeto: cantidad,
+      isSimpleUnit: true,
+      hasContainerMeasure: false,
+      presentacionLabel:
+        tipo === 'equipo'
+          ? 'Equipo / Instrumento'
+          : tipo === 'seguridad'
+          ? 'EPP / Unidad'
+          : 'Por Unidad',
+      envasesLabel: unidadesTexto,
+      totalFormatted: unidadesTexto,
+      equivalencia: null,
+      fullTotalLabel: unidadesTexto,
+      subDetailLabel: tipo === 'equipo' ? 'Activo de laboratorio' : 'Control por unidades',
+      desgloseLabel: unidadesTexto,
+    };
+  }
 
+  // Caso 2: Material de vidrio / cristalería graduada por unidad (ej. Matraz 250 mL, 10 unidades)
+  if (tipo === 'material' && presentacion === 'Unidad' && unidad !== 'und') {
+    const unidadesTexto = `${formatNumber(cantidad)} ${cantidad === 1 ? 'Unidad' : 'Unidades'}`;
+    const medidaPieza = `${formatNumber(capacidad)} ${unidad}`;
+    return {
+      tipo,
+      cantidad,
+      capacidad,
+      unidad,
+      presentacion,
+      totalNeto: cantidad,
+      isSimpleUnit: false,
+      hasContainerMeasure: true,
+      presentacionLabel: `Capacidad: ${medidaPieza}`,
+      envasesLabel: unidadesTexto,
+      totalFormatted: unidadesTexto,
+      equivalencia: `de ${medidaPieza} c/u`,
+      fullTotalLabel: `${unidadesTexto} (${medidaPieza})`,
+      subDetailLabel: `Pieza graduada de ${medidaPieza}`,
+      desgloseLabel: `${unidadesTexto} de ${medidaPieza} cada una`,
+    };
+  }
+
+  // Caso 3: Reactivos Químicos o Materiales en Cajas/Kits/Frascos (ej. 3 Frascos x 100 mg = 300 mg)
+  const totalNeto = cantidad * capacidad;
+  const presentacionLabel = `${presentacion} × ${formatNumber(capacidad)} ${unidad}`;
   const envasesLabel = `${formatNumber(cantidad)} ${pluralizePresentacion(presentacion, cantidad)}`;
 
-  let totalFormatted = `${formatNumber(totalNeto)} ${unidad}`;
+  const totalFormatted = `${formatNumber(totalNeto)} ${unidad}`;
   let equivalencia = null;
 
   if (unidad === 'mg' && totalNeto >= 1000) {
@@ -134,20 +183,23 @@ export function getItemTotalInfo(item) {
   }
 
   return {
+    tipo,
     cantidad,
     capacidad,
     unidad,
     presentacion,
     totalNeto,
-    isSimpleUnit,
+    isSimpleUnit: false,
+    hasContainerMeasure: true,
     presentacionLabel,
     envasesLabel,
     totalFormatted,
     equivalencia,
     fullTotalLabel: equivalencia ? `${totalFormatted} (${equivalencia})` : totalFormatted,
-    desgloseLabel: isSimpleUnit
-      ? `${formatNumber(cantidad)} ${pluralizePresentacion(presentacion, cantidad)}`
-      : `${formatNumber(cantidad)} ${pluralizePresentacion(presentacion, cantidad)} × ${formatNumber(capacidad)} ${unidad} = ${totalFormatted}`,
+    subDetailLabel: `${formatNumber(cantidad)} × ${formatNumber(capacidad)} ${unidad}`,
+    desgloseLabel: `${envasesLabel} × ${formatNumber(capacidad)} ${unidad} = ${
+      equivalencia ? `${totalFormatted} (${equivalencia})` : totalFormatted
+    }`,
   };
 }
 
@@ -162,7 +214,6 @@ export function consolidateInventoryTotals(items = []) {
     const cleanName = (item.nombre || 'Sin Nombre').trim();
     const formula = (item.formula_quimica || '').trim().toUpperCase();
     const tipo = item.tipo_item || 'equipo';
-    // Agrupar por nombre normalizado + tipo (o fórmula si es reactivo)
     const groupKey = `${tipo}::${cleanName.toLowerCase()}`;
 
     if (!groups.has(groupKey)) {
@@ -202,23 +253,38 @@ export function consolidateInventoryTotals(items = []) {
     if (!group.formula_quimica && formula) group.formula_quimica = formula;
     if (!group.concentracion && item.concentracion) group.concentracion = item.concentracion;
 
-    group.desglosePresentaciones.push(
-      info.isSimpleUnit
-        ? `${info.cantidad} und (${item.codigo})`
-        : `${info.cantidad} ${pluralizePresentacion(info.presentacion, info.cantidad)} × ${formatNumber(info.capacidad)} ${info.unidad}`
-    );
-
-    if (MASS_TO_MG[info.unidad] !== undefined) {
-      group.hasMass = true;
-      group.massUnitsUsed.add(info.unidad);
-      group.massTotalMg += info.totalNeto * MASS_TO_MG[info.unidad];
-    } else if (VOLUME_TO_ML[info.unidad] !== undefined) {
-      group.hasVolume = true;
-      group.volumeUnitsUsed.add(info.unidad);
-      group.volumeTotalMl += info.totalNeto * VOLUME_TO_ML[info.unidad];
+    if (info.isSimpleUnit) {
+      group.desglosePresentaciones.push(
+        `${info.cantidad} ${info.cantidad === 1 ? 'Unidad' : 'Unidades'} (${item.codigo})`
+      );
+      group.otherTotalsByUnit['Unidades'] =
+        (group.otherTotalsByUnit['Unidades'] || 0) + info.cantidad;
+    } else if (tipo === 'material' && info.presentacion === 'Unidad' && info.unidad !== 'und') {
+      group.desglosePresentaciones.push(
+        `${info.cantidad} und de ${formatNumber(info.capacidad)} ${info.unidad}`
+      );
+      group.otherTotalsByUnit[`Unidades (${formatNumber(info.capacidad)} ${info.unidad})`] =
+        (group.otherTotalsByUnit[`Unidades (${formatNumber(info.capacidad)} ${info.unidad})`] || 0) +
+        info.cantidad;
     } else {
-      const u = info.unidad || 'und';
-      group.otherTotalsByUnit[u] = (group.otherTotalsByUnit[u] || 0) + info.totalNeto;
+      group.desglosePresentaciones.push(
+        `${info.cantidad} ${pluralizePresentacion(info.presentacion, info.cantidad)} × ${formatNumber(
+          info.capacidad
+        )} ${info.unidad}`
+      );
+
+      if (MASS_TO_MG[info.unidad] !== undefined) {
+        group.hasMass = true;
+        group.massUnitsUsed.add(info.unidad);
+        group.massTotalMg += info.totalNeto * MASS_TO_MG[info.unidad];
+      } else if (VOLUME_TO_ML[info.unidad] !== undefined) {
+        group.hasVolume = true;
+        group.volumeUnitsUsed.add(info.unidad);
+        group.volumeTotalMl += info.totalNeto * VOLUME_TO_ML[info.unidad];
+      } else {
+        const u = info.unidad || 'und';
+        group.otherTotalsByUnit[u] = (group.otherTotalsByUnit[u] || 0) + info.totalNeto;
+      }
     }
   }
 
@@ -226,7 +292,6 @@ export function consolidateInventoryTotals(items = []) {
     const totalsParts = [];
 
     if (g.hasMass) {
-      // Si solo usó mg y es menor a 1000 g, mostrar en mg (y equivalencia en g si >= 1000 mg)
       if (g.massUnitsUsed.size === 1 && g.massUnitsUsed.has('mg')) {
         const mg = g.massTotalMg;
         totalsParts.push(
@@ -271,7 +336,7 @@ export function consolidateInventoryTotals(items = []) {
       ...g,
       ambientes: Array.from(g.ambientesSet).join(', ') || 'No asignado',
       desgloseTexto: g.desglosePresentaciones.join(' + '),
-      cantidadTotalConsolidada: totalsParts.join(' | ') || `${g.totalEnvases} und`,
+      cantidadTotalConsolidada: totalsParts.join(' | ') || `${g.totalEnvases} Unidades`,
     };
   });
 }
