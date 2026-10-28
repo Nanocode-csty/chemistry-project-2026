@@ -203,11 +203,12 @@ export const dbOperations = {
   },
 
   // Préstamos
-  async crearPrestamo(equipoId, estudianteId, observaciones = '') {
+  async crearPrestamo(equipoIdOrArray, estudianteId, observaciones = '') {
+    const isArray = Array.isArray(equipoIdOrArray);
     return await fetchLocal('/prestamos', {
       method: 'POST',
       body: JSON.stringify({
-        equipo_id: equipoId,
+        ...(isArray ? { equipo_ids: equipoIdOrArray } : { equipo_id: equipoIdOrArray }),
         estudiante_id: estudianteId,
         observaciones,
       }),

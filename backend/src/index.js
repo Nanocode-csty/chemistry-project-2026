@@ -517,26 +517,35 @@ app.get('/api/prestamos', async (req, res) => {
 });
 
 app.post('/api/prestamos', async (req, res) => {
-  const { equipo_id, estudiante_id, observaciones } = req.body;
+  const { equipo_id, equipo_ids, estudiante_id, observaciones } = req.body;
+  const ids = Array.isArray(equipo_ids) && equipo_ids.length > 0
+    ? equipo_ids
+    : (equipo_id ? [equipo_id] : []);
+
+  if (ids.length === 0 || !estudiante_id) {
+    return res.status(400).json({ error: 'Debes indicar al menos un equipo y un estudiante' });
+  }
+
   let client;
   try {
     client = await pool.connect();
     await client.query('BEGIN');
     
-    // Registrar préstamo
-    const prestamoRes = await client.query(
-      'INSERT INTO prestamos (equipo_id, estudiante_id, observaciones) VALUES ($1, $2, $3) RETURNING *',
-      [equipo_id, estudiante_id, observaciones || null]
-    );
-    
-    // Actualizar estado equipo
-    await client.query(
-      'UPDATE equipos SET estado = $1 WHERE id = $2',
-      ['ocupado', equipo_id]
-    );
+    const createdPrestamos = [];
+    for (const eqId of ids) {
+      const prestamoRes = await client.query(
+        'INSERT INTO prestamos (equipo_id, estudiante_id, observaciones) VALUES ($1, $2, $3) RETURNING *',
+        [eqId, estudiante_id, observaciones || null]
+      );
+      createdPrestamos.push(prestamoRes.rows[0]);
+      await client.query(
+        'UPDATE equipos SET estado = $1 WHERE id = $2',
+        ['ocupado', eqId]
+      );
+    }
     
     await client.query('COMMIT');
-    res.status(201).json(prestamoRes.rows[0]);
+    res.status(201).json(ids.length === 1 ? createdPrestamos[0] : createdPrestamos);
   } catch (err) {
     if (client) await client.query('ROLLBACK');
     res.status(500).json({ error: err.message });

@@ -49,7 +49,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl'
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.96, y: 12 }}
             transition={{ type: 'spring', damping: 28, stiffness: 380 }}
-            className={`bg-white rounded-md shadow-[0_25px_70px_-15px_rgba(0,26,42,0.55)] ${maxWidth} w-full my-auto border border-slate-200/80 relative z-[100000] max-h-[90vh] flex flex-col`}
+            className={`bg-white rounded-md shadow-[0_25px_70px_-15px_rgba(0,26,42,0.55)] ${maxWidth} w-full my-auto border border-slate-200/80 relative z-[100000] flex flex-col`}
           >
             <div className="flex items-center justify-between px-6 py-5 border-b border-slate-100 bg-slate-50/95 rounded-t-md flex-shrink-0">
               <div className="flex flex-col">
@@ -65,7 +65,7 @@ export function Modal({ isOpen, onClose, title, children, maxWidth = 'max-w-2xl'
                 <X className="w-5 h-5 group-hover:rotate-90 transition-transform duration-300" />
               </button>
             </div>
-            <div className="p-6 md:p-8 overflow-y-auto custom-scrollbar flex-1">
+            <div className="p-6 md:p-8 flex-1 overflow-visible">
               {children}
             </div>
           </motion.div>

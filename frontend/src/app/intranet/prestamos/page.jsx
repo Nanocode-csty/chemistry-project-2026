@@ -5,6 +5,7 @@ import { dbOperations } from '@/lib/api';
 import { getItemTotalInfo } from '@/lib/units';
 import {
   Plus,
+  Trash2,
   CheckCircle,
   AlertCircle,
   Calendar,
@@ -14,13 +15,13 @@ import {
   Package,
   User,
   MapPin,
-  Info,
   Filter,
   FlaskConical,
   Mail,
   GraduationCap,
   X as CloseIcon,
   ChevronDown,
+  Layers,
 } from 'lucide-react';
 import {
   Modal,
@@ -46,7 +47,7 @@ export default function PrestamosPage() {
 
   const [formData, setFormData] = useState({
     ambiente_id: '',
-    equipo_id: '',
+    equipo_ids: [],
     estudiante_id: '',
     observaciones: '',
   });
@@ -113,8 +114,18 @@ export default function PrestamosPage() {
         setIsEquipoDropdownOpen(false);
       }
     };
+    const handleKeyDown = (event) => {
+      if (event.key === 'Escape') {
+        setIsStudentDropdownOpen(false);
+        setIsEquipoDropdownOpen(false);
+      }
+    };
     document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
   }, []);
 
   const handleInputChange = (e) => {
@@ -126,7 +137,7 @@ export default function PrestamosPage() {
   const handleNew = () => {
     setFormData({
       ambiente_id: '',
-      equipo_id: '',
+      equipo_ids: [],
       estudiante_id: '',
       observaciones: '',
     });
@@ -170,21 +181,25 @@ export default function PrestamosPage() {
     setIsStudentDropdownOpen(true);
   };
 
-  const handleSelectEquipo = (eq) => {
-    setFormData((prev) => ({
-      ...prev,
-      equipo_id: eq.id,
-      ambiente_id: eq.ambiente_id || prev.ambiente_id,
-    }));
-    setEquipoQuery(`${eq.nombre} (${eq.codigo})`);
+  // Add item to multi-loan list
+  const handleAddEquipo = (eq) => {
+    setFormData((prev) => {
+      if (prev.equipo_ids.includes(eq.id)) return prev;
+      return {
+        ...prev,
+        equipo_ids: [...prev.equipo_ids, eq.id],
+      };
+    });
+    setEquipoQuery('');
     setIsEquipoDropdownOpen(false);
     if (error) setError(null);
   };
 
-  const handleClearEquipo = () => {
-    setFormData((prev) => ({ ...prev, equipo_id: '' }));
-    setEquipoQuery('');
-    setIsEquipoDropdownOpen(true);
+  const handleRemoveEquipo = (idToRemove) => {
+    setFormData((prev) => ({
+      ...prev,
+      equipo_ids: prev.equipo_ids.filter((id) => id !== idToRemove),
+    }));
   };
 
   const handleSave = async () => {
@@ -192,8 +207,8 @@ export default function PrestamosPage() {
       setError('Debes identificar al estudiante (por código/matrícula o nombre)');
       return;
     }
-    if (!formData.equipo_id) {
-      setError('Debes seleccionar un equipo, material o reactivo disponible');
+    if (!formData.equipo_ids || formData.equipo_ids.length === 0) {
+      setError('Debes agregar al menos un equipo, material o reactivo a la lista del préstamo');
       return;
     }
 
@@ -202,7 +217,7 @@ export default function PrestamosPage() {
 
     try {
       const { error: saveError } = await dbOperations.crearPrestamo(
-        parseInt(formData.equipo_id),
+        formData.equipo_ids.map((id) => parseInt(id)),
         parseInt(formData.estudiante_id),
         formData.observaciones.trim()
       );
@@ -272,9 +287,10 @@ export default function PrestamosPage() {
     );
   });
 
-  // Filtered available equipment/materials/reagents across all labs (or filtered lab)
+  // Filtered available equipment/materials/reagents across all labs (excluding already added ones)
   const equiposDisponibles = equipos.filter((e) => {
     const disponible = e.estado === 'disponible';
+    const notAlreadySelected = !formData.equipo_ids.includes(e.id);
     const matchesAmbiente =
       !formData.ambiente_id ||
       String(e.ambiente_id) === String(formData.ambiente_id);
@@ -286,18 +302,16 @@ export default function PrestamosPage() {
       e.formula_quimica?.toLowerCase().includes(q) ||
       e.ambiente?.nombre?.toLowerCase().includes(q) ||
       e.categoria?.nombre?.toLowerCase().includes(q);
-    return disponible && matchesAmbiente && matchesQuery;
+    return disponible && notAlreadySelected && matchesAmbiente && matchesQuery;
   });
 
   const selectedEstudiante = estudiantes.find(
     (est) => String(est.id) === String(formData.estudiante_id)
   );
-  const selectedEquipo = equipos.find(
-    (e) => String(e.id) === String(formData.equipo_id)
-  );
-  const selectedEquipoInfo = selectedEquipo
-    ? getItemTotalInfo(selectedEquipo)
-    : null;
+
+  const selectedEquiposList = formData.equipo_ids
+    .map((id) => equipos.find((e) => e.id === id))
+    .filter(Boolean);
 
   const getAmbienteNombre = (ambienteId, fallbackName) => {
     if (fallbackName) return fallbackName;
@@ -432,7 +446,7 @@ export default function PrestamosPage() {
               Préstamos de Laboratorio
             </h1>
             <p className="text-brand-teal font-bold text-xs tracking-widest uppercase mt-1">
-              Control de Salidas, Búsqueda por Código de Estudiante y Ubicación
+              Control de Salidas, Búsqueda por Código de Estudiante y Préstamo Múltiple
             </p>
           </div>
         </div>
@@ -567,12 +581,12 @@ export default function PrestamosPage() {
         )}
       </div>
 
-      {/* Redesigned Smart Loan Modal */}
+      {/* Redesigned Smart Loan Modal (Multi-item + Non-clipped Dropdowns) */}
       <Modal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
         title="REGISTRAR NUEVO PRÉSTAMO"
-        maxWidth="max-w-2xl"
+        maxWidth="max-w-3xl"
       >
         <div className="space-y-6">
           {/* Error display inside modal */}
@@ -605,21 +619,47 @@ export default function PrestamosPage() {
 
             {!selectedEstudiante ? (
               <div className="relative" ref={studentDropdownRef}>
-                <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                <div className="relative flex items-center">
+                  <Search className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
                   <input
                     type="text"
                     value={studentQuery}
                     onChange={handleStudentQueryChange}
                     onFocus={() => setIsStudentDropdownOpen(true)}
                     placeholder="Escribe el código (ej. 2021000001) o apellidos del estudiante..."
-                    className="w-full pl-10 pr-10 py-3 bg-white border-2 border-brand-border rounded-sm focus:outline-none focus:border-[#9ABE00] font-sans text-sm text-[#002b45] font-medium"
+                    className="w-full pl-10 pr-16 py-3 bg-white border-2 border-brand-border rounded-sm focus:outline-none focus:border-[#9ABE00] font-sans text-sm text-[#002b45] font-medium"
                   />
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                  <div className="absolute right-2 flex items-center gap-1">
+                    {studentQuery && (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setStudentQuery('');
+                          setIsStudentDropdownOpen(true);
+                        }}
+                        className="p-1.5 text-slate-400 hover:text-slate-600 rounded-sm"
+                        title="Limpiar texto"
+                      >
+                        <CloseIcon className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => setIsStudentDropdownOpen((prev) => !prev)}
+                      className="p-1.5 text-slate-400 hover:text-[#002b45] rounded-sm transition-colors"
+                      title={isStudentDropdownOpen ? 'Cerrar lista' : 'Abrir lista'}
+                    >
+                      <ChevronDown
+                        className={`w-4 h-4 transition-transform duration-200 ${
+                          isStudentDropdownOpen ? 'rotate-180 text-[#9ABE00]' : ''
+                        }`}
+                      />
+                    </button>
+                  </div>
                 </div>
 
                 {isStudentDropdownOpen && (
-                  <div className="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-sm shadow-2xl max-h-60 overflow-y-auto divide-y divide-slate-100">
+                  <div className="absolute z-[999] w-full mt-1 bg-white border border-slate-200 rounded-sm shadow-2xl max-h-72 overflow-y-auto divide-y divide-slate-100">
                     {filteredEstudiantes.length > 0 ? (
                       filteredEstudiantes.map((est) => (
                         <div
@@ -696,11 +736,11 @@ export default function PrestamosPage() {
             )}
           </div>
 
-          {/* SECTION 2: SMART ITEM & LABORATORY SEARCH */}
+          {/* SECTION 2: SMART MULTI-ITEM & LABORATORY SEARCH */}
           <div className="bg-slate-50 p-5 rounded-sm border border-slate-200 space-y-4">
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <label className="flex items-center gap-2 text-xs font-display font-black text-[#002b45] uppercase tracking-wider">
-                <Package className="w-4 h-4 text-[#9ABE00]" /> 2. Buscar Equipo, Material o Reactivo
+                <Package className="w-4 h-4 text-[#9ABE00]" /> 2. Agregar Equipos, Materiales o Reactivos ({selectedEquiposList.length})
               </label>
 
               {/* Optional Lab Filter */}
@@ -709,22 +749,8 @@ export default function PrestamosPage() {
                 <select
                   name="ambiente_id"
                   value={formData.ambiente_id}
-                  onChange={(e) => {
-                    handleInputChange(e);
-                    if (
-                      selectedEquipo &&
-                      e.target.value &&
-                      String(selectedEquipo.ambiente_id) !== String(e.target.value)
-                    ) {
-                      setFormData((prev) => ({
-                        ...prev,
-                        ambiente_id: e.target.value,
-                        equipo_id: '',
-                      }));
-                      setEquipoQuery('');
-                    }
-                  }}
-                  className="px-2.5 py-1 bg-white border border-slate-200 rounded-sm text-[11px] font-bold text-[#002b45] uppercase focus:outline-none focus:border-[#9ABE00]"
+                  onChange={handleInputChange}
+                  className="px-2.5 py-1.5 bg-white border border-slate-200 rounded-sm text-[11px] font-bold text-[#002b45] uppercase focus:outline-none focus:border-[#9ABE00]"
                 >
                   <option value="">Todos los Laboratorios / Almacenes</option>
                   {ambientes.map((a) => (
@@ -736,126 +762,185 @@ export default function PrestamosPage() {
               </div>
             </div>
 
-            {!selectedEquipo ? (
-              <div className="relative" ref={equipoDropdownRef}>
-                <div className="relative">
-                  <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    value={equipoQuery}
-                    onChange={(e) => {
-                      setEquipoQuery(e.target.value);
-                      setIsEquipoDropdownOpen(true);
-                      if (error) setError(null);
-                    }}
-                    onFocus={() => setIsEquipoDropdownOpen(true)}
-                    placeholder="Buscar por nombre (ej. Microscopio, Matraz, Ácido), código o laboratorio..."
-                    className="w-full pl-10 pr-10 py-3 bg-white border-2 border-brand-border rounded-sm focus:outline-none focus:border-[#9ABE00] font-sans text-sm text-[#002b45] font-medium"
-                  />
-                  <ChevronDown className="absolute right-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+            {/* Search Input that stays available to add 1 or multiple items */}
+            <div className="relative" ref={equipoDropdownRef}>
+              <div className="relative flex items-center">
+                <Search className="absolute left-3.5 w-4 h-4 text-slate-400 pointer-events-none" />
+                <input
+                  type="text"
+                  value={equipoQuery}
+                  onChange={(e) => {
+                    setEquipoQuery(e.target.value);
+                    setIsEquipoDropdownOpen(true);
+                    if (error) setError(null);
+                  }}
+                  onFocus={() => setIsEquipoDropdownOpen(true)}
+                  placeholder="Busca y haz clic para añadir uno o varios ítems (ej. Microscopio, Matraz, Balanza)..."
+                  className="w-full pl-10 pr-16 py-3 bg-white border-2 border-brand-border rounded-sm focus:outline-none focus:border-[#9ABE00] font-sans text-sm text-[#002b45] font-medium"
+                />
+                <div className="absolute right-2 flex items-center gap-1">
+                  {equipoQuery && (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEquipoQuery('');
+                        setIsEquipoDropdownOpen(true);
+                      }}
+                      className="p-1.5 text-slate-400 hover:text-slate-600 rounded-sm"
+                      title="Limpiar búsqueda"
+                    >
+                      <CloseIcon className="w-3.5 h-3.5" />
+                    </button>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsEquipoDropdownOpen((prev) => !prev)}
+                    className="p-1.5 text-slate-400 hover:text-[#002b45] rounded-sm transition-colors"
+                    title={isEquipoDropdownOpen ? 'Cerrar lista' : 'Abrir lista'}
+                  >
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 ${
+                        isEquipoDropdownOpen ? 'rotate-180 text-[#9ABE00]' : ''
+                      }`}
+                    />
+                  </button>
                 </div>
+              </div>
 
-                {isEquipoDropdownOpen && (
-                  <div className="absolute z-40 w-full mt-1 bg-white border border-slate-200 rounded-sm shadow-2xl max-h-64 overflow-y-auto divide-y divide-slate-100">
-                    {equiposDisponibles.length > 0 ? (
-                      equiposDisponibles.map((eq) => {
-                        const info = getItemTotalInfo(eq);
-                        const labName = getAmbienteNombre(
-                          eq.ambiente_id,
-                          eq.ambiente?.nombre
-                        );
-                        return (
-                          <div
-                            key={eq.id}
-                            onClick={() => handleSelectEquipo(eq)}
-                            className="px-4 py-3 hover:bg-[#002b45] hover:text-white cursor-pointer transition-colors group flex items-center justify-between gap-3"
-                          >
-                            <div className="space-y-0.5">
-                              <div className="flex items-center gap-2">
-                                <span className="font-bold text-sm text-[#002b45] group-hover:text-white">
-                                  {eq.nombre}
-                                </span>
-                                <span className="text-[10px] font-mono font-black text-[#9ABE00] uppercase">
-                                  {eq.codigo}
-                                </span>
-                              </div>
-                              <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 group-hover:text-white/80">
-                                <span className="inline-flex items-center gap-1 font-bold text-[#002b45] group-hover:text-[#9ABE00]">
-                                  <MapPin className="w-3 h-3" /> {labName}
-                                </span>
-                                <span>• {info.presentacionLabel}</span>
-                              </div>
+              {isEquipoDropdownOpen && (
+                <div className="absolute z-[999] w-full mt-1 bg-white border border-slate-200 rounded-sm shadow-2xl max-h-80 overflow-y-auto divide-y divide-slate-100">
+                  {equiposDisponibles.length > 0 ? (
+                    equiposDisponibles.map((eq) => {
+                      const info = getItemTotalInfo(eq);
+                      const labName = getAmbienteNombre(
+                        eq.ambiente_id,
+                        eq.ambiente?.nombre
+                      );
+                      return (
+                        <div
+                          key={eq.id}
+                          onClick={() => handleAddEquipo(eq)}
+                          className="px-4 py-3 hover:bg-[#002b45] hover:text-white cursor-pointer transition-colors group flex items-center justify-between gap-3"
+                        >
+                          <div className="space-y-0.5">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-sm text-[#002b45] group-hover:text-white">
+                                {eq.nombre}
+                              </span>
+                              <span className="text-[10px] font-mono font-black text-[#9ABE00] uppercase">
+                                {eq.codigo}
+                              </span>
                             </div>
-                            <span className="px-2.5 py-1 bg-slate-100 text-[#002b45] group-hover:bg-white/15 group-hover:text-white font-display font-black text-[11px] rounded-sm flex-shrink-0">
+                            <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 group-hover:text-white/80">
+                              <span className="inline-flex items-center gap-1 font-bold text-[#002b45] group-hover:text-[#9ABE00]">
+                                <MapPin className="w-3 h-3" /> {labName}
+                              </span>
+                              <span>• {info.presentacionLabel}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-2 flex-shrink-0">
+                            <span className="px-2.5 py-1 bg-slate-100 text-[#002b45] group-hover:bg-white/15 group-hover:text-white font-display font-black text-[11px] rounded-sm">
                               {info.fullTotalLabel}
                             </span>
+                            <span className="px-2 py-1 bg-[#9ABE00] text-[#002b45] font-display font-black text-[10px] rounded-sm uppercase">
+                              + Añadir
+                            </span>
                           </div>
-                        );
-                      })
-                    ) : (
-                      <div className="px-4 py-6 text-center text-xs text-slate-400">
-                        No hay equipos o materiales disponibles que coincidan con la búsqueda.
+                        </div>
+                      );
+                    })
+                  ) : (
+                    <div className="px-4 py-6 text-center text-xs text-slate-400">
+                      No hay más equipos o materiales disponibles que coincidan con la búsqueda.
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            {/* Selected Items List (1 or Multiple) */}
+            {selectedEquiposList.length > 0 ? (
+              <div className="space-y-2 pt-1">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-display font-black text-[#002b45] uppercase tracking-wider flex items-center gap-1.5">
+                    <Layers className="w-3.5 h-3.5 text-[#9ABE00]" />
+                    Ítems a prestar en esta solicitud ({selectedEquiposList.length})
+                  </span>
+                  {selectedEquiposList.length > 1 && (
+                    <button
+                      type="button"
+                      onClick={() =>
+                        setFormData((prev) => ({ ...prev, equipo_ids: [] }))
+                      }
+                      className="text-[10px] font-bold text-red-500 hover:underline uppercase"
+                    >
+                      Quitar todos
+                    </button>
+                  )}
+                </div>
+
+                <div className="grid grid-cols-1 gap-2 max-h-60 overflow-y-auto pr-1">
+                  {selectedEquiposList.map((eq) => {
+                    const info = getItemTotalInfo(eq);
+                    const labName = getAmbienteNombre(
+                      eq.ambiente_id,
+                      eq.ambiente?.nombre
+                    );
+                    return (
+                      <div
+                        key={eq.id}
+                        className="bg-white p-3 rounded-sm border-l-4 border-[#002b45] border border-slate-200 shadow-sm flex items-center justify-between gap-3"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-10 h-10 bg-slate-50 rounded-sm border border-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0">
+                            {eq.imagen_url ? (
+                              <img
+                                src={eq.imagen_url}
+                                alt={eq.nombre}
+                                className="w-full h-full object-cover"
+                              />
+                            ) : eq.tipo_item === 'reactivo' ? (
+                              <FlaskConical className="w-5 h-5 text-[#002b45]" />
+                            ) : (
+                              <Package className="w-5 h-5 text-slate-400" />
+                            )}
+                          </div>
+                          <div>
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className="font-display font-black text-[#002b45] text-xs uppercase">
+                                {eq.nombre}
+                              </span>
+                              <span className="px-1.5 py-0.5 bg-[#002b45]/10 text-[#002b45] font-mono font-black text-[10px] rounded-sm">
+                                {eq.codigo}
+                              </span>
+                            </div>
+                            <div className="flex flex-wrap items-center gap-2 text-[11px] mt-0.5">
+                              <span className="inline-flex items-center gap-1 font-bold text-[#002b45] bg-[#9ABE00]/20 px-1.5 py-0.5 rounded-sm">
+                                <MapPin className="w-3 h-3 text-[#002b45]" />
+                                {labName}
+                              </span>
+                              <span className="text-slate-500 font-bold">
+                                • {info.presentacionLabel} ({info.fullTotalLabel})
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveEquipo(eq.id)}
+                          className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-sm transition-colors flex-shrink-0"
+                          title="Quitar de la lista"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
-                    )}
-                  </div>
-                )}
+                    );
+                  })}
+                </div>
               </div>
             ) : (
-              /* Selected Equipment & Location Summary Card */
-              <div className="bg-white p-4 rounded-sm border-l-4 border-[#002b45] shadow-sm flex items-start justify-between gap-4">
-                <div className="flex items-start gap-4">
-                  <div className="w-14 h-14 bg-slate-50 rounded-sm border border-slate-200 overflow-hidden flex items-center justify-center flex-shrink-0">
-                    {selectedEquipo.imagen_url ? (
-                      <img
-                        src={selectedEquipo.imagen_url}
-                        alt={selectedEquipo.nombre}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : selectedEquipo.tipo_item === 'reactivo' ? (
-                      <FlaskConical className="w-7 h-7 text-[#002b45]" />
-                    ) : (
-                      <Package className="w-7 h-7 text-slate-400" />
-                    )}
-                  </div>
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <h4 className="font-display font-black text-[#002b45] text-sm uppercase">
-                        {selectedEquipo.nombre}
-                      </h4>
-                      <span className="px-2 py-0.5 bg-[#002b45]/10 text-[#002b45] font-mono font-black text-[11px] rounded-sm">
-                        {selectedEquipo.codigo}
-                      </span>
-                    </div>
-                    <div className="flex flex-wrap items-center gap-2 text-xs">
-                      <span className="inline-flex items-center gap-1 font-bold text-[#002b45] bg-[#9ABE00]/20 px-2 py-0.5 rounded-sm">
-                        <MapPin className="w-3.5 h-3.5 text-[#002b45]" />
-                        Ubicación:{' '}
-                        {getAmbienteNombre(
-                          selectedEquipo.ambiente_id,
-                          selectedEquipo.ambiente?.nombre
-                        )}
-                      </span>
-                      {selectedEquipoInfo && (
-                        <span className="text-slate-600 font-bold">
-                          • {selectedEquipoInfo.presentacionLabel} (
-                          {selectedEquipoInfo.fullTotalLabel})
-                        </span>
-                      )}
-                    </div>
-                    {selectedEquipo.descripcion && (
-                      <p className="text-xs text-slate-500 pt-0.5">
-                        {selectedEquipo.descripcion}
-                      </p>
-                    )}
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={handleClearEquipo}
-                  className="px-3 py-1.5 text-[10px] font-display font-black uppercase tracking-wider text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-sm border border-slate-200 transition-colors flex-shrink-0"
-                >
-                  Cambiar
-                </button>
+              <div className="bg-white/70 border border-dashed border-slate-200 rounded-sm p-4 text-center text-xs text-slate-400">
+                Aún no has agregado ningún ítem. Usa el buscador de arriba para seleccionar uno o varios equipos/materiales.
               </div>
             )}
           </div>
@@ -886,7 +971,11 @@ export default function PrestamosPage() {
               fullWidth
               className="!bg-[#002b45] hover:!bg-[#9ABE00] hover:!text-[#002b45]"
             >
-              {isSaving ? 'PROCESANDO...' : 'CONFIRMAR PRÉSTAMO'}
+              {isSaving
+                ? 'PROCESANDO...'
+                : selectedEquiposList.length > 1
+                ? `CONFIRMAR PRÉSTAMO (${selectedEquiposList.length} ÍTEMS)`
+                : 'CONFIRMAR PRÉSTAMO'}
             </Button>
           </div>
         </div>
