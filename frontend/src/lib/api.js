@@ -203,10 +203,14 @@ export const dbOperations = {
   },
 
   // Préstamos
-  async crearPrestamo(equipoId, estudianteId, fechaPrestamo) {
+  async crearPrestamo(equipoId, estudianteId, observaciones = '') {
     return await fetchLocal('/prestamos', {
       method: 'POST',
-      body: JSON.stringify({ equipo_id: equipoId, estudiante_id: estudianteId, fecha_prestamo: fechaPrestamo }),
+      body: JSON.stringify({
+        equipo_id: equipoId,
+        estudiante_id: estudianteId,
+        observaciones,
+      }),
     });
   },
 

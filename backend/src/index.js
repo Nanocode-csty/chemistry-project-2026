@@ -480,9 +480,11 @@ app.get('/api/prestamos', async (req, res) => {
       SELECT p.*, 
              e.nombre as equipo_nombre, e.codigo as equipo_codigo, e.ambiente_id, e.categoria_id,
              e.tipo_item, e.presentacion, e.capacidad, e.unidad_medida, e.formula_quimica, e.concentracion,
-             est.nombre as estudiante_nombre, est.matricula as estudiante_matricula, est.ciclo as estudiante_ciclo
+             a.nombre as ambiente_nombre,
+             est.nombre as estudiante_nombre, est.matricula as estudiante_matricula, est.ciclo as estudiante_ciclo, est.email as estudiante_email
       FROM prestamos p
       LEFT JOIN equipos e ON p.equipo_id = e.id
+      LEFT JOIN ambientes a ON e.ambiente_id = a.id
       LEFT JOIN estudiantes est ON p.estudiante_id = est.id
       ORDER BY p.fecha_prestamo DESC
     `);
@@ -492,6 +494,7 @@ app.get('/api/prestamos', async (req, res) => {
         nombre: row.equipo_nombre, 
         codigo: row.equipo_codigo,
         ambiente_id: row.ambiente_id,
+        ambiente_nombre: row.ambiente_nombre,
         categoria_id: row.categoria_id,
         tipo_item: row.tipo_item,
         presentacion: row.presentacion,
@@ -503,7 +506,8 @@ app.get('/api/prestamos', async (req, res) => {
       estudiante: {
         nombre: row.estudiante_nombre,
         matricula: row.estudiante_matricula,
-        ciclo: row.estudiante_ciclo
+        ciclo: row.estudiante_ciclo,
+        email: row.estudiante_email
       }
     }));
     res.json(formattedRows);
@@ -513,7 +517,7 @@ app.get('/api/prestamos', async (req, res) => {
 });
 
 app.post('/api/prestamos', async (req, res) => {
-  const { equipo_id, estudiante_id } = req.body;
+  const { equipo_id, estudiante_id, observaciones } = req.body;
   let client;
   try {
     client = await pool.connect();
@@ -521,8 +525,8 @@ app.post('/api/prestamos', async (req, res) => {
     
     // Registrar préstamo
     const prestamoRes = await client.query(
-      'INSERT INTO prestamos (equipo_id, estudiante_id) VALUES ($1, $2) RETURNING *',
-      [equipo_id, estudiante_id]
+      'INSERT INTO prestamos (equipo_id, estudiante_id, observaciones) VALUES ($1, $2, $3) RETURNING *',
+      [equipo_id, estudiante_id, observaciones || null]
     );
     
     // Actualizar estado equipo
