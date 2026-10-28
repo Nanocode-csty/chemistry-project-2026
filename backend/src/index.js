@@ -297,11 +297,11 @@ app.get('/api/equipos', async (req, res) => {
     const params = [];
     if (ambiente) {
       params.push(ambiente);
-      conditions.push(`e.ambiente_id = ${params.length}`);
+      conditions.push(`e.ambiente_id = $${params.length}`);
     }
     if (tipo_item) {
       params.push(tipo_item);
-      conditions.push(`e.tipo_item = ${params.length}`);
+      conditions.push(`e.tipo_item = $${params.length}`);
     }
     if (conditions.length > 0) {
       query += ' WHERE ' + conditions.join(' AND ');
