@@ -59,6 +59,55 @@ pool.on('error', (err) => {
   console.error('Unexpected error on idle client', err);
 });
 
+const ensureDatabaseSchema = async () => {
+  try {
+    await pool.query(`
+      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS tipo_item VARCHAR(50) DEFAULT 'equipo';
+      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS presentacion VARCHAR(50) DEFAULT 'Unidad';
+      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS capacidad DECIMAL(12, 2) DEFAULT 1;
+      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS unidad_medida VARCHAR(30) DEFAULT 'und';
+      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS cantidad INTEGER DEFAULT 1;
+      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS stock_minimo INTEGER DEFAULT 1;
+      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS formula_quimica VARCHAR(100);
+      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS concentracion VARCHAR(100);
+      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS fecha_vencimiento DATE;
+    `);
+
+    // Actualizar materiales de cristalería y seguridad existentes si aún están por defecto
+    await pool.query(`
+      UPDATE equipos SET tipo_item = 'material', presentacion = 'Unidad', capacidad = 250, unidad_medida = 'mL', cantidad = 10, stock_minimo = 3
+      WHERE codigo = 'CRIST-001' AND (capacidad IS NULL OR capacidad = 1);
+      UPDATE equipos SET tipo_item = 'material', presentacion = 'Kit', capacidad = 10, unidad_medida = 'mL', cantidad = 4, stock_minimo = 1
+      WHERE codigo = 'CRIST-002' AND (capacidad IS NULL OR capacidad = 1);
+      UPDATE equipos SET tipo_item = 'seguridad', presentacion = 'Caja', capacidad = 100, unidad_medida = 'und', cantidad = 8, stock_minimo = 2
+      WHERE codigo = 'SEGUR-001' AND (capacidad IS NULL OR capacidad = 1);
+    `);
+
+    const reactivosCheck = await pool.query("SELECT COUNT(*) FROM equipos WHERE tipo_item = 'reactivo'");
+    if (parseInt(reactivosCheck.rows[0].count) === 0) {
+      await pool.query(`
+        INSERT INTO equipos (
+          nombre, codigo, ambiente_id, categoria_id, descripcion, estado, fecha_adquisicion,
+          tipo_item, presentacion, capacidad, unidad_medida, cantidad, stock_minimo, formula_quimica, concentracion, fecha_vencimiento
+        ) VALUES
+        ('Nitrato de Plata', 'REACT-001', 1, 3, 'Reactivo analítico para titulaciones argentométricas (Presentación 100 mg)', 'disponible', '2025-01-10', 'reactivo', 'Frasco', 100, 'mg', 3, 2, 'AgNO3', '99.8% PA', '2027-06-30'),
+        ('Nitrato de Plata', 'REACT-002', 1, 3, 'Reactivo analítico para titulaciones argentométricas (Presentación 200 mg)', 'disponible', '2025-02-15', 'reactivo', 'Frasco', 200, 'mg', 2, 1, 'AgNO3', '99.8% PA', '2027-08-15'),
+        ('Ácido Sulfúrico Concentrado', 'REACT-003', 1, 3, 'Ácido mineral fuerte grado reactivo ACS en botella ámbar', 'disponible', '2025-03-01', 'reactivo', 'Botella', 1, 'L', 4, 2, 'H2SO4', '98% p/p', '2028-03-01'),
+        ('Ácido Sulfúrico Concentrado', 'REACT-004', 4, 3, 'Ácido mineral fuerte grado reactivo ACS presentación 500 mL', 'disponible', '2025-03-10', 'reactivo', 'Frasco', 500, 'mL', 3, 2, 'H2SO4', '98% p/p', '2028-03-10'),
+        ('Hidróxido de Sodio en Lentejas', 'REACT-005', 1, 3, 'Base fuerte en pellets para preparación de soluciones estándar', 'disponible', '2025-01-20', 'reactivo', 'Frasco', 500, 'g', 5, 2, 'NaOH', '99.0% PA', '2027-12-31'),
+        ('Hidróxido de Sodio en Lentejas', 'REACT-006', 2, 3, 'Base fuerte en pellets presentación de 1 kg', 'disponible', '2025-02-05', 'reactivo', 'Frasco', 1, 'kg', 2, 1, 'NaOH', '99.0% PA', '2027-12-31'),
+        ('Etanol Absoluto', 'REACT-007', 2, 3, 'Solvente orgánico de alta pureza para análisis e instrumental', 'disponible', '2025-04-12', 'reactivo', 'Galón', 4, 'L', 3, 1, 'C2H5OH', '99.9% v/v', '2027-05-01'),
+        ('Fenolftaleína Indicador', 'REACT-008', 1, 3, 'Solución indicadora ácido-base en etanol', 'disponible', '2025-01-18', 'reactivo', 'Frasco', 100, 'mL', 4, 2, 'C20H14O4', '1% p/v', '2026-12-15'),
+        ('Ácido Clorhídrico Fumante', 'REACT-009', 4, 3, 'Ácido clorhídrico grado analítico 37%', 'disponible', '2025-02-22', 'reactivo', 'Botella', 2.5, 'L', 2, 2, 'HCl', '37% p/p', '2027-09-30')
+        ON CONFLICT (codigo) DO NOTHING;
+      `);
+    }
+    console.log('Database schema and reagent columns verified');
+  } catch (err) {
+    console.error('Schema verification warning:', err.message);
+  }
+};
+
 const connectWithRetry = (retries = 10) => {
   console.log(`Attempting to connect to database... (${retries} retries left)`);
   pool.query('SELECT NOW()', (err, res) => {
@@ -73,6 +122,7 @@ const connectWithRetry = (retries = 10) => {
       }
     } else {
       console.log('Database connected successfully');
+      ensureDatabaseSchema();
     }
   });
 };
@@ -230,27 +280,41 @@ app.delete('/api/estudiantes/:id', async (req, res) => {
   }
 });
 
-// 4. Equipos
+// 4. Equipos, Materiales y Reactivos
 app.get('/api/equipos', async (req, res) => {
-  const { ambiente } = req.query;
+  const { ambiente, tipo_item } = req.query;
   try {
     let query = `
-      SELECT e.*, a.nombre as ambiente_nombre, c.nombre as categoria_nombre
+      SELECT e.*,
+             (COALESCE(e.cantidad, 1) * COALESCE(e.capacidad, 1)) as cantidad_total,
+             a.nombre as ambiente_nombre,
+             c.nombre as categoria_nombre
       FROM equipos e
       LEFT JOIN ambientes a ON e.ambiente_id = a.id
       LEFT JOIN categorias_equipos c ON e.categoria_id = c.id
     `;
-    let params = [];
+    const conditions = [];
+    const params = [];
     if (ambiente) {
-      query += ' WHERE e.ambiente_id = $1';
       params.push(ambiente);
+      conditions.push(`e.ambiente_id = ${params.length}`);
     }
-    query += ' ORDER BY e.nombre ASC';
+    if (tipo_item) {
+      params.push(tipo_item);
+      conditions.push(`e.tipo_item = ${params.length}`);
+    }
+    if (conditions.length > 0) {
+      query += ' WHERE ' + conditions.join(' AND ');
+    }
+    query += ' ORDER BY e.nombre ASC, e.capacidad ASC';
     
     const result = await pool.query(query, params);
-    // Format to match Supabase response structure (nested objects)
     const formattedRows = result.rows.map(row => ({
       ...row,
+      capacidad: row.capacidad !== null && row.capacidad !== undefined ? parseFloat(row.capacidad) : 1,
+      cantidad: row.cantidad !== null && row.cantidad !== undefined ? parseInt(row.cantidad) : 1,
+      stock_minimo: row.stock_minimo !== null && row.stock_minimo !== undefined ? parseInt(row.stock_minimo) : 1,
+      cantidad_total: row.cantidad_total !== null && row.cantidad_total !== undefined ? parseFloat(row.cantidad_total) : 1,
       ambiente: { nombre: row.ambiente_nombre },
       categoria: { nombre: row.categoria_nombre }
     }));
@@ -261,16 +325,54 @@ app.get('/api/equipos', async (req, res) => {
 });
 
 app.post('/api/equipos', async (req, res) => {
-  const { nombre, codigo, ambiente_id, categoria_id, descripcion, imagen_url } = req.body;
+  const {
+    nombre,
+    codigo,
+    ambiente_id,
+    categoria_id,
+    descripcion,
+    imagen_url,
+    tipo_item = 'equipo',
+    presentacion = 'Unidad',
+    capacidad = 1,
+    unidad_medida = 'und',
+    cantidad = 1,
+    stock_minimo = 1,
+    formula_quimica = null,
+    concentracion = null,
+    fecha_vencimiento = null
+  } = req.body;
   try {
+    const processedVencimiento = fecha_vencimiento === '' ? null : fecha_vencimiento;
     const result = await pool.query(
-      'INSERT INTO equipos (nombre, codigo, ambiente_id, categoria_id, descripcion, estado, imagen_url) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *',
-      [nombre, codigo, ambiente_id, categoria_id, descripcion, 'disponible', imagen_url]
+      `INSERT INTO equipos (
+        nombre, codigo, ambiente_id, categoria_id, descripcion, estado, imagen_url,
+        tipo_item, presentacion, capacidad, unidad_medida, cantidad, stock_minimo,
+        formula_quimica, concentracion, fecha_vencimiento
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16) RETURNING *`,
+      [
+        nombre,
+        codigo,
+        ambiente_id,
+        categoria_id,
+        descripcion,
+        'disponible',
+        imagen_url,
+        tipo_item || 'equipo',
+        presentacion || 'Unidad',
+        capacidad !== undefined && capacidad !== '' ? parseFloat(capacidad) : 1,
+        unidad_medida || 'und',
+        cantidad !== undefined && cantidad !== '' ? parseInt(cantidad) : 1,
+        stock_minimo !== undefined && stock_minimo !== '' ? parseInt(stock_minimo) : 1,
+        formula_quimica || null,
+        concentracion || null,
+        processedVencimiento
+      ]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err.code === '23505') {
-      return res.status(400).json({ error: 'Ya existe un equipo con ese código' });
+      return res.status(400).json({ error: 'Ya existe un registro con ese código' });
     }
     res.status(500).json({ error: err.message });
   }
@@ -278,14 +380,71 @@ app.post('/api/equipos', async (req, res) => {
 
 app.put('/api/equipos/:id', async (req, res) => {
   const { id } = req.params;
-  const { nombre, codigo, ambiente_id, categoria_id, descripcion, estado, imagen_url } = req.body;
+  const {
+    nombre,
+    codigo,
+    ambiente_id,
+    categoria_id,
+    descripcion,
+    estado,
+    imagen_url,
+    tipo_item,
+    presentacion,
+    capacidad,
+    unidad_medida,
+    cantidad,
+    stock_minimo,
+    formula_quimica,
+    concentracion,
+    fecha_vencimiento
+  } = req.body;
   try {
+    const processedVencimiento = fecha_vencimiento === '' ? null : fecha_vencimiento;
     const result = await pool.query(
-      'UPDATE equipos SET nombre = $1, codigo = $2, ambiente_id = $3, categoria_id = $4, descripcion = $5, estado = $6, imagen_url = $7 WHERE id = $8 RETURNING *',
-      [nombre, codigo, ambiente_id, categoria_id, descripcion, estado, imagen_url, id]
+      `UPDATE equipos SET
+        nombre = $1,
+        codigo = $2,
+        ambiente_id = $3,
+        categoria_id = $4,
+        descripcion = $5,
+        estado = COALESCE($6, estado),
+        imagen_url = $7,
+        tipo_item = COALESCE($8, tipo_item, 'equipo'),
+        presentacion = COALESCE($9, presentacion, 'Unidad'),
+        capacidad = COALESCE($10, capacidad, 1),
+        unidad_medida = COALESCE($11, unidad_medida, 'und'),
+        cantidad = COALESCE($12, cantidad, 1),
+        stock_minimo = COALESCE($13, stock_minimo, 1),
+        formula_quimica = $14,
+        concentracion = $15,
+        fecha_vencimiento = $16,
+        updated_at = CURRENT_TIMESTAMP
+      WHERE id = $17 RETURNING *`,
+      [
+        nombre,
+        codigo,
+        ambiente_id,
+        categoria_id,
+        descripcion,
+        estado,
+        imagen_url,
+        tipo_item || null,
+        presentacion || null,
+        capacidad !== undefined && capacidad !== '' ? parseFloat(capacidad) : null,
+        unidad_medida || null,
+        cantidad !== undefined && cantidad !== '' ? parseInt(cantidad) : null,
+        stock_minimo !== undefined && stock_minimo !== '' ? parseInt(stock_minimo) : null,
+        formula_quimica !== undefined ? (formula_quimica || null) : null,
+        concentracion !== undefined ? (concentracion || null) : null,
+        processedVencimiento !== undefined ? processedVencimiento : null,
+        id
+      ]
     );
     res.json(result.rows[0]);
   } catch (err) {
+    if (err.code === '23505') {
+      return res.status(400).json({ error: 'Ya existe un registro con ese código' });
+    }
     res.status(500).json({ error: err.message });
   }
 });
@@ -320,7 +479,8 @@ app.get('/api/prestamos', async (req, res) => {
     const result = await pool.query(`
       SELECT p.*, 
              e.nombre as equipo_nombre, e.codigo as equipo_codigo, e.ambiente_id, e.categoria_id,
-             est.nombre as estudiante_nombre, est.matricula as estudiante_matricula
+             e.tipo_item, e.presentacion, e.capacidad, e.unidad_medida, e.formula_quimica, e.concentracion,
+             est.nombre as estudiante_nombre, est.matricula as estudiante_matricula, est.ciclo as estudiante_ciclo
       FROM prestamos p
       LEFT JOIN equipos e ON p.equipo_id = e.id
       LEFT JOIN estudiantes est ON p.estudiante_id = est.id
@@ -332,9 +492,19 @@ app.get('/api/prestamos', async (req, res) => {
         nombre: row.equipo_nombre, 
         codigo: row.equipo_codigo,
         ambiente_id: row.ambiente_id,
-        categoria_id: row.categoria_id
+        categoria_id: row.categoria_id,
+        tipo_item: row.tipo_item,
+        presentacion: row.presentacion,
+        capacidad: row.capacidad !== null && row.capacidad !== undefined ? parseFloat(row.capacidad) : 1,
+        unidad_medida: row.unidad_medida,
+        formula_quimica: row.formula_quimica,
+        concentracion: row.concentracion
       },
-      estudiante: { nombre: row.estudiante_nombre, matricula: row.estudiante_matricula }
+      estudiante: {
+        nombre: row.estudiante_nombre,
+        matricula: row.estudiante_matricula,
+        ciclo: row.estudiante_ciclo
+      }
     }));
     res.json(formattedRows);
   } catch (err) {
@@ -408,27 +578,46 @@ app.put('/api/prestamos/:id/devolver', async (req, res) => {
 // 6. Investigaciones
 app.get('/api/investigaciones', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM investigaciones ORDER BY created_at DESC');
-    
-    const investigaciones = result.rows;
-    
-    // Añadir investigadores y equipos para cada investigación
-    for (const inv of investigaciones) {
-      const investigadoresRes = await pool.query(
-        `SELECT e.* FROM estudiantes e JOIN investigacion_estudiantes ie ON e.id = ie.estudiante_id WHERE ie.investigacion_id = $1`,
-        [inv.id]
-      );
-      inv.investigadores = investigadoresRes.rows;
-      inv.investigadores_ids = investigadoresRes.rows.map(e => e.id);
-      
-      const equiposRes = await pool.query(
-        `SELECT eq.* FROM equipos eq JOIN investigacion_equipos ieq ON eq.id = ieq.equipo_id WHERE ieq.investigacion_id = $1`,
-        [inv.id]
-      );
-      inv.equipos = equiposRes.rows;
-      inv.equipos_ids = equiposRes.rows.map(e => e.id);
+    const [invRes, ieRes, ieqRes] = await Promise.all([
+      pool.query('SELECT * FROM investigaciones ORDER BY created_at DESC'),
+      pool.query(`
+        SELECT ie.investigacion_id, e.*
+        FROM investigacion_estudiantes ie
+        JOIN estudiantes e ON e.id = ie.estudiante_id
+      `),
+      pool.query(`
+        SELECT ieq.investigacion_id, eq.*
+        FROM investigacion_equipos ieq
+        JOIN equipos eq ON eq.id = ieq.equipo_id
+      `)
+    ]);
+
+    const investigadoresByInv = {};
+    for (const row of ieRes.rows) {
+      if (!investigadoresByInv[row.investigacion_id]) investigadoresByInv[row.investigacion_id] = [];
+      const { investigacion_id, ...est } = row;
+      investigadoresByInv[row.investigacion_id].push(est);
     }
-    
+
+    const equiposByInv = {};
+    for (const row of ieqRes.rows) {
+      if (!equiposByInv[row.investigacion_id]) equiposByInv[row.investigacion_id] = [];
+      const { investigacion_id, ...eq } = row;
+      equiposByInv[investigacion_id].push(eq);
+    }
+
+    const investigaciones = invRes.rows.map(inv => {
+      const invEstudiantes = investigadoresByInv[inv.id] || [];
+      const invEquipos = equiposByInv[inv.id] || [];
+      return {
+        ...inv,
+        investigadores: invEstudiantes,
+        investigadores_ids: invEstudiantes.map(e => e.id),
+        equipos: invEquipos,
+        equipos_ids: invEquipos.map(e => e.id)
+      };
+    });
+
     res.json(investigaciones);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -672,6 +861,9 @@ app.get('/api/dashboard/stats', async (req, res) => {
         (SELECT COUNT(*) FROM ambientes) as total_ambientes,
         (SELECT COUNT(*) FROM estudiantes) as total_estudiantes,
         (SELECT COUNT(*) FROM equipos) as total_equipos,
+        (SELECT COUNT(*) FROM equipos WHERE tipo_item = 'reactivo') as total_reactivos,
+        (SELECT COUNT(*) FROM equipos WHERE COALESCE(cantidad, 1) <= COALESCE(stock_minimo, 1)) as stock_bajo_count,
+        (SELECT COUNT(*) FROM investigaciones) as total_investigaciones,
         (SELECT COUNT(*) FROM prestamos WHERE fecha_devolucion IS NULL) as prestamos_pendientes,
         (SELECT COUNT(*) FROM equipos WHERE estado = 'disponible') as equipos_disponibles,
         (SELECT COUNT(*) FROM equipos WHERE estado = 'ocupado') as equipos_ocupados,
@@ -683,6 +875,9 @@ app.get('/api/dashboard/stats', async (req, res) => {
       totalAmbientes: parseInt(row.total_ambientes),
       totalEstudiantes: parseInt(row.total_estudiantes),
       totalEquipos: parseInt(row.total_equipos),
+      totalReactivos: parseInt(row.total_reactivos || 0),
+      stockBajoCount: parseInt(row.stock_bajo_count || 0),
+      totalInvestigaciones: parseInt(row.total_investigaciones || 0),
       prestamosPendientes: parseInt(row.prestamos_pendientes),
       equiposDisponibles: parseInt(row.equipos_disponibles),
       equiposOcupados: parseInt(row.equipos_ocupados),
