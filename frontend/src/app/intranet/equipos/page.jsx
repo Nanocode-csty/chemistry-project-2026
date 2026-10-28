@@ -118,7 +118,21 @@ export default function EquiposPage() {
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => {
+      const updated = { ...prev, [name]: value };
+      if (name === 'tipo_item') {
+        if (value === 'equipo') {
+          updated.presentacion = 'Unidad';
+          updated.capacidad = '1';
+          updated.unidad_medida = 'und';
+        } else if (value === 'reactivo' && prev.presentacion === 'Unidad') {
+          updated.presentacion = 'Frasco';
+          updated.capacidad = '100';
+          updated.unidad_medida = 'mL';
+        }
+      }
+      return updated;
+    });
     if (error) setError(null);
   };
 
@@ -379,14 +393,14 @@ export default function EquiposPage() {
     },
     {
       key: 'medida',
-      label: 'Unidad / Presentación',
+      label: 'Tipo / Presentación',
       render: (row) => {
         const info = getItemTotalInfo(row);
         return (
-          <div className="flex flex-col">
+          <div className="flex flex-col items-start">
             <Badge color="navy">{info.presentacionLabel}</Badge>
             <span className="text-[10px] text-slate-400 font-bold uppercase mt-1">
-              {info.envasesLabel}
+              {info.subDetailLabel || info.envasesLabel}
             </span>
           </div>
         );
@@ -394,7 +408,7 @@ export default function EquiposPage() {
     },
     {
       key: 'cantidad_total',
-      label: 'Total Cantidad',
+      label: 'Stock / Total Neto',
       render: (row) => {
         const info = getItemTotalInfo(row);
         return (
@@ -402,7 +416,7 @@ export default function EquiposPage() {
             <span className="font-display font-black text-sm text-[#002b45]">
               {info.fullTotalLabel}
             </span>
-            {!info.isSimpleUnit && (
+            {!info.isSimpleUnit && !info.isGlasswarePiece && (
               <span className="text-[10px] text-slate-400 font-bold">
                 ({info.cantidad} × {row.capacidad} {info.unidad})
               </span>
@@ -772,19 +786,33 @@ export default function EquiposPage() {
               />
             </div>
 
-            {/* Live Total Calculation Box */}
-            <div className="p-5 bg-[#002b45] text-white rounded-sm shadow-lg space-y-2 border-l-4 border-[#9ABE00]">
-              <div className="flex items-center justify-between">
-                <span className="text-[10px] font-black text-[#9ABE00] uppercase tracking-widest">
-                  Cantidad Total Calculada
+            {/* Live Total Calculation Box (Only for Reagents or Bulk/Capacity Materials) */}
+            {formData.tipo_item !== 'equipo' ? (
+              <div className="p-5 bg-[#002b45] text-white rounded-sm shadow-lg space-y-2 border-l-4 border-[#9ABE00]">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-black text-[#9ABE00] uppercase tracking-widest">
+                    {formData.tipo_item === 'reactivo'
+                      ? 'Cantidad Neta Calculada'
+                      : 'Resumen de Stock'}
+                  </span>
+                  <Scale className="w-4 h-4 text-[#9ABE00]" />
+                </div>
+                <div className="text-2xl font-display font-black">
+                  {liveModalTotal.fullTotalLabel}
+                </div>
+                <p className="text-xs text-white/80">{liveModalTotal.desgloseLabel}</p>
+              </div>
+            ) : (
+              <div className="p-5 bg-slate-50 rounded-sm border border-slate-200 space-y-1">
+                <span className="text-[10px] font-black text-[#002b45] uppercase tracking-widest block">
+                  Control de Activo / Equipo
                 </span>
-                <Scale className="w-4 h-4 text-[#9ABE00]" />
+                <p className="text-xs text-slate-600">
+                  Los equipos e instrumentos de laboratorio se gestionan directamente por{' '}
+                  <strong>unidades físicas</strong> sin requerir medidas de volumen o masa.
+                </p>
               </div>
-              <div className="text-2xl font-display font-black">
-                {liveModalTotal.fullTotalLabel}
-              </div>
-              <p className="text-xs text-white/80">{liveModalTotal.desgloseLabel}</p>
-            </div>
+            )}
 
             <div className="space-y-4">
               <FormInput
@@ -833,120 +861,179 @@ export default function EquiposPage() {
           {/* Columna Derecha: Información Principal */}
           <div className="lg:w-2/3 space-y-6">
             <div className="bg-white p-6 rounded-sm border border-slate-100 shadow-sm space-y-6">
-              <div className="flex items-center justify-between border-b border-slate-50 pb-4">
-                <div className="flex items-center gap-3">
-                  <Info className="w-5 h-5 text-[#9ABE00]" />
-                  <h3 className="font-display font-black text-[#002b45] text-sm uppercase tracking-tight">
-                    Información General
-                  </h3>
+              <div className="space-y-3 border-b border-slate-100 pb-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Info className="w-5 h-5 text-[#9ABE00]" />
+                    <h3 className="font-display font-black text-[#002b45] text-sm uppercase tracking-tight">
+                      Tipo de Registro e Información General
+                    </h3>
+                  </div>
                 </div>
-                <select
-                  name="tipo_item"
-                  value={formData.tipo_item}
-                  onChange={handleInputChange}
-                  className="px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-sm font-display font-black text-[10px] text-[#002b45] uppercase tracking-wider"
-                >
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                   {TIPOS_ITEM.map((t) => (
-                    <option key={t.value} value={t.value}>
-                      {t.label.toUpperCase()}
-                    </option>
+                    <button
+                      key={t.value}
+                      type="button"
+                      onClick={() =>
+                        handleInputChange({
+                          target: { name: 'tipo_item', value: t.value },
+                        })
+                      }
+                      className={`py-2.5 px-3 rounded-sm font-display font-black text-[10px] uppercase tracking-wider border transition-all ${
+                        formData.tipo_item === t.value
+                          ? 'bg-[#002b45] border-[#002b45] text-white shadow-sm'
+                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-[#002b45]/40'
+                      }`}
+                    >
+                      {t.label}
+                    </button>
                   ))}
-                </select>
+                </div>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <FormInput
-                  label="NOMBRE DEL MATERIAL / REACTIVO / EQUIPO"
+                  label={
+                    formData.tipo_item === 'equipo'
+                      ? 'NOMBRE DEL EQUIPO / INSTRUMENTO'
+                      : formData.tipo_item === 'reactivo'
+                      ? 'NOMBRE DEL REACTIVO QUÍMICO'
+                      : 'NOMBRE DEL MATERIAL / INSUMO'
+                  }
                   name="nombre"
                   value={formData.nombre}
                   onChange={handleInputChange}
-                  placeholder="Ej: Nitrato de Plata / Matraz Volumétrico"
+                  placeholder={
+                    formData.tipo_item === 'equipo'
+                      ? 'Ej: Microscopio Óptico Nikon / Balanza Analítica'
+                      : formData.tipo_item === 'reactivo'
+                      ? 'Ej: Nitrato de Plata / Ácido Sulfúrico'
+                      : 'Ej: Matraz Volumétrico / Guantes de Nitrilo'
+                  }
                   required
                 />
                 <FormInput
-                  label="CÓDIGO ÚNICO"
+                  label="CÓDIGO PATRIMONIAL / INVENTARIO"
                   name="codigo"
                   value={formData.codigo}
                   onChange={handleInputChange}
-                  placeholder="Ej: REACT-001 / CRIST-001"
+                  placeholder={
+                    formData.tipo_item === 'equipo'
+                      ? 'Ej: MICRO-001 / BAL-002'
+                      : formData.tipo_item === 'reactivo'
+                      ? 'Ej: REACT-001'
+                      : 'Ej: CRIST-001'
+                  }
                   required
                 />
               </div>
 
-              {/* Presentación, Unidades de Medida y Stock */}
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-sm border border-slate-100">
-                <div>
-                  <label className="block font-display font-bold text-xs text-brand-navy tracking-widest mb-2 uppercase">
-                    PRESENTACIÓN
-                  </label>
-                  <select
-                    name="presentacion"
-                    value={formData.presentacion}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-brand-border rounded-sm bg-white font-bold text-xs text-[#002b45]"
-                  >
-                    {PRESENTACIONES.map((p) => (
-                      <option key={p.value} value={p.value}>
-                        {p.label}
-                      </option>
-                    ))}
-                  </select>
+              {/* Contextual Stock & Units Section */}
+              {formData.tipo_item === 'equipo' ? (
+                <div className="bg-slate-50 p-4 rounded-sm border border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                  <div>
+                    <span className="block font-display font-black text-xs text-[#002b45] uppercase tracking-wider">
+                      Unidades Físicas en Stock
+                    </span>
+                    <span className="text-xs text-slate-500">
+                      Cantidad de equipos disponibles en este laboratorio.
+                    </span>
+                  </div>
+                  <div className="w-full sm:w-44">
+                    <input
+                      type="number"
+                      min="1"
+                      step="1"
+                      name="cantidad"
+                      value={formData.cantidad}
+                      onChange={handleInputChange}
+                      placeholder="Ej: 1"
+                      className="w-full px-4 py-2.5 border-2 border-brand-border rounded-sm bg-white font-display font-black text-sm text-[#002b45] text-center"
+                    />
+                  </div>
                 </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-50 p-4 rounded-sm border border-slate-100">
+                  <div>
+                    <label className="block font-display font-bold text-xs text-brand-navy tracking-widest mb-2 uppercase">
+                      {formData.tipo_item === 'reactivo'
+                        ? 'ENVASE / PRESENTACIÓN'
+                        : 'PRESENTACIÓN'}
+                    </label>
+                    <select
+                      name="presentacion"
+                      value={formData.presentacion}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2.5 border-2 border-brand-border rounded-sm bg-white font-bold text-xs text-[#002b45]"
+                    >
+                      {PRESENTACIONES.map((p) => (
+                        <option key={p.value} value={p.value}>
+                          {p.label}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="block font-display font-bold text-xs text-brand-navy tracking-widest mb-2 uppercase">
-                    MEDIDA / CAPACIDAD
-                  </label>
-                  <input
-                    type="number"
-                    step="any"
-                    min="0.01"
-                    name="capacidad"
-                    value={formData.capacidad}
-                    onChange={handleInputChange}
-                    placeholder="Ej: 100, 250"
-                    className="w-full px-3 py-2.5 border-2 border-brand-border rounded-sm bg-white font-bold text-xs text-[#002b45]"
-                  />
-                </div>
+                  <div>
+                    <label className="block font-display font-bold text-xs text-brand-navy tracking-widest mb-2 uppercase">
+                      {formData.tipo_item === 'reactivo'
+                        ? 'CONTENIDO POR ENVASE'
+                        : 'CAPACIDAD / MEDIDA'}
+                    </label>
+                    <input
+                      type="number"
+                      step="any"
+                      min="0.01"
+                      name="capacidad"
+                      value={formData.capacidad}
+                      onChange={handleInputChange}
+                      placeholder="Ej: 100, 250"
+                      className="w-full px-3 py-2.5 border-2 border-brand-border rounded-sm bg-white font-bold text-xs text-[#002b45]"
+                    />
+                  </div>
 
-                <div>
-                  <label className="block font-display font-bold text-xs text-brand-navy tracking-widest mb-2 uppercase">
-                    UNIDAD DE MEDIDA
-                  </label>
-                  <select
-                    name="unidad_medida"
-                    value={formData.unidad_medida}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2.5 border-2 border-brand-border rounded-sm bg-white font-bold text-xs text-[#002b45]"
-                  >
-                    {UNIDADES_MEDIDA_GRUPOS.map((grupo) => (
-                      <optgroup key={grupo.grupo} label={grupo.grupo}>
-                        {grupo.opciones.map((u) => (
-                          <option key={u.value} value={u.value}>
-                            {u.label}
-                          </option>
-                        ))}
-                      </optgroup>
-                    ))}
-                  </select>
-                </div>
+                  <div>
+                    <label className="block font-display font-bold text-xs text-brand-navy tracking-widest mb-2 uppercase">
+                      UNIDAD DE MEDIDA
+                    </label>
+                    <select
+                      name="unidad_medida"
+                      value={formData.unidad_medida}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2.5 border-2 border-brand-border rounded-sm bg-white font-bold text-xs text-[#002b45]"
+                    >
+                      {UNIDADES_MEDIDA_GRUPOS.map((grupo) => (
+                        <optgroup key={grupo.grupo} label={grupo.grupo}>
+                          {grupo.opciones.map((u) => (
+                            <option key={u.value} value={u.value}>
+                              {u.label}
+                            </option>
+                          ))}
+                        </optgroup>
+                      ))}
+                    </select>
+                  </div>
 
-                <div>
-                  <label className="block font-display font-bold text-xs text-brand-navy tracking-widest mb-2 uppercase">
-                    CANTIDAD (STOCK)
-                  </label>
-                  <input
-                    type="number"
-                    min="0"
-                    step="1"
-                    name="cantidad"
-                    value={formData.cantidad}
-                    onChange={handleInputChange}
-                    placeholder="Ej: 5"
-                    className="w-full px-3 py-2.5 border-2 border-brand-border rounded-sm bg-white font-bold text-xs text-[#002b45]"
-                  />
+                  <div>
+                    <label className="block font-display font-bold text-xs text-brand-navy tracking-widest mb-2 uppercase">
+                      {formData.tipo_item === 'reactivo'
+                        ? 'N° DE FRASCOS / ENVASES'
+                        : 'CANTIDAD (STOCK)'}
+                    </label>
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      name="cantidad"
+                      value={formData.cantidad}
+                      onChange={handleInputChange}
+                      placeholder="Ej: 5"
+                      className="w-full px-3 py-2.5 border-2 border-brand-border rounded-sm bg-white font-bold text-xs text-[#002b45]"
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
               {formData.tipo_item === 'reactivo' && (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
