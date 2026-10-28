@@ -19,7 +19,6 @@ import {
   FlaskConical,
   Mail,
   GraduationCap,
-  IdCard,
   X as CloseIcon,
   ChevronDown,
 } from 'lucide-react';
@@ -597,7 +596,7 @@ export default function PrestamosPage() {
           <div className="bg-slate-50 p-5 rounded-sm border border-slate-200 space-y-4">
             <div className="flex items-center justify-between">
               <label className="flex items-center gap-2 text-xs font-display font-black text-[#002b45] uppercase tracking-wider">
-                <IdCard className="w-4 h-4 text-[#9ABE00]" /> 1. Identificación del Estudiante
+                <User className="w-4 h-4 text-[#9ABE00]" /> 1. Identificación del Estudiante
               </label>
               <span className="text-[10px] font-bold text-slate-400 uppercase">
                 Ingresa Código de Matrícula o Nombre
