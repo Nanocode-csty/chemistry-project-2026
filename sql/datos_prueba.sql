@@ -22,17 +22,21 @@ INSERT INTO categorias_equipos (nombre, descripcion) VALUES
 ('Seguridad', 'Equipos de protección personal')
 ON CONFLICT DO NOTHING;
 
--- 3. Insertar Estudiantes
-INSERT INTO estudiantes (nombre, email, matricula, carrera, ciclo, estado) VALUES 
-('Juan Pérez García', 'juan.perez@unitru.edu.pe', '2021000001', 'Ingeniería Química', 7, 'activo'),
-('María López Rodríguez', 'maria.lopez@unitru.edu.pe', '2021000002', 'Ingeniería Química', 7, 'activo'),
-('Carlos Martínez Sánchez', 'carlos.martinez@unitru.edu.pe', '2020000005', 'Ingeniería Química', 9, 'activo'),
-('Ana González Pérez', 'ana.gonzalez@unitru.edu.pe', '2022000010', 'Ingeniería Química', 5, 'activo'),
-('Roberto Díaz Gómez', 'roberto.diaz@unitru.edu.pe', '2020000015', 'Ingeniería Química', 8, 'activo'),
-('Laura Fernández Ruiz', 'laura.fernandez@unitru.edu.pe', '2021000020', 'Ingeniería Química', 6, 'activo'),
-('Pedro Jiménez Torres', 'pedro.jimenez@unitru.edu.pe', '2022000025', 'Ingeniería Química', 5, 'activo'),
-('Sofía Martín Romero', 'sofia.martin@unitru.edu.pe', '2020000030', 'Ingeniería Química', 10, 'activo')
-ON CONFLICT DO NOTHING;
+-- 3. Insertar Coordinadores de Área y Estudiantes
+INSERT INTO estudiantes (nombre, email, matricula, carrera, ciclo, tipo_solicitante, area_coordinacion, cursos_asignados, estado) VALUES 
+('Dr. Roberto Salazar Mendoza', 'rsalazar@unitru.edu.pe', 'COORD-ORG1', 'Ingeniería Química', 5, 'coordinador', 'Área de Química Orgánica', 'Química Orgánica I, Química Orgánica II, Síntesis Orgánica', 'activo'),
+('Dra. Elena Vargas Quispe', 'evargas@unitru.edu.pe', 'COORD-ANA1', 'Ingeniería Química', 4, 'coordinador', 'Área de Química Analítica e Instrumental', 'Química Analítica Cuantitativa, Análisis Instrumental', 'activo'),
+('Mg. Carlos Rojas Huamán', 'crojas@unitru.edu.pe', 'COORD-FIS1', 'Ingeniería Química', 6, 'coordinador', 'Área de Físico-Química y Procesos', 'Físico-Química I, Termodinámica Química, Operaciones Unitarias', 'activo'),
+('Dra. Patricia Morales Castro', 'pmorales@unitru.edu.pe', 'COORD-BIO1', 'Ingeniería Química', 7, 'coordinador', 'Área de Bioquímica y Biotecnología', 'Bioquímica General, Microbiología Industrial, Bioprocesos', 'activo'),
+('Juan Pérez García', 'juan.perez@unitru.edu.pe', '2021000001', 'Ingeniería Química', 7, 'estudiante', 'Área de Química Orgánica', 'Química Orgánica II', 'activo'),
+('María López Rodríguez', 'maria.lopez@unitru.edu.pe', '2021000002', 'Ingeniería Química', 7, 'estudiante', 'Área de Química Analítica e Instrumental', 'Análisis Instrumental', 'activo'),
+('Carlos Martínez Sánchez', 'carlos.martinez@unitru.edu.pe', '2020000005', 'Ingeniería Química', 9, 'estudiante', 'Área de Físico-Química y Procesos', 'Operaciones Unitarias', 'activo'),
+('Ana González Pérez', 'ana.gonzalez@unitru.edu.pe', '2022000010', 'Ingeniería Química', 5, 'estudiante', 'Área de Química Orgánica', 'Química Orgánica I', 'activo'),
+('Roberto Díaz Gómez', 'roberto.diaz@unitru.edu.pe', '2020000015', 'Ingeniería Química', 8, 'estudiante', 'Área de Bioquímica y Biotecnología', 'Bioprocesos', 'activo'),
+('Laura Fernández Ruiz', 'laura.fernandez@unitru.edu.pe', '2021000020', 'Ingeniería Química', 6, 'estudiante', 'Área de Físico-Química y Procesos', 'Termodinámica Química', 'activo'),
+('Pedro Jiménez Torres', 'pedro.jimenez@unitru.edu.pe', '2022000025', 'Ingeniería Química', 5, 'estudiante', 'Área de Química Analítica e Instrumental', 'Química Analítica Cuantitativa', 'activo'),
+('Sofía Martín Romero', 'sofia.martin@unitru.edu.pe', '2020000030', 'Ingeniería Química', 10, 'estudiante', 'Área de Bioquímica y Biotecnología', 'Tesis de Grado', 'activo')
+ON CONFLICT (matricula) DO NOTHING;
 
 -- 4. Insertar Equipos, Materiales y Reactivos Químicos
 INSERT INTO equipos (

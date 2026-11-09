@@ -116,22 +116,42 @@ export const dbOperations = {
     });
   },
 
-  // Estudiantes
+  // Coordinadores de Área y Estudiantes
   async getEstudiantes() {
     return await fetchLocal('/estudiantes');
   },
 
-  async crearEstudiante(nombre, email, matricula, ciclo) {
+  async crearEstudiante(nombreOrPayload, email, matricula, ciclo, extra = {}) {
+    const payload =
+      typeof nombreOrPayload === 'object' && nombreOrPayload !== null
+        ? { ...nombreOrPayload }
+        : {
+            nombre: nombreOrPayload,
+            email,
+            matricula,
+            ciclo,
+            ...extra,
+          };
     return await fetchLocal('/estudiantes', {
       method: 'POST',
-      body: JSON.stringify({ nombre, email, matricula, ciclo }),
+      body: JSON.stringify(payload),
     });
   },
 
-  async actualizarEstudiante(id, nombre, email, matricula, ciclo) {
+  async actualizarEstudiante(id, nombreOrPayload, email, matricula, ciclo, extra = {}) {
+    const payload =
+      typeof nombreOrPayload === 'object' && nombreOrPayload !== null
+        ? { ...nombreOrPayload }
+        : {
+            nombre: nombreOrPayload,
+            email,
+            matricula,
+            ciclo,
+            ...extra,
+          };
     return await fetchLocal(`/estudiantes/${id}`, {
       method: 'PUT',
-      body: JSON.stringify({ nombre, email, matricula, ciclo }),
+      body: JSON.stringify(payload),
     });
   },
 
@@ -202,11 +222,12 @@ export const dbOperations = {
     });
   },
 
-  // Préstamos
-  async crearPrestamo(itemsOrId, estudianteId, observaciones = '') {
+  // Préstamos y Programación de Consumo por Curso
+  async crearPrestamo(itemsOrId, estudianteId, observaciones = '', extra = {}) {
     let payload = {
       estudiante_id: estudianteId,
       observaciones,
+      ...extra,
     };
     if (Array.isArray(itemsOrId)) {
       if (typeof itemsOrId[0] === 'object' && itemsOrId[0] !== null) {

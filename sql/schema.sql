@@ -44,14 +44,17 @@ CREATE TABLE IF NOT EXISTS equipos (
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 
--- 4. Tabla de Estudiantes
+-- 4. Tabla de Estudiantes / Coordinadores de Área
 CREATE TABLE IF NOT EXISTS estudiantes (
   id BIGSERIAL PRIMARY KEY,
   nombre VARCHAR(255) NOT NULL,
   email VARCHAR(255),
   matricula VARCHAR(100) NOT NULL UNIQUE,
   carrera VARCHAR(255),
-  ciclo INTEGER, -- Nuevo campo: ciclo académico (1-10)
+  ciclo INTEGER, -- Ciclo académico (1-10)
+  tipo_solicitante VARCHAR(50) DEFAULT 'coordinador', -- 'coordinador' | 'estudiante'
+  area_coordinacion VARCHAR(255), -- Ej: 'Área de Química Orgánica', 'Área de Química Analítica'
+  cursos_asignados VARCHAR(255), -- Ej: 'Química Orgánica I, Química Orgánica II'
   estado VARCHAR(50) DEFAULT 'activo', -- activo, inactivo
   created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
@@ -88,12 +91,16 @@ CREATE TABLE IF NOT EXISTS investigacion_equipos (
   UNIQUE(investigacion_id, equipo_id)
 );
 
--- 8. Tabla de Préstamos (Histórico)
+-- 8. Tabla de Préstamos y Programación de Consumo por Curso (Histórico)
 CREATE TABLE IF NOT EXISTS prestamos (
   id BIGSERIAL PRIMARY KEY,
   equipo_id BIGINT NOT NULL REFERENCES equipos(id) ON DELETE CASCADE,
   estudiante_id BIGINT NOT NULL REFERENCES estudiantes(id) ON DELETE CASCADE,
   cantidad_prestada INTEGER DEFAULT 1,
+  tipo_movimiento VARCHAR(50) DEFAULT 'consumo_curso', -- 'consumo_curso' | 'prestamo'
+  curso_asignatura VARCHAR(255), -- Curso para el cual el coordinador solicita los materiales/reactivos
+  area_academica VARCHAR(255), -- Área académica coordinada
+  periodo_mes VARCHAR(20), -- Mes de ejecución YYYY-MM (se reporta al mes siguiente)
   fecha_prestamo TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   fecha_devolucion TIMESTAMP,
   observaciones TEXT,

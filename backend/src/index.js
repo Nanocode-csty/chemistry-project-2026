@@ -72,6 +72,32 @@ const ensureDatabaseSchema = async () => {
       ALTER TABLE equipos ADD COLUMN IF NOT EXISTS concentracion VARCHAR(100);
       ALTER TABLE equipos ADD COLUMN IF NOT EXISTS fecha_vencimiento DATE;
       ALTER TABLE prestamos ADD COLUMN IF NOT EXISTS cantidad_prestada INTEGER DEFAULT 1;
+      ALTER TABLE prestamos ADD COLUMN IF NOT EXISTS tipo_movimiento VARCHAR(50) DEFAULT 'consumo_curso';
+      ALTER TABLE prestamos ADD COLUMN IF NOT EXISTS curso_asignatura VARCHAR(255);
+      ALTER TABLE prestamos ADD COLUMN IF NOT EXISTS area_academica VARCHAR(255);
+      ALTER TABLE prestamos ADD COLUMN IF NOT EXISTS periodo_mes VARCHAR(20);
+      ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS tipo_solicitante VARCHAR(50) DEFAULT 'coordinador';
+      ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS area_coordinacion VARCHAR(255);
+      ALTER TABLE estudiantes ADD COLUMN IF NOT EXISTS cursos_asignados VARCHAR(255);
+    `);
+
+    // Asegurar que existan Coordinadores de Área por defecto para los cursos que se dictan
+    await pool.query(`
+      INSERT INTO estudiantes (nombre, email, matricula, carrera, ciclo, tipo_solicitante, area_coordinacion, cursos_asignados, estado) VALUES 
+      ('Dr. Roberto Salazar Mendoza', 'rsalazar@unitru.edu.pe', 'COORD-ORG1', 'Ingeniería Química', 5, 'coordinador', 'Área de Química Orgánica', 'Química Orgánica I, Química Orgánica II, Síntesis Orgánica', 'activo'),
+      ('Dra. Elena Vargas Quispe', 'evargas@unitru.edu.pe', 'COORD-ANA1', 'Ingeniería Química', 4, 'coordinador', 'Área de Química Analítica e Instrumental', 'Química Analítica Cuantitativa, Análisis Instrumental', 'activo'),
+      ('Mg. Carlos Rojas Huamán', 'crojas@unitru.edu.pe', 'COORD-FIS1', 'Ingeniería Química', 6, 'coordinador', 'Área de Físico-Química y Procesos', 'Físico-Química I, Termodinámica Química, Operaciones Unitarias', 'activo'),
+      ('Dra. Patricia Morales Castro', 'pmorales@unitru.edu.pe', 'COORD-BIO1', 'Ingeniería Química', 7, 'coordinador', 'Área de Bioquímica y Biotecnología', 'Bioquímica General, Microbiología Industrial, Bioprocesos', 'activo')
+      ON CONFLICT (matricula) DO UPDATE SET
+        tipo_solicitante = EXCLUDED.tipo_solicitante,
+        area_coordinacion = EXCLUDED.area_coordinacion,
+        cursos_asignados = EXCLUDED.cursos_asignados;
+
+      UPDATE estudiantes
+      SET tipo_solicitante = 'estudiante',
+          area_coordinacion = COALESCE(area_coordinacion, 'Área de Química General'),
+          cursos_asignados = COALESCE(cursos_asignados, 'Prácticas de Laboratorio')
+      WHERE matricula NOT LIKE 'COORD-%' AND (area_coordinacion IS NULL OR area_coordinacion = '');
     `);
 
     // Actualizar materiales de cristalería y seguridad existentes si aún están por defecto
@@ -103,7 +129,63 @@ const ensureDatabaseSchema = async () => {
         ON CONFLICT (codigo) DO NOTHING;
       `);
     }
-    console.log('Database schema and reagent columns verified');
+    const pstCheck = await pool.query("SELECT COUNT(*) FROM prestamos");
+    if (parseInt(pstCheck.rows[0].count) === 0) {
+      await pool.query(`
+        INSERT INTO prestamos (
+          equipo_id, estudiante_id, cantidad_prestada, tipo_movimiento,
+          curso_asignatura, area_academica, periodo_mes, fecha_prestamo, observaciones
+        )
+        SELECT e.id, est.id, 2, 'consumo_curso',
+               'Química Analítica Cuantitativa', 'Área de Química Analítica e Instrumental',
+               TO_CHAR(NOW() - INTERVAL '1 month', 'YYYY-MM'),
+               NOW() - INTERVAL '1 month',
+               'Dotación programada de Nitrato de Plata para titulaciones de todo el curso'
+        FROM equipos e, estudiantes est
+        WHERE e.codigo = 'REACT-001' AND est.matricula = 'COORD-ANA1'
+        LIMIT 1;
+
+        INSERT INTO prestamos (
+          equipo_id, estudiante_id, cantidad_prestada, tipo_movimiento,
+          curso_asignatura, area_academica, periodo_mes, fecha_prestamo, observaciones
+        )
+        SELECT e.id, est.id, 2, 'consumo_curso',
+               'Química Orgánica I', 'Área de Química Orgánica',
+               TO_CHAR(NOW() - INTERVAL '1 month', 'YYYY-MM'),
+               NOW() - INTERVAL '25 days',
+               'Asignación de Ácido Sulfúrico para prácticas de síntesis del curso'
+        FROM equipos e, estudiantes est
+        WHERE e.codigo = 'REACT-003' AND est.matricula = 'COORD-ORG1'
+        LIMIT 1;
+
+        INSERT INTO prestamos (
+          equipo_id, estudiante_id, cantidad_prestada, tipo_movimiento,
+          curso_asignatura, area_academica, periodo_mes, fecha_prestamo, observaciones
+        )
+        SELECT e.id, est.id, 3, 'consumo_curso',
+               'Química Orgánica II', 'Área de Química Orgánica',
+               TO_CHAR(NOW(), 'YYYY-MM'),
+               NOW() - INTERVAL '3 days',
+               'Requerimiento de Hidróxido de Sodio para desarrollo del curso'
+        FROM equipos e, estudiantes est
+        WHERE e.codigo = 'REACT-005' AND est.matricula = 'COORD-ORG1'
+        LIMIT 1;
+
+        INSERT INTO prestamos (
+          equipo_id, estudiante_id, cantidad_prestada, tipo_movimiento,
+          curso_asignatura, area_academica, periodo_mes, fecha_prestamo, observaciones
+        )
+        SELECT e.id, est.id, 1, 'consumo_curso',
+               'Bioquímica General', 'Área de Bioquímica y Biotecnología',
+               TO_CHAR(NOW(), 'YYYY-MM'),
+               NOW() - INTERVAL '2 days',
+               'Dotación de Etanol Absoluto para prácticas de extracción bioquímica'
+        FROM equipos e, estudiantes est
+        WHERE e.codigo = 'REACT-007' AND est.matricula = 'COORD-BIO1'
+        LIMIT 1;
+      `);
+    }
+    console.log('Database schema, coordinators and reagent columns verified');
   } catch (err) {
     console.error('Schema verification warning:', err.message);
   }
@@ -231,10 +313,13 @@ app.delete('/api/categorias/:id', async (req, res) => {
   }
 });
 
-// 3. Estudiantes
+// 3. Coordinadores de Área y Estudiantes
 app.get('/api/estudiantes', async (req, res) => {
   try {
-    const result = await pool.query('SELECT * FROM estudiantes ORDER BY nombre ASC');
+    const result = await pool.query(`
+      SELECT * FROM estudiantes
+      ORDER BY CASE WHEN tipo_solicitante = 'coordinador' THEN 0 ELSE 1 END, nombre ASC
+    `);
     res.json(result.rows);
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -242,16 +327,34 @@ app.get('/api/estudiantes', async (req, res) => {
 });
 
 app.post('/api/estudiantes', async (req, res) => {
-  const { nombre, email, matricula, ciclo } = req.body;
+  const {
+    nombre,
+    email,
+    matricula,
+    ciclo,
+    tipo_solicitante = 'coordinador',
+    area_coordinacion = null,
+    cursos_asignados = null,
+  } = req.body;
   try {
     const result = await pool.query(
-      'INSERT INTO estudiantes (nombre, email, matricula, ciclo) VALUES ($1, $2, $3, $4) RETURNING *',
-      [nombre, email, matricula, ciclo]
+      `INSERT INTO estudiantes (
+        nombre, email, matricula, ciclo, tipo_solicitante, area_coordinacion, cursos_asignados
+      ) VALUES ($1, $2, $3, $4, $5, $6, $7) RETURNING *`,
+      [
+        nombre,
+        email,
+        matricula,
+        ciclo || null,
+        tipo_solicitante || 'coordinador',
+        area_coordinacion || null,
+        cursos_asignados || null,
+      ]
     );
     res.status(201).json(result.rows[0]);
   } catch (err) {
     if (err.code === '23505') {
-      return res.status(400).json({ error: 'Ya existe un estudiante con esa matrícula' });
+      return res.status(400).json({ error: 'Ya existe un registro con ese código o matrícula' });
     }
     res.status(500).json({ error: err.message });
   }
@@ -259,11 +362,36 @@ app.post('/api/estudiantes', async (req, res) => {
 
 app.put('/api/estudiantes/:id', async (req, res) => {
   const { id } = req.params;
-  const { nombre, email, matricula, ciclo } = req.body;
+  const {
+    nombre,
+    email,
+    matricula,
+    ciclo,
+    tipo_solicitante,
+    area_coordinacion,
+    cursos_asignados,
+  } = req.body;
   try {
     const result = await pool.query(
-      'UPDATE estudiantes SET nombre = $1, email = $2, matricula = $3, ciclo = $4 WHERE id = $5 RETURNING *',
-      [nombre, email, matricula, ciclo, id]
+      `UPDATE estudiantes SET
+        nombre = $1,
+        email = $2,
+        matricula = $3,
+        ciclo = $4,
+        tipo_solicitante = COALESCE($5, tipo_solicitante, 'coordinador'),
+        area_coordinacion = $6,
+        cursos_asignados = $7
+      WHERE id = $8 RETURNING *`,
+      [
+        nombre,
+        email,
+        matricula,
+        ciclo || null,
+        tipo_solicitante || null,
+        area_coordinacion || null,
+        cursos_asignados || null,
+        id,
+      ]
     );
     res.json(result.rows[0]);
   } catch (err) {
@@ -474,7 +602,7 @@ app.delete('/api/equipos/:id', async (req, res) => {
   }
 });
 
-// 5. Préstamos
+// 5. Préstamos y Programación de Consumo por Curso
 app.get('/api/prestamos', async (req, res) => {
   try {
     const result = await pool.query(`
@@ -482,7 +610,8 @@ app.get('/api/prestamos', async (req, res) => {
              e.nombre as equipo_nombre, e.codigo as equipo_codigo, e.ambiente_id, e.categoria_id,
              e.tipo_item, e.presentacion, e.capacidad, e.unidad_medida, e.formula_quimica, e.concentracion,
              a.nombre as ambiente_nombre,
-             est.nombre as estudiante_nombre, est.matricula as estudiante_matricula, est.ciclo as estudiante_ciclo, est.email as estudiante_email
+             est.nombre as estudiante_nombre, est.matricula as estudiante_matricula, est.ciclo as estudiante_ciclo, est.email as estudiante_email,
+             est.tipo_solicitante, est.area_coordinacion, est.cursos_asignados
       FROM prestamos p
       LEFT JOIN equipos e ON p.equipo_id = e.id
       LEFT JOIN ambientes a ON e.ambiente_id = a.id
@@ -508,7 +637,10 @@ app.get('/api/prestamos', async (req, res) => {
         nombre: row.estudiante_nombre,
         matricula: row.estudiante_matricula,
         ciclo: row.estudiante_ciclo,
-        email: row.estudiante_email
+        email: row.estudiante_email,
+        tipo_solicitante: row.tipo_solicitante || 'coordinador',
+        area_coordinacion: row.area_coordinacion,
+        cursos_asignados: row.cursos_asignados
       }
     }));
     res.json(formattedRows);
@@ -518,7 +650,17 @@ app.get('/api/prestamos', async (req, res) => {
 });
 
 app.post('/api/prestamos', async (req, res) => {
-  const { equipo_id, equipo_ids, items, estudiante_id, observaciones } = req.body;
+  const {
+    equipo_id,
+    equipo_ids,
+    items,
+    estudiante_id,
+    observaciones,
+    tipo_movimiento = 'consumo_curso',
+    curso_asignatura = null,
+    area_academica = null,
+    periodo_mes = null,
+  } = req.body;
 
   let loanItems = [];
   if (Array.isArray(items) && items.length > 0) {
@@ -536,8 +678,10 @@ app.post('/api/prestamos', async (req, res) => {
   }
 
   if (loanItems.length === 0 || !estudiante_id) {
-    return res.status(400).json({ error: 'Debes indicar al menos un equipo y un estudiante' });
+    return res.status(400).json({ error: 'Debes indicar al menos un material/equipo y un coordinador/solicitante' });
   }
+
+  const defaultMes = new Date().toISOString().slice(0, 7); // YYYY-MM
 
   let client;
   try {
@@ -555,8 +699,20 @@ app.post('/api/prestamos', async (req, res) => {
       const cantPrestar = Math.min(item.cantidad_prestada, stockActual > 0 ? stockActual : 1);
 
       const prestamoRes = await client.query(
-        'INSERT INTO prestamos (equipo_id, estudiante_id, cantidad_prestada, observaciones) VALUES ($1, $2, $3, $4) RETURNING *',
-        [item.equipo_id, estudiante_id, cantPrestar, observaciones || null]
+        `INSERT INTO prestamos (
+          equipo_id, estudiante_id, cantidad_prestada,
+          tipo_movimiento, curso_asignatura, area_academica, periodo_mes, observaciones
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8) RETURNING *`,
+        [
+          item.equipo_id,
+          estudiante_id,
+          cantPrestar,
+          tipo_movimiento || 'consumo_curso',
+          curso_asignatura || null,
+          area_academica || null,
+          periodo_mes || defaultMes,
+          observaciones || null,
+        ]
       );
       createdPrestamos.push(prestamoRes.rows[0]);
 

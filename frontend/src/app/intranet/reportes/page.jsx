@@ -80,9 +80,17 @@ export default function ReportesPage() {
   const [filtroAmbienteInventario, setFiltroAmbienteInventario] = useState('todos');
   const [filtroCategoriaInventario, setFiltroCategoriaInventario] = useState('todos');
 
-  // Filtros de Préstamos
+  // Filtros de Préstamos y Reporte Mensual de Consumo
   const [filtroEstado, setFiltroEstado] = useState('todos');
   const [filtroAmbiente, setFiltroAmbiente] = useState('todos');
+  const [filtroAreaConsumo, setFiltroAreaConsumo] = useState('todas');
+  const [filtroCoordinadorConsumo, setFiltroCoordinadorConsumo] = useState('todos');
+  const [mesConsumoFiltro, setMesConsumoFiltro] = useState(() => {
+    const d = new Date();
+    d.setMonth(d.getMonth() - 1);
+    return d.toISOString().slice(0, 7); // Por defecto el mes anterior (que se reporta este mes)
+  });
+  const [verTodosMesesConsumo, setVerTodosMesesConsumo] = useState(true);
   const [fechaInicio, setFechaInicio] = useState('');
   const [fechaFin, setFechaFin] = useState('');
 
@@ -168,7 +176,37 @@ export default function ReportesPage() {
 
   const consolidadoFiltrado = consolidateInventoryTotals(inventarioFiltrado);
 
-  // Filtrado de Préstamos
+  const formatMesReporteInfo = (periodoMesStr, fechaPrestamo) => {
+    const base =
+      periodoMesStr ||
+      (fechaPrestamo ? new Date(fechaPrestamo).toISOString().slice(0, 7) : '');
+    if (!base || !base.includes('-')) {
+      return { codigoMes: '', mesConsumo: 'General', mesReporte: 'Mes Siguiente' };
+    }
+    const [y, m] = base.split('-').map(Number);
+    const nombresMes = [
+      'Enero',
+      'Febrero',
+      'Marzo',
+      'Abril',
+      'Mayo',
+      'Junio',
+      'Julio',
+      'Agosto',
+      'Septiembre',
+      'Octubre',
+      'Noviembre',
+      'Diciembre',
+    ];
+    const nextDate = new Date(y, m, 1);
+    return {
+      codigoMes: base,
+      mesConsumo: `${nombresMes[m - 1] || m} ${y}`,
+      mesReporte: `${nombresMes[nextDate.getMonth()]} ${nextDate.getFullYear()}`,
+    };
+  };
+
+  // Filtrado de Préstamos y Consumos por Curso
   const prestamosFiltrados = prestamos.filter((p) => {
     let matches = true;
 
@@ -177,6 +215,22 @@ export default function ReportesPage() {
 
     if (filtroAmbiente !== 'todos' && p.equipo?.ambiente_id) {
       matches = matches && String(p.equipo.ambiente_id) === String(filtroAmbiente);
+    }
+
+    const areaRow = p.area_academica || p.estudiante?.area_coordinacion || '';
+    if (filtroAreaConsumo !== 'todas') {
+      matches = matches && areaRow === filtroAreaConsumo;
+    }
+
+    if (filtroCoordinadorConsumo !== 'todos') {
+      matches = matches && String(p.estudiante_id) === String(filtroCoordinadorConsumo);
+    }
+
+    if (!verTodosMesesConsumo && mesConsumoFiltro) {
+      const pMes =
+        p.periodo_mes ||
+        (p.fecha_prestamo ? new Date(p.fecha_prestamo).toISOString().slice(0, 7) : '');
+      matches = matches && pMes === mesConsumoFiltro;
     }
 
     if (fechaInicio) {
@@ -354,28 +408,71 @@ export default function ReportesPage() {
     Ubicaciones: c.ambientes,
   }));
 
-  const datosExportarPrestamos = prestamosFiltrados.map((p) => ({
-    Material_Equipo: p.equipo?.nombre || 'N/A',
-    Código: p.equipo?.codigo || 'N/A',
-    Presentación_Medida: p.equipo?.unidad_medida
-      ? `${p.equipo.presentacion || 'Unidad'} ${p.equipo.capacidad || 1} ${p.equipo.unidad_medida}`
-      : 'Unidad',
-    Estudiante: p.estudiante?.nombre || 'N/A',
-    Matrícula: p.estudiante?.matricula || 'N/A',
-    'Fecha Préstamo': new Date(p.fecha_prestamo).toLocaleDateString('es-PE'),
-    'Fecha Devolución': p.fecha_devolucion
-      ? new Date(p.fecha_devolucion).toLocaleDateString('es-PE')
-      : 'Pendiente',
-    Días: p.fecha_devolucion
-      ? Math.max(
-          0,
-          Math.floor(
-            (new Date(p.fecha_devolucion) - new Date(p.fecha_prestamo)) /
-              (1000 * 60 * 60 * 24)
-          )
-        )
-      : calcularDias(p.fecha_prestamo),
-    Estado: p.fecha_devolucion ? 'Devuelto' : 'Activo',
+  const datosExportarPrestamos = prestamosFiltrados.map((p) => {
+    const cantPrestada = parseInt(p.cantidad_prestada) || 1;
+    const info = p.equipo
+      ? getItemTotalInfo({ ...p.equipo, cantidad: cantPrestada })
+      : null;
+    const mesInfo = formatMesReporteInfo(p.periodo_mes, p.fecha_prestamo);
+    return {
+      'Mes de Consumo': mesInfo.mesConsumo,
+      'Se Reporta En (Mes Siguiente)': mesInfo.mesReporte,
+      'QUIÉN (Coordinador / Solicitante)': p.estudiante?.nombre || 'N/A',
+      'Código Coordinador': p.estudiante?.matricula || 'N/A',
+      'Área Académica': p.area_academica || p.estudiante?.area_coordinacion || 'General',
+      'Curso / Asignatura': p.curso_asignatura || 'Prácticas de Laboratorio',
+      'QUÉ (Reactivo / Material / Equipo)': p.equipo?.nombre || 'N/A',
+      'Código Ítem': p.equipo?.codigo || 'N/A',
+      'CUÁNTO (Cantidad Total Neta)': info ? info.fullTotalLabel : `${cantPrestada} und`,
+      'Envases / Unidades Retiradas': info ? info.envasesLabel : cantPrestada,
+      'Fecha Registro': new Date(p.fecha_prestamo).toLocaleDateString('es-PE'),
+      Estado: p.fecha_devolucion ? 'Cerrado / Devuelto' : 'Dotación Activa',
+      Observaciones: p.observaciones || '-',
+    };
+  });
+
+  // Consolidado por Coordinador y Curso (Quién, Qué y Cuánto acumulado para todo el curso)
+  const resumenConsumoPorCursoMap = new Map();
+  for (const p of prestamosFiltrados) {
+    const coord = p.estudiante?.nombre || 'Sin Coordinador';
+    const area = p.area_academica || p.estudiante?.area_coordinacion || 'Área General';
+    const curso = p.curso_asignatura || 'Prácticas de Laboratorio';
+    const mesInfo = formatMesReporteInfo(p.periodo_mes, p.fecha_prestamo);
+    const key = `${coord}::${curso}::${mesInfo.codigoMes}`;
+
+    if (!resumenConsumoPorCursoMap.has(key)) {
+      resumenConsumoPorCursoMap.set(key, {
+        key,
+        coordinador: coord,
+        matricula: p.estudiante?.matricula || '',
+        area,
+        curso,
+        mesConsumo: mesInfo.mesConsumo,
+        mesReporte: mesInfo.mesReporte,
+        itemsDetalle: [],
+        totalRegistros: 0,
+      });
+    }
+    const group = resumenConsumoPorCursoMap.get(key);
+    const cantPrestada = parseInt(p.cantidad_prestada) || 1;
+    const info = p.equipo
+      ? getItemTotalInfo({ ...p.equipo, cantidad: cantPrestada })
+      : null;
+    group.totalRegistros += 1;
+    group.itemsDetalle.push(
+      `${p.equipo?.nombre || 'Ítem'}: ${info ? info.fullTotalLabel : `${cantPrestada} und`}`
+    );
+  }
+  const resumenConsumoPorCurso = Array.from(resumenConsumoPorCursoMap.values());
+
+  const datosExportarConsumoPorCurso = resumenConsumoPorCurso.map((r) => ({
+    'Mes de Consumo': r.mesConsumo,
+    'Mes de Reporte Oficial': r.mesReporte,
+    'Coordinador de Área (QUIÉN)': `${r.coordinador} (${r.matricula})`,
+    'Área Académica': r.area,
+    'Curso / Asignatura': r.curso,
+    'N° Insumos Solicitados': r.totalRegistros,
+    'QUÉ Y CUÁNTO SE TOMÓ PARA EL CURSO': r.itemsDetalle.join(' | '),
   }));
 
   const datosExportarInvestigaciones = investigacionesFiltradas.map((inv) => ({
@@ -396,12 +493,16 @@ export default function ReportesPage() {
   }));
 
   const datosExportarEstudiantes = estudiantes.map((e) => ({
+    Rol:
+      (e.tipo_solicitante || 'coordinador') === 'coordinador'
+        ? 'COORDINADOR DE ÁREA'
+        : 'ESTUDIANTE / TESISTA',
     Nombre: e.nombre,
-    Matrícula: e.matricula,
+    Código: e.matricula,
+    'Área Académica': e.area_coordinacion || 'General',
+    'Cursos a Cargo': e.cursos_asignados || 'N/A',
     Email: e.email || 'N/A',
     Ciclo: e.ciclo ? `Ciclo ${e.ciclo}` : 'N/A',
-    Carrera: e.carrera || 'Ingeniería Química',
-    Estado: e.estado || 'activo',
   }));
 
   const totalReactivosCount = equipos.filter((e) => e.tipo_item === 'reactivo').length;
@@ -523,12 +624,12 @@ export default function ReportesPage() {
           },
           {
             id: 'prestamos',
-            label: '2. PRÉSTAMOS Y OPERACIONES',
+            label: '2. REPORTE DE CONSUMO (QUIÉN / QUÉ / CUÁNTO)',
             icon: Clock,
           },
           {
             id: 'investigaciones',
-            label: '3. INVESTIGACIONES Y ESTUDIANTES',
+            label: '3. INVESTIGACIONES Y COORDINADORES',
             icon: Microscope,
           },
         ].map((tab) => {
@@ -860,104 +961,92 @@ export default function ReportesPage() {
             </div>
           )}
 
-          {/* TAB 2: PRÉSTAMOS Y OPERACIONES */}
+          {/* TAB 2: REPORTE MENSUAL DE CONSUMO (QUIÉN / QUÉ / CUÁNTO) Y PRÉSTAMOS */}
           {activeTab === 'prestamos' && (
             <div className="space-y-8">
-              {/* Top Used Rankings */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <div className="bg-white rounded-lg shadow-premium border border-brand-border p-6">
-                  <h3 className="font-display font-black text-sm text-[#002b45] uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-                    <TrendingUp className="w-5 h-5 text-[#9ABE00]" />
-                    Materiales y Equipos Más Solicitados
-                  </h3>
-                  <div className="space-y-3">
-                    {equiposMasUsados.slice(0, 5).map((equipo, index) => (
-                      <div
-                        key={equipo.id}
-                        className="flex items-center justify-between p-3.5 bg-slate-50 rounded-sm border border-slate-100"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-[#002b45] text-[#9ABE00] rounded-sm flex items-center justify-center font-display font-black text-xs">
-                            #{index + 1}
-                          </span>
-                          <div>
-                            <p className="font-bold text-[#002b45] text-sm uppercase">
-                              {equipo.nombre}
-                            </p>
-                            <p className="text-[10px] font-black text-[#9ABE00] uppercase tracking-widest">
-                              {equipo.codigo}
-                            </p>
-                          </div>
-                        </div>
-                        <span className="text-2xl font-display font-black text-[#002b45]">
-                          {equipo.count}
-                        </span>
-                      </div>
-                    ))}
-                    {equiposMasUsados.length === 0 && (
-                      <p className="text-slate-400 text-center py-8 text-xs font-bold uppercase">
-                        No hay datos de préstamos registrados
-                      </p>
-                    )}
+              {/* Banner Informativo de Ciclo Mensual de Reporte */}
+              <div className="bg-[#002b45] text-white p-6 rounded-lg shadow-premium border-l-4 border-[#9ABE00] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-2.5 py-0.5 bg-[#9ABE00] text-[#002b45] font-display font-black text-[10px] rounded-sm uppercase tracking-wider">
+                      REGLA DE CONTROL MENSUAL
+                    </span>
+                    <h3 className="font-display font-black text-base uppercase tracking-tight">
+                      Reporte de Consumo por Coordinador de Área y Curso (Quién • Qué • Cuánto)
+                    </h3>
                   </div>
+                  <p className="text-xs text-white/80">
+                    Todo consumo o dotación solicitada por los Coordinadores de Área para el desarrollo de sus cursos durante un mes <strong>se consolida y reporta oficialmente al mes siguiente</strong>.
+                  </p>
                 </div>
 
-                <div className="bg-white rounded-lg shadow-premium border border-brand-border p-6">
-                  <h3 className="font-display font-black text-sm text-[#002b45] uppercase tracking-wider mb-4 flex items-center gap-2 border-b border-slate-100 pb-3">
-                    <Building2 className="w-5 h-5 text-[#9ABE00]" />
-                    Laboratorios con Mayor Movimiento
-                  </h3>
-                  <div className="space-y-3">
-                    {ambientesMasPrestamos.slice(0, 5).map((ambiente, index) => (
-                      <div
-                        key={ambiente.nombre}
-                        className="flex items-center justify-between p-3.5 bg-slate-50 rounded-sm border border-slate-100"
-                      >
-                        <div className="flex items-center gap-3">
-                          <span className="w-8 h-8 bg-brand-teal text-white rounded-sm flex items-center justify-center font-display font-black text-xs">
-                            #{index + 1}
-                          </span>
-                          <p className="font-bold text-[#002b45] text-sm uppercase">
-                            {ambiente.nombre}
-                          </p>
-                        </div>
-                        <span className="text-2xl font-display font-black text-brand-teal">
-                          {ambiente.count}
-                        </span>
-                      </div>
-                    ))}
-                    {ambientesMasPrestamos.length === 0 && (
-                      <p className="text-slate-400 text-center py-8 text-xs font-bold uppercase">
-                        No hay datos de préstamos por ambiente
-                      </p>
-                    )}
-                  </div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => setVerTodosMesesConsumo(false)}
+                    className={`px-3.5 py-2 rounded-sm font-display font-black text-[10px] uppercase tracking-wider transition-all ${
+                      !verTodosMesesConsumo
+                        ? 'bg-[#9ABE00] text-[#002b45] shadow-md'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    FILTRAR MES A REPORTAR ({formatMesReporteInfo(mesConsumoFiltro).mesConsumo})
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setVerTodosMesesConsumo(true)}
+                    className={`px-3.5 py-2 rounded-sm font-display font-black text-[10px] uppercase tracking-wider transition-all ${
+                      verTodosMesesConsumo
+                        ? 'bg-[#9ABE00] text-[#002b45] shadow-md'
+                        : 'bg-white/10 text-white hover:bg-white/20'
+                    }`}
+                  >
+                    VER TODOS LOS PERIODOS
+                  </button>
                 </div>
               </div>
 
-              {/* Filters for Loans */}
+              {/* Filters for Consumption & Loans */}
               <div className="bg-white p-6 rounded-lg shadow-sm border border-brand-border flex items-center justify-between gap-4 flex-wrap">
-                <div className="flex items-center gap-4 flex-wrap">
+                <div className="flex items-center gap-3 flex-wrap">
                   <div className="flex items-center gap-2 text-xs font-black text-[#002b45] uppercase tracking-widest">
-                    <Filter className="w-4 h-4 text-[#9ABE00]" /> FILTROS:
+                    <Filter className="w-4 h-4 text-[#9ABE00]" /> FILTROS DE CONSUMO:
+                  </div>
+
+                  <div className="flex items-center gap-1.5 bg-slate-50 px-3 py-1.5 border border-brand-border rounded-sm">
+                    <span className="text-[10px] font-black text-[#002b45] uppercase">
+                      Mes Consumo:
+                    </span>
+                    <input
+                      type="month"
+                      value={mesConsumoFiltro}
+                      onChange={(e) => {
+                        setMesConsumoFiltro(e.target.value);
+                        setVerTodosMesesConsumo(false);
+                      }}
+                      className="bg-transparent text-xs font-bold text-[#002b45] focus:outline-none"
+                    />
                   </div>
 
                   <select
-                    value={filtroEstado}
-                    onChange={(e) => setFiltroEstado(e.target.value)}
-                    className="px-4 py-2.5 bg-slate-50 border border-brand-border rounded-sm text-xs font-bold text-[#002b45] uppercase"
+                    value={filtroCoordinadorConsumo}
+                    onChange={(e) => setFiltroCoordinadorConsumo(e.target.value)}
+                    className="px-3 py-2.5 bg-slate-50 border border-brand-border rounded-sm text-xs font-bold text-[#002b45] uppercase"
                   >
-                    <option value="todos">TODOS LOS PRÉSTAMOS</option>
-                    <option value="activos">ACTIVOS (PENDIENTES)</option>
-                    <option value="devueltos">DEVUELTOS</option>
+                    <option value="todos">TODOS LOS COORDINADORES (QUIÉN)</option>
+                    {estudiantes.map((est) => (
+                      <option key={est.id} value={est.id}>
+                        {est.nombre.toUpperCase()} ({est.matricula})
+                      </option>
+                    ))}
                   </select>
 
                   <select
                     value={filtroAmbiente}
                     onChange={(e) => setFiltroAmbiente(e.target.value)}
-                    className="px-4 py-2.5 bg-slate-50 border border-brand-border rounded-sm text-xs font-bold text-[#002b45] uppercase"
+                    className="px-3 py-2.5 bg-slate-50 border border-brand-border rounded-sm text-xs font-bold text-[#002b45] uppercase"
                   >
-                    <option value="todos">TODOS LOS AMBIENTES</option>
+                    <option value="todos">TODOS LOS LABORATORIOS</option>
                     {ambientes.map((a) => (
                       <option key={a.id} value={a.id}>
                         {a.nombre.toUpperCase()}
@@ -965,26 +1054,21 @@ export default function ReportesPage() {
                     ))}
                   </select>
 
-                  <div className="flex items-center gap-2">
-                    <Calendar className="w-4 h-4 text-[#002b45]" />
-                    <input
-                      type="date"
-                      value={fechaInicio}
-                      onChange={(e) => setFechaInicio(e.target.value)}
-                      className="px-3 py-2 bg-slate-50 border border-brand-border rounded-sm text-xs font-bold text-[#002b45]"
-                    />
-                    <span className="text-xs font-bold text-slate-400">A</span>
-                    <input
-                      type="date"
-                      value={fechaFin}
-                      onChange={(e) => setFechaFin(e.target.value)}
-                      className="px-3 py-2 bg-slate-50 border border-brand-border rounded-sm text-xs font-bold text-[#002b45]"
-                    />
-                  </div>
+                  <select
+                    value={filtroEstado}
+                    onChange={(e) => setFiltroEstado(e.target.value)}
+                    className="px-3 py-2.5 bg-slate-50 border border-brand-border rounded-sm text-xs font-bold text-[#002b45] uppercase"
+                  >
+                    <option value="todos">TODOS LOS ESTADOS</option>
+                    <option value="activos">VIGENTES / EN CURSO</option>
+                    <option value="devueltos">CERRADOS / DEVUELTOS</option>
+                  </select>
                 </div>
 
                 {(filtroEstado !== 'todos' ||
                   filtroAmbiente !== 'todos' ||
+                  filtroCoordinadorConsumo !== 'todos' ||
+                  !verTodosMesesConsumo ||
                   fechaInicio ||
                   fechaFin) && (
                   <Button
@@ -992,6 +1076,8 @@ export default function ReportesPage() {
                     onClick={() => {
                       setFiltroEstado('todos');
                       setFiltroAmbiente('todos');
+                      setFiltroCoordinadorConsumo('todos');
+                      setVerTodosMesesConsumo(true);
                       setFechaInicio('');
                       setFechaFin('');
                     }}
@@ -1002,27 +1088,38 @@ export default function ReportesPage() {
                 )}
               </div>
 
-              {/* Loans Table */}
+              {/* Consolidated Consumption by Coordinator & Course Table */}
               <div className="bg-white rounded-lg shadow-premium border border-brand-border overflow-hidden">
                 <div className="p-6 border-b border-brand-border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/60">
                   <div>
-                    <h3 className="font-display font-black text-base text-[#002b45] uppercase tracking-tight">
-                      Historial y Reporte de Préstamos ({prestamosFiltrados.length})
+                    <h3 className="font-display font-black text-base text-[#002b45] uppercase tracking-tight flex items-center gap-2">
+                      <Scale className="w-5 h-5 text-[#9ABE00]" />
+                      Consolidado de Consumo por Coordinador de Área y Curso ({resumenConsumoPorCurso.length})
                     </h3>
                     <p className="text-xs text-slate-500 font-medium mt-0.5">
-                      Control de salidas y devoluciones de materiales, reactivos y equipos
+                      Resumen agrupado de cuánto material y reactivo coordinó cada área para el desarrollo del curso (Se reporta al mes siguiente)
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button
-                      onClick={() => exportarCSV(datosExportarPrestamos, 'prestamos')}
+                      onClick={() =>
+                        exportarCSV(
+                          datosExportarConsumoPorCurso,
+                          'reporte-consumo-cursos'
+                        )
+                      }
                       variant="secondary"
                       className="!py-2.5 !px-4 !text-xs"
                     >
                       <FileText className="w-4 h-4 mr-1.5 inline" /> CSV
                     </Button>
                     <Button
-                      onClick={() => exportarExcel(datosExportarPrestamos, 'prestamos')}
+                      onClick={() =>
+                        exportarExcel(
+                          datosExportarConsumoPorCurso,
+                          'reporte-consumo-cursos'
+                        )
+                      }
                       variant="secondary"
                       className="!py-2.5 !px-4 !text-xs"
                     >
@@ -1031,9 +1128,9 @@ export default function ReportesPage() {
                     <Button
                       onClick={() =>
                         exportarPDF(
-                          datosExportarPrestamos,
-                          'Reporte de Préstamos y Devoluciones',
-                          'prestamos'
+                          datosExportarConsumoPorCurso,
+                          'Reporte Mensual de Consumo por Coordinador y Curso (Quién, Qué y Cuánto)',
+                          'reporte-consumo-cursos'
                         )
                       }
                       variant="primary"
@@ -1047,71 +1144,196 @@ export default function ReportesPage() {
                 <Table
                   columns={[
                     {
-                      key: 'equipo',
-                      label: 'Material / Equipo',
+                      key: 'periodo',
+                      label: 'Mes Consumo / Mes Reporte',
                       render: (row) => (
                         <div className="flex flex-col">
-                          <span className="font-bold text-[#002b45] uppercase">
+                          <span className="font-bold text-[#002b45] text-xs uppercase">
+                            Consumo: {row.mesConsumo}
+                          </span>
+                          <span className="text-[10px] font-black text-[#9ABE00] uppercase tracking-wider">
+                            Reporte: {row.mesReporte}
+                          </span>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'quien',
+                      label: 'QUIÉN (Coordinador y Área)',
+                      render: (row) => (
+                        <div className="flex flex-col">
+                          <span className="font-bold text-[#002b45] text-xs uppercase">
+                            {row.coordinador}
+                          </span>
+                          <span className="text-[10px] font-bold text-brand-teal uppercase">
+                            {row.area} ({row.matricula})
+                          </span>
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'curso',
+                      label: 'Curso / Asignatura',
+                      render: (row) => (
+                        <Badge color="navy">{row.curso.toUpperCase()}</Badge>
+                      ),
+                    },
+                    {
+                      key: 'que_cuanto',
+                      label: 'QUÉ Y CUÁNTO SE TOMÓ PARA EL CURSO',
+                      render: (row) => (
+                        <div className="flex flex-wrap gap-1.5">
+                          {row.itemsDetalle.map((det, idx) => (
+                            <span
+                              key={idx}
+                              className="px-2.5 py-1 bg-slate-100 border border-slate-200 text-[#002b45] font-display font-black text-[11px] rounded-sm"
+                            >
+                              {det}
+                            </span>
+                          ))}
+                        </div>
+                      ),
+                    },
+                  ]}
+                  data={resumenConsumoPorCurso}
+                />
+              </div>
+
+              {/* Detailed Consumption & Loans Table (Quién, Qué, Cuánto) */}
+              <div className="bg-white rounded-lg shadow-premium border border-brand-border overflow-hidden">
+                <div className="p-6 border-b border-brand-border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/60">
+                  <div>
+                    <h3 className="font-display font-black text-base text-[#002b45] uppercase tracking-tight">
+                      Detalle Individual de Consumo y Préstamos: Quién • Qué • Cuánto ({prestamosFiltrados.length})
+                    </h3>
+                    <p className="text-xs text-slate-500 font-medium mt-0.5">
+                      Registro detallado de cada reactivo, material o equipo retirado por coordinador y asignatura
+                    </p>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      onClick={() =>
+                        exportarCSV(
+                          datosExportarPrestamos,
+                          'detalle-quien-que-cuanto'
+                        )
+                      }
+                      variant="secondary"
+                      className="!py-2.5 !px-4 !text-xs"
+                    >
+                      <FileText className="w-4 h-4 mr-1.5 inline" /> CSV
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        exportarExcel(
+                          datosExportarPrestamos,
+                          'detalle-quien-que-cuanto'
+                        )
+                      }
+                      variant="secondary"
+                      className="!py-2.5 !px-4 !text-xs"
+                    >
+                      <FileText className="w-4 h-4 mr-1.5 inline" /> EXCEL
+                    </Button>
+                    <Button
+                      onClick={() =>
+                        exportarPDF(
+                          datosExportarPrestamos,
+                          'Reporte Detallado de Consumo: Quién, Qué y Cuánto',
+                          'detalle-quien-que-cuanto'
+                        )
+                      }
+                      variant="primary"
+                      className="!py-2.5 !px-4 !text-xs"
+                    >
+                      <FileText className="w-4 h-4 mr-1.5 inline" /> PDF
+                    </Button>
+                  </div>
+                </div>
+
+                <Table
+                  columns={[
+                    {
+                      key: 'periodo',
+                      label: 'Mes Consumo / Reporte',
+                      render: (row) => {
+                        const mesInfo = formatMesReporteInfo(
+                          row.periodo_mes,
+                          row.fecha_prestamo
+                        );
+                        return (
+                          <div className="flex flex-col text-xs">
+                            <span className="font-bold text-[#002b45]">
+                              {mesInfo.mesConsumo}
+                            </span>
+                            <span className="text-[10px] font-black text-[#9ABE00] uppercase">
+                              Reportar en: {mesInfo.mesReporte}
+                            </span>
+                          </div>
+                        );
+                      },
+                    },
+                    {
+                      key: 'estudiante',
+                      label: 'QUIÉN (Coordinador / Área / Curso)',
+                      render: (row) => (
+                        <div className="flex flex-col">
+                          <span className="font-bold text-[#002b45] text-xs uppercase">
+                            {row.estudiante?.nombre || 'N/A'}
+                          </span>
+                          <span className="text-[10px] font-bold text-brand-teal uppercase">
+                            {row.area_academica ||
+                              row.estudiante?.area_coordinacion ||
+                              'Área General'}{' '}
+                            • {row.estudiante?.matricula || ''}
+                          </span>
+                          {row.curso_asignatura && (
+                            <span className="text-[10px] font-black text-slate-600 mt-0.5">
+                              Curso: {row.curso_asignatura}
+                            </span>
+                          )}
+                        </div>
+                      ),
+                    },
+                    {
+                      key: 'equipo',
+                      label: 'QUÉ (Reactivo / Material / Equipo)',
+                      render: (row) => (
+                        <div className="flex flex-col">
+                          <span className="font-bold text-[#002b45] uppercase text-xs">
                             {row.equipo?.nombre || 'N/A'}
                           </span>
                           <span className="text-[10px] font-black text-[#9ABE00] uppercase tracking-widest">
                             {row.equipo?.codigo || 'N/A'}
-                            {row.equipo?.unidad_medida
-                              ? ` • ${row.equipo.presentacion || 'Unidad'} ${row.equipo.capacidad || 1} ${row.equipo.unidad_medida}`
+                            {row.equipo?.ambiente_nombre
+                              ? ` • ${row.equipo.ambiente_nombre}`
                               : ''}
                           </span>
                         </div>
                       ),
                     },
                     {
-                      key: 'estudiante',
-                      label: 'Estudiante / Matrícula',
-                      render: (row) => (
-                        <div className="flex flex-col">
-                          <span className="font-bold text-slate-700">
-                            {row.estudiante?.nombre || 'N/A'}
-                          </span>
-                          <span className="text-[10px] font-mono font-bold text-slate-400">
-                            {row.estudiante?.matricula || 'N/A'}
-                          </span>
-                        </div>
-                      ),
-                    },
-                    {
-                      key: 'fechas',
-                      label: 'Préstamo / Devolución',
-                      render: (row) => (
-                        <div className="flex flex-col text-xs">
-                          <span className="font-bold text-[#002b45]">
-                            Salida: {new Date(row.fecha_prestamo).toLocaleDateString('es-PE')}
-                          </span>
-                          <span className="text-slate-400 font-medium">
-                            Retorno:{' '}
-                            {row.fecha_devolucion
-                              ? new Date(row.fecha_devolucion).toLocaleDateString('es-PE')
-                              : 'Pendiente'}
-                          </span>
-                        </div>
-                      ),
-                    },
-                    {
-                      key: 'dias',
-                      label: 'Duración',
+                      key: 'cuanto',
+                      label: 'CUÁNTO (Cantidad Tomada)',
                       render: (row) => {
-                        const d = row.fecha_devolucion
-                          ? Math.max(
-                              0,
-                              Math.floor(
-                                (new Date(row.fecha_devolucion) -
-                                  new Date(row.fecha_prestamo)) /
-                                  (1000 * 60 * 60 * 24)
-                              )
-                            )
-                          : calcularDias(row.fecha_prestamo);
+                        const cantPrestada = parseInt(row.cantidad_prestada) || 1;
+                        const info = row.equipo
+                          ? getItemTotalInfo({
+                              ...row.equipo,
+                              cantidad: cantPrestada,
+                            })
+                          : null;
                         return (
-                          <span className="font-display font-black text-sm text-[#002b45]">
-                            {d} días
-                          </span>
+                          <div className="flex flex-col">
+                            <span className="px-2.5 py-1 bg-[#002b45] text-[#9ABE00] font-display font-black text-xs rounded-sm w-fit">
+                              {info ? info.fullTotalLabel : `${cantPrestada} und`}
+                            </span>
+                            {info && !info.isSimpleUnit && (
+                              <span className="text-[10px] text-slate-400 font-bold mt-0.5">
+                                {info.envasesLabel} ({info.presentacionLabel})
+                              </span>
+                            )}
+                          </div>
                         );
                       },
                     },
@@ -1120,7 +1342,7 @@ export default function ReportesPage() {
                       label: 'Estado',
                       render: (row) => (
                         <Badge color={row.fecha_devolucion ? 'gray' : 'blue'}>
-                          {row.fecha_devolucion ? 'DEVUELTO' : 'ACTIVO'}
+                          {row.fecha_devolucion ? 'CERRADO' : 'ACTIVO'}
                         </Badge>
                       ),
                     },
@@ -1249,22 +1471,22 @@ export default function ReportesPage() {
                 />
               </div>
 
-              {/* Students Report */}
+              {/* Coordinators & Students Report */}
               <div className="bg-white rounded-lg shadow-premium border border-brand-border overflow-hidden">
                 <div className="p-6 border-b border-brand-border flex flex-col md:flex-row md:items-center justify-between gap-4 bg-slate-50/60">
                   <div>
                     <h3 className="font-display font-black text-base text-[#002b45] uppercase tracking-tight flex items-center gap-2">
                       <Users className="w-5 h-5 text-[#9ABE00]" />
-                      Padrón de Estudiantes Registrados ({estudiantes.length})
+                      Padrón de Coordinadores de Área y Solicitantes ({estudiantes.length})
                     </h3>
                     <p className="text-xs text-slate-500 font-medium mt-0.5">
-                      Comunidad académica habilitada para préstamos e investigaciones
+                      Coordinadores responsables de solicitar insumos para los cursos y comunidad académica
                     </p>
                   </div>
                   <div className="flex flex-wrap gap-2">
                     <Button
                       onClick={() =>
-                        exportarCSV(datosExportarEstudiantes, 'estudiantes')
+                        exportarCSV(datosExportarEstudiantes, 'coordinadores-area')
                       }
                       variant="secondary"
                       className="!py-2.5 !px-4 !text-xs"
@@ -1273,7 +1495,7 @@ export default function ReportesPage() {
                     </Button>
                     <Button
                       onClick={() =>
-                        exportarExcel(datosExportarEstudiantes, 'estudiantes')
+                        exportarExcel(datosExportarEstudiantes, 'coordinadores-area')
                       }
                       variant="secondary"
                       className="!py-2.5 !px-4 !text-xs"
@@ -1284,8 +1506,8 @@ export default function ReportesPage() {
                       onClick={() =>
                         exportarPDF(
                           datosExportarEstudiantes,
-                          'Reporte de Estudiantes Registrados',
-                          'estudiantes'
+                          'Reporte de Coordinadores de Área y Solicitantes',
+                          'coordinadores-area'
                         )
                       }
                       variant="primary"
@@ -1300,16 +1522,23 @@ export default function ReportesPage() {
                   columns={[
                     {
                       key: 'nombre',
-                      label: 'Estudiante',
+                      label: 'Coordinador / Solicitante',
                       render: (row) => (
-                        <span className="font-bold text-[#002b45] uppercase">
-                          {row.nombre}
-                        </span>
+                        <div className="flex flex-col">
+                          <span className="font-bold text-[#002b45] uppercase">
+                            {row.nombre}
+                          </span>
+                          <span className="text-[10px] font-black text-[#9ABE00] uppercase">
+                            {(row.tipo_solicitante || 'coordinador') === 'coordinador'
+                              ? 'COORDINADOR DE ÁREA'
+                              : 'ESTUDIANTE / TESISTA'}
+                          </span>
+                        </div>
                       ),
                     },
                     {
                       key: 'matricula',
-                      label: 'Matrícula',
+                      label: 'Código / ID',
                       render: (row) => (
                         <span className="font-mono font-bold text-xs text-slate-600">
                           {row.matricula}
@@ -1317,21 +1546,21 @@ export default function ReportesPage() {
                       ),
                     },
                     {
-                      key: 'email',
-                      label: 'Correo Institucional',
+                      key: 'area',
+                      label: 'Área Académica',
                       render: (row) => (
-                        <span className="text-xs text-slate-500">
-                          {row.email || 'No registrado'}
+                        <span className="text-xs font-bold text-[#002b45] uppercase">
+                          {row.area_coordinacion || 'Área General'}
                         </span>
                       ),
                     },
                     {
-                      key: 'ciclo',
-                      label: 'Ciclo',
+                      key: 'cursos',
+                      label: 'Cursos a Cargo',
                       render: (row) => (
-                        <Badge color="teal">
-                          {row.ciclo ? `CICLO ${row.ciclo}` : 'N/A'}
-                        </Badge>
+                        <span className="text-xs text-slate-600">
+                          {row.cursos_asignados || 'Prácticas de Laboratorio'}
+                        </span>
                       ),
                     },
                   ]}
