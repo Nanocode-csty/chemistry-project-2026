@@ -46,23 +46,81 @@ app.use(morgan('dev'));
 // Servir archivos estáticos de la carpeta uploads
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-// Database connection with retry logic
-const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@db:5432/escuelaiq';
-console.log('Connecting to database at:', databaseUrl.replace(/:[^:@]+@/, ':****@')); // Hide password in logs
+    const databaseUrl = process.env.DATABASE_URL || 'postgresql://postgres:postgres@db:5432/escuelaiq';
+    let pgPool = process.env.USE_PGLITE === 'true' ? null : new Pool({ connectionString: databaseUrl });
+    let pgliteDb = null;
 
-const pool = new Pool({
-  connectionString: databaseUrl,
-});
+    if (pgPool) {
+      pgPool.on('error', (err) => {
+        console.error('Unexpected error on idle client', err);
+      });
+    }
 
-// Handle pool errors
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-});
+    const initDatabaseAdapter = async () => {
+      if (process.env.USE_PGLITE === 'true' && !pgliteDb) {
+        const { PGlite } = require('@electric-sql/pglite');
+        const dataDir = path.join(__dirname, '../pgdata_local');
+        console.log('⚡ Iniciando base de datos local embebida (PGlite sin Docker) en:', dataDir);
+        pgliteDb = new PGlite(dataDir);
+        await pgliteDb.waitReady;
 
-const ensureDatabaseSchema = async () => {
-  try {
-    await pool.query(`
-      ALTER TABLE equipos ADD COLUMN IF NOT EXISTS tipo_item VARCHAR(50) DEFAULT 'equipo';
+        const tbCheck = await pgliteDb.query("SELECT EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'equipos')");
+        if (!tbCheck.rows[0].exists) {
+          console.log('📦 Inicializando esquema y datos de prueba en PGlite...');
+          const schemaPath = path.join(__dirname, '../../sql/schema.sql');
+          const dataPath = path.join(__dirname, '../../sql/datos_prueba.sql');
+          if (fs.existsSync(schemaPath)) await pgliteDb.exec(fs.readFileSync(schemaPath, 'utf8'));
+          if (fs.existsSync(dataPath)) await pgliteDb.exec(fs.readFileSync(dataPath, 'utf8'));
+        }
+      }
+    };
+
+    const runQuery = async (text, params) => {
+      if (process.env.USE_PGLITE === 'true') {
+        await initDatabaseAdapter();
+        if (params && params.length > 0) return await pgliteDb.query(text, params);
+        const trimmed = text.trim();
+        const statements = trimmed.split(';').map((s) => s.trim()).filter(Boolean);
+        if (statements.length > 1) {
+          await pgliteDb.exec(trimmed);
+          return { rows: [] };
+        }
+        return await pgliteDb.query(text);
+      }
+      return await pgPool.query(text, params);
+    };
+
+    const pool = {
+      query: (text, params, cb) => {
+        if (typeof params === 'function') {
+          cb = params;
+          params = undefined;
+        }
+        const promise = runQuery(text, params);
+        if (typeof cb === 'function') {
+          promise.then((res) => cb(null, res)).catch((err) => cb(err));
+          return;
+        }
+        return promise;
+      },
+      connect: async () => {
+        if (process.env.USE_PGLITE === 'true') {
+          await initDatabaseAdapter();
+          return {
+            query: (text, params) => runQuery(text, params),
+            release: () => {},
+          };
+        }
+        return await pgPool.connect();
+      },
+      on: () => {},
+    };
+
+    const ensureDatabaseSchema = async () => {
+      try {
+        await initDatabaseAdapter();
+        await pool.query(`
+          ALTER TABLE equipos ADD COLUMN IF NOT EXISTS tipo_item VARCHAR(50) DEFAULT 'equipo';
       ALTER TABLE equipos ADD COLUMN IF NOT EXISTS presentacion VARCHAR(50) DEFAULT 'Unidad';
       ALTER TABLE equipos ADD COLUMN IF NOT EXISTS capacidad DECIMAL(12, 2) DEFAULT 1;
       ALTER TABLE equipos ADD COLUMN IF NOT EXISTS unidad_medida VARCHAR(30) DEFAULT 'und';

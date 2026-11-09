@@ -1,7 +1,8 @@
 // Cliente de API para el backend local (Reemplaza a Supabase)
 
 const getBackendUrl = () => {
-  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:4000/api';
+  if (typeof window !== 'undefined') return '/api';
+  return process.env.NEXT_PUBLIC_BACKEND_URL || 'http://127.0.0.1:4001/api';
 };
 
 const backendUrl = getBackendUrl();
@@ -9,7 +10,7 @@ const backendUrl = getBackendUrl();
 // Helper for local backend calls
 const fetchLocal = async (path, options = {}) => {
   try {
-    const url = `${backendUrl}${path}`;
+    const url = `${getBackendUrl()}${path}`;
     
     // Solo acceder a localStorage en el cliente
     let token = null;

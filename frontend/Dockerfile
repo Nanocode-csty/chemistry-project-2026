@@ -9,8 +9,10 @@ RUN npm install && npm cache clean --force
 COPY . . 
 
 # Argumentos de construcción para variables públicas
-ARG NEXT_PUBLIC_BACKEND_URL
+ARG NEXT_PUBLIC_BACKEND_URL=/api
+ARG BACKEND_INTERNAL_URL=http://backend:4000
 ENV NEXT_PUBLIC_BACKEND_URL=$NEXT_PUBLIC_BACKEND_URL
+ENV BACKEND_INTERNAL_URL=$BACKEND_INTERNAL_URL
 
 RUN npm run build 
 

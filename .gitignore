@@ -37,3 +37,9 @@ Thumbs.db
 # Docker
 .docker_data/
 postgres_data/
+
+# Portable Bundles
+LABCAM_WINDOWS_SIN_DOCKER/
+LABCAM_PORTABLE_USB/
+*.zip
+backend/pgdata_local/
