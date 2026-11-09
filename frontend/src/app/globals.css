@@ -1,38 +1,31 @@
-@tailwind base; 
-@tailwind components; 
-@tailwind utilities; 
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@layer base { 
-  html { 
-    scroll-behavior: smooth; 
-  } 
-  body { 
-    @apply text-gray-900; 
-  } 
-} 
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    @apply text-brand-dark bg-white antialiased;
+  }
+  p {
+    @apply text-brand-muted leading-relaxed;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    @apply text-brand-navy font-display;
+  }
+}
 
-@layer components { 
-  .text-gradient { 
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-navy to-brand-teal; 
-  } 
-} 
+@layer components {
+  .text-gradient {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-navy to-brand-teal;
+  }
+}
 
 /* Estilos para intensificar la experiencia visual profesional */
 ::selection {
   @apply bg-brand-navy/10 text-brand-navy;
-}
-
-body {
-  @apply text-brand-dark bg-white antialiased;
-}
-
-/* Mejora de legibilidad corporativa */
-p {
-  @apply text-brand-muted leading-relaxed;
-}
-
-h1, h2, h3, h4, h5, h6 {
-  @apply text-brand-navy font-display;
 }
 
 /* Custom Scrollbar for Sidebar and Main Content */

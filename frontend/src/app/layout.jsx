@@ -3,8 +3,8 @@ import Providers from '@/components/Providers';
 import LayoutWrapper from '@/components/LayoutWrapper';
 
 export const metadata = { 
-  title: 'Escuela de Ingeniería Química - Investigación e Innovación', 
-  description: 'Proyectos, patentes, papers y servicios de la Escuela de Ingeniería Química.', 
+  title: 'LABCAM - Gestión de Laboratorio', 
+  description: 'Sistema de Gestión de Inventario, Reactivos y Consumo - Escuela de Ingeniería Química.', 
 }; 
 
 export default function RootLayout({ children }) { 

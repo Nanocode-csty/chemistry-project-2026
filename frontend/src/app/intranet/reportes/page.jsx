@@ -619,17 +619,17 @@ export default function ReportesPage() {
         {[
           {
             id: 'inventario',
-            label: '1. INVENTARIO, REACTIVOS Y TOTALES',
+            label: '1. INVENTARIO Y TOTALES',
             icon: FlaskConical,
           },
           {
             id: 'prestamos',
-            label: '2. REPORTE DE CONSUMO (QUIÉN / QUÉ / CUÁNTO)',
+            label: '2. CONSUMO MENSUAL',
             icon: Clock,
           },
           {
             id: 'investigaciones',
-            label: '3. INVESTIGACIONES Y COORDINADORES',
+            label: '3. INVESTIGACIONES',
             icon: Microscope,
           },
         ].map((tab) => {
@@ -966,42 +966,42 @@ export default function ReportesPage() {
             <div className="space-y-8">
               {/* Banner Informativo de Ciclo Mensual de Reporte */}
               <div className="bg-[#002b45] text-white p-6 rounded-lg shadow-premium border-l-4 border-[#9ABE00] flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className="px-2.5 py-0.5 bg-[#9ABE00] text-[#002b45] font-display font-black text-[10px] rounded-sm uppercase tracking-wider">
-                      REGLA DE CONTROL MENSUAL
+                <div className="space-y-1.5">
+                  <div className="flex flex-wrap items-center gap-2.5">
+                    <span className="px-2.5 py-0.5 bg-[#9ABE00] text-[#002b45] font-display font-black text-[10px] rounded-sm uppercase tracking-wider shrink-0">
+                      CONTROL MENSUAL
                     </span>
-                    <h3 className="font-display font-black text-base uppercase tracking-tight">
-                      Reporte de Consumo por Coordinador de Área y Curso (Quién • Qué • Cuánto)
+                    <h3 className="!text-white font-display font-black text-base uppercase tracking-tight">
+                      Reporte de Consumo por Coordinador y Curso (Quién • Qué • Cuánto)
                     </h3>
                   </div>
-                  <p className="text-xs text-white/80">
-                    Todo consumo o dotación solicitada por los Coordinadores de Área para el desarrollo de sus cursos durante un mes <strong>se consolida y reporta oficialmente al mes siguiente</strong>.
+                  <p className="!text-slate-200 text-xs">
+                    Todo consumo solicitado por los Coordinadores de Área para sus cursos durante un mes <strong className="text-[#9ABE00] font-bold">se consolida y reporta al mes siguiente</strong>.
                   </p>
                 </div>
 
-                <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2.5 flex-wrap shrink-0">
                   <button
                     type="button"
                     onClick={() => setVerTodosMesesConsumo(false)}
-                    className={`px-3.5 py-2 rounded-sm font-display font-black text-[10px] uppercase tracking-wider transition-all ${
+                    className={`px-4 py-2.5 rounded-sm font-display font-black text-[10px] uppercase tracking-wider transition-all ${
                       !verTodosMesesConsumo
                         ? 'bg-[#9ABE00] text-[#002b45] shadow-md'
-                        : 'bg-white/10 text-white hover:bg-white/20'
+                        : 'bg-white/15 text-white border border-white/25 hover:bg-white/25'
                     }`}
                   >
-                    FILTRAR MES A REPORTAR ({formatMesReporteInfo(mesConsumoFiltro).mesConsumo})
+                    MES A REPORTAR ({formatMesReporteInfo(mesConsumoFiltro).mesConsumo})
                   </button>
                   <button
                     type="button"
                     onClick={() => setVerTodosMesesConsumo(true)}
-                    className={`px-3.5 py-2 rounded-sm font-display font-black text-[10px] uppercase tracking-wider transition-all ${
+                    className={`px-4 py-2.5 rounded-sm font-display font-black text-[10px] uppercase tracking-wider transition-all ${
                       verTodosMesesConsumo
                         ? 'bg-[#9ABE00] text-[#002b45] shadow-md'
-                        : 'bg-white/10 text-white hover:bg-white/20'
+                        : 'bg-white/15 text-white border border-white/25 hover:bg-white/25'
                     }`}
                   >
-                    VER TODOS LOS PERIODOS
+                    TODOS LOS PERIODOS
                   </button>
                 </div>
               </div>

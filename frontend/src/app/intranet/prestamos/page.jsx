@@ -1382,10 +1382,10 @@ export default function PrestamosPage() {
                   <div className="flex items-center gap-2.5">
                     <FileText className="w-5 h-5 text-[#9ABE00]" />
                     <div>
-                      <h3 className="font-display font-black text-sm uppercase tracking-wider text-white">
+                      <h3 className="font-display font-black text-sm uppercase tracking-wider !text-white">
                         Ficha de Consumo por Curso
                       </h3>
-                      <p className="text-[10px] text-[#9ABE00] uppercase tracking-widest font-bold">
+                      <p className="text-[10px] !text-[#9ABE00] uppercase tracking-widest font-bold">
                          Consumo:{' '}
                         {
                           formatMesReporteSiguiente(formData.periodo_mes)
