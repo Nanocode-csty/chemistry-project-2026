@@ -3,8 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/context/AuthContext';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { Lock, AlertCircle, ArrowLeft, Sparkles } from 'lucide-react';
+import { AlertCircle, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 export default function LoginPage() {
@@ -17,7 +16,6 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!loading && user) {
-      console.log('Login Page: User already logged in, redirecting to dashboard');
       router.replace('/intranet/dashboard');
     }
   }, [user, loading, router]);
@@ -29,9 +27,7 @@ export default function LoginPage() {
 
     try {
       const result = await login(email, password);
-      if (result.success) {
-        // La redirección se manejará en el useEffect para mayor seguridad
-      } else {
+      if (!result.success) {
         setError(result.error || 'Error al iniciar sesión');
         setIsLoading(false);
       }
@@ -48,7 +44,9 @@ export default function LoginPage() {
           <div className="inline-block animate-spin">
             <div className="w-12 h-12 border-4 border-brand-border border-t-brand-navy rounded-full"></div>
           </div>
-          <p className="mt-4 text-[#002b45] font-bold animate-pulse tracking-widest uppercase text-xs">Cargando acceso...</p>
+          <p className="mt-4 text-[#002b45] font-bold animate-pulse tracking-widest uppercase text-xs">
+            Cargando INVENTA...
+          </p>
         </div>
       </div>
     );
@@ -59,34 +57,33 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#002b45] via-brand-teal to-[#002b49] px-4 py-12">
       <div className="w-full max-w-lg">
-        {/* Enlace para volver al sitio */}
-        <div className="mb-8">
-          <Link href="/" className="inline-flex items-center gap-3 text-white/80 hover:text-white transition-colors group">
-            <ArrowLeft className="w-5 h-5 group-hover:-translate-x-1 transition-transform" />
-            <span className="font-display font-bold text-sm tracking-widest">VOLVER AL SITIO PRINCIPAL</span>
-          </Link>
-        </div>
-
         {/* Card principal */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ type: 'spring', stiffness: 300, damping: 30 }}
-          className="bg-white rounded-lg shadow-premium p-12"
+          className="bg-white rounded-lg shadow-premium p-12 border-t-4 border-[#9ABE00]"
         >
-          {/* Header */}
+          {/* Header con Logo de roo Soluciones Digitales + INVENTA */}
           <div className="text-center mb-10">
             <div className="flex justify-center mb-6">
-              <motion.div 
-                whileHover={{ scale: 1.05, rotate: -2 }}
-                className="bg-[#002b45] p-4 rounded-sm shadow-2xl relative overflow-hidden"
+              <motion.div
+                whileHover={{ scale: 1.03 }}
+                className="bg-slate-50 px-6 py-4 rounded-sm border border-slate-200/80 shadow-sm flex items-center justify-center"
               >
-                <div className="absolute inset-0 bg-gradient-to-br from-brand-accent/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
-                <Lock className="w-10 h-10 text-white relative z-10" />
+                <img
+                  src="/roo-logo.png"
+                  alt="roo Soluciones Digitales"
+                  className="h-12 md:h-14 w-auto object-contain"
+                />
               </motion.div>
             </div>
-            <h1 className="font-display font-black text-4xl text-[#002b45] tracking-tight mb-2">INTRANET LABCAM</h1>
-            <p className="text-brand-teal font-bold text-sm tracking-[0.3em] uppercase">Sistema de Gestión de Inventarios</p>
+            <h1 className="font-display font-black text-4xl text-[#002b45] tracking-tight mb-2">
+              INVENTA
+            </h1>
+            <p className="text-brand-teal font-bold text-xs tracking-[0.25em] uppercase">
+              Sistema de Gestión de Inventarios y Laboratorios
+            </p>
           </div>
 
           {/* Error message */}
@@ -106,7 +103,10 @@ export default function LoginPage() {
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="email" className="block font-display font-bold text-sm text-[#002b45] tracking-widest mb-3">
+              <label
+                htmlFor="email"
+                className="block font-display font-bold text-sm text-[#002b45] tracking-widest mb-3"
+              >
                 CORREO ELECTRÓNICO
               </label>
               <input
@@ -121,7 +121,10 @@ export default function LoginPage() {
             </div>
 
             <div>
-              <label htmlFor="password" className="block font-display font-bold text-sm text-[#002b45] tracking-widest mb-3">
+              <label
+                htmlFor="password"
+                className="block font-display font-bold text-sm text-[#002b45] tracking-widest mb-3"
+              >
                 CONTRASEÑA
               </label>
               <input
@@ -144,19 +147,21 @@ export default function LoginPage() {
             >
               <div className="flex items-center justify-center gap-3">
                 <Sparkles className="w-5 h-5 text-[#9ABE00]" />
-                {isLoading ? 'INGRESANDO...' : 'INGRESAR'}
+                {isLoading ? 'INGRESANDO...' : 'INGRESAR A INVENTA'}
               </div>
             </motion.button>
           </form>
 
           {/* Footer info */}
-          <div className="mt-10 pt-8 border-t-2 border-brand-border">
-            <p className="text-center font-display font-bold text-xs text-gray-500 tracking-widest uppercase">
-              Credenciales de prueba: admin@escuela-iq.edu / admin123
+          <div className="mt-10 pt-6 border-t border-brand-border flex flex-col items-center gap-2">
+            <p className="text-center font-display font-bold text-[11px] text-gray-500 tracking-widest uppercase">
+              Credenciales de acceso: admin@escuela-iq.edu / admin123
             </p>
+            <span className="text-[10px] font-bold text-[#002b45]/60 tracking-widest uppercase">
+              Desarrollado por roo Soluciones Digitales
+            </span>
           </div>
         </motion.div>
-
       </div>
     </div>
   );

@@ -43,3 +43,4 @@ LABCAM_WINDOWS_SIN_DOCKER/
 LABCAM_PORTABLE_USB/
 *.zip
 backend/pgdata_local/
+*.rar

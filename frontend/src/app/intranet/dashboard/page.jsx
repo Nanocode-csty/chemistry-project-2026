@@ -186,13 +186,6 @@ export default function Dashboard() {
               <Plus className="w-4 h-4 mr-2" /> NUEVO PRÉSTAMO
             </Button>
           </Link>
-          {isAdmin && (
-            <Link href="/intranet/cms">
-              <Button variant="secondary" className="border-gray-200 text-slate-600 hover:bg-slate-50 font-bold tracking-wider text-[11px] px-6">
-                <Globe className="w-4 h-4 mr-2" /> EDITAR WEB
-              </Button>
-            </Link>
-          )}
         </div>
       </div>
 

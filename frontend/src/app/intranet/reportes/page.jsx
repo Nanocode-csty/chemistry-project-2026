@@ -331,7 +331,7 @@ export default function ReportesPage() {
     if (!datos || datos.length === 0) return;
     const worksheet = XLSX.utils.json_to_sheet(datos);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, 'Reporte LABCAM');
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Reporte INVENTA');
     XLSX.writeFile(
       workbook,
       `${nombreArchivo}-${new Date().toISOString().split('T')[0]}.xlsx`
@@ -342,11 +342,11 @@ export default function ReportesPage() {
     if (!datos || datos.length === 0) return;
     const doc = new jsPDF({ orientation: 'landscape' });
 
-    doc.setFillColor(0, 43, 69); // #002b45 LABCAM Navy
+    doc.setFillColor(0, 43, 69); // #002b45 INVENTA Navy
     doc.rect(0, 0, 297, 28, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(16);
-    doc.text(`LABCAM - ${titulo.toUpperCase()}`, 14, 15);
+    doc.text(`INVENTA | roo Soluciones Digitales - ${titulo.toUpperCase()}`, 14, 15);
     doc.setFontSize(9);
     doc.setTextColor(154, 190, 0); // #9ABE00 LABCAM Accent
     doc.text(
@@ -530,7 +530,7 @@ export default function ReportesPage() {
         <div className="flex flex-wrap gap-2">
           <Button
             onClick={() =>
-              exportarExcel(datosExportarConsolidado, 'consolidado-totales-labcam')
+              exportarExcel(datosExportarConsolidado, 'consolidado-totales-inventa')
             }
             variant="secondary"
             className="!py-3 !px-5 !text-xs"
@@ -542,7 +542,7 @@ export default function ReportesPage() {
               exportarPDF(
                 datosExportarInventarioDetallado,
                 'Reporte General de Inventario y Reactivos',
-                'inventario-labcam'
+                'inventario-inventa'
               )
             }
             variant="primary"
